@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLib - Resources</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .navbar {
+            background-color: #111827;
+            color: white;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            font-size: 14px;
+            color: #d1d5db;
+        }
+
+        .logout-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background-color: #dc2626;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 35px auto;
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: #6b7280;
+        }
+
+        .controls {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .search-box input:focus {
+            border-color: #2563eb;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 16px;
+            border: 1px solid #d1d5db;
+            background-color: white;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .filter-btn:hover {
+            background-color: #f3f4f6;
+        }
+
+        .filter-btn.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .resource-count {
+            margin-bottom: 15px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 20px;
+        }
+
+        .resource-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+            transition: transform 0.2s ease;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .resource-type {
+            display: inline-block;
+            background-color: #e5e7eb;
+            color: #374151;
+            font-size: 12px;
+            padding: 5px 9px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .resource-card h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .resource-card p {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .availability {
+            margin-bottom: 15px;
+        }
+
+        .availability-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 7px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 7px;
+            background-color: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: #22c55e;
+            border-radius: 10px;
+        }
+
+        .progress.low {
+            background-color: #f59e0b;
+        }
+
+        .progress.empty {
+            background-color: #ef4444;
+        }
+
+        .status {
+            font-size: 13px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .status.available {
+            color: #16a34a;
+        }
+
+        .status.unavailable {
+            color: #dc2626;
+        }
+
+        .reserve-btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .reserve-btn.available {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        .reserve-btn.available:hover {
+            background-color: #1d4ed8;
+        }
+
+        .reserve-btn.disabled {
+            background-color: #9ca3af;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            background-color: white;
+            padding: 50px;
+            text-align: center;
+            border-radius: 10px;
+            color: #6b7280;
+        }
+
+        .message {
+            position: fixed;
+            top: 80px;
+            right: 25px;
+            min-width: 280px;
+            padding: 15px 18px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .message.success {
+            background-color: #16a34a;
+        }
+
+        .message.error {
+            background-color: #dc2626;
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .nav-right {
+                gap: 10px;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .container {
+                width: 94%;
+            }
+
+            .page-header h1 {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">SmartLib</div>
+
+        <div class="nav-right">
+            <span class="user-info" id="userInfo">Loading...</span>
+
+            <button class="logout-btn" id="logoutBtn">
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="container">
+
+        <div class="page-header">
+            <h1>Library Resources</h1>
+            <p id="departmentText">
+                Loading department...
+            </p>
+        </div>
+
+        <section class="controls">
+
+            <div class="search-box">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search resources..."
+                >
+            </div>
+
+            <div class="filter-buttons">
+
+                <button
+                    class="filter-btn active"
+                    data-type="All"
+                >
+                    All
+                </button>
+
+                <button
+                    class="filter-btn"
+                    data-type="Book"
+                >
+                    Books
+                </button>
+
+                <button
+                    class="filter-btn"
+                    data-type="Equipment"
+                >
+                    Equipment
+                </button>
+
+            </div>
+
+        </section>
+
+        <div class="resource-count" id="resourceCount">
+            Loading resources...
+        </div>
+
+        <section
+            class="resources-grid"
+            id="resourcesGrid"
+        >
+        </section>
+
+    </main>
+
+    <div
+        class="message"
+        id="message"
+    >
+    </div>
+
+
+    <script>
+
+        /*
+        ============================================================
+        SMARTLIB - RESOURCE MANAGEMENT
+        ============================================================
+        */
+
+        /*
+        ------------------------------------------------------------
+        1. GET CURRENT USER
+        ------------------------------------------------------------
+        */
+
+        const currentUser =
+            JSON.parse(sessionStorage.getItem("currentUser"));
+
+        /*
+        If no user is logged in, send them to login page.
+        */
+
+        if (!currentUser) {
+            window.location.href = "login.html";
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        2. DOM ELEMENTS
+        ------------------------------------------------------------
+        */
+
+        const resourcesGrid =
+            document.getElementById("resourcesGrid");
+
+        const searchInput =
+            document.getElementById("searchInput");
+
+        const resourceCount =
+            document.getElementById("resourceCount");
+
+        const departmentText =
+            document.getElementById("departmentText");
+
+        const userInfo =
+            document.getElementById("userInfo");
+
+        const logoutBtn =
+            document.getElementById("logoutBtn");
+
+        const message =
+            document.getElementById("message");
+
+        const filterButtons =
+            document.querySelectorAll(".filter-btn");
+
+
+        /*
+        ------------------------------------------------------------
+        3. CURRENT FILTER
+        ------------------------------------------------------------
+        */
+
+        let currentFilter = "All";
+
+
+        /*
+        ------------------------------------------------------------
+        4. INITIAL RESOURCE DATA
+        ------------------------------------------------------------
+        */
+
+        const initialResources = [
+
+            {
+                id: "RES001",
+                name: "Data Structures & Algorithms",
+                type: "Book",
+                department: "CSE",
+                totalQuantity: 5,
+                availableQuantity: 5
+            },
+
+            {
+                id: "RES002",
+                name: "Operating Systems",
+                type: "Book",
+                department: "CSE",
+                totalQuantity: 4,
+                availableQuantity: 4
+            },
+
+            {
+                id: "RES003",
+                name: "Computer Networks",
+                type: "Book",
+                department: "CSE",
+                totalQuantity: 4,
+                availableQuantity: 4
+            },
+
+            {
+                id: "RES004",
+                name: "Scientific Calculator",
+                type: "Equipment",
+                department: "CSE",
+                totalQuantity: 5,
+                availableQuantity: 5
+            },
+
+            {
+                id: "RES005",
+                name: "Laptop",
+                type: "Equipment",
+                department: "CSE",
+                totalQuantity: 2,
+                availableQuantity: 2
+            },
+
+            {
+                id: "RES006",
+                name: "Machine Learning",
+                type: "Book",
+                department: "AI & ML",
+                totalQuantity: 5,
+                availableQuantity: 5
+            },
+
+            {
+                id: "RES007",
+                name: "Python Programming",
+                type: "Book",
+                department: "AI & ML",
+                totalQuantity: 5,
+                availableQuantity: 5
+            },
+
+            {
+                id: "RES008",
+                name: "GPU Workstation",
+                type: "Equipment",
+                department: "AI & ML",
+                totalQuantity: 2,
+                availableQuantity: 2
+            },
+
+            {
+                id: "RES009",
+                name: "Digital Electronics",
+                type: "Book",
+                department: "ECE",
+                totalQuantity: 5,
+                availableQuantity: 5
+            },
+
+            {
+                id: "RES010",
+                name: "Arduino Kit",
+                type: "Equipment",
+                department: "ECE",
+                totalQuantity: 3,
+                availableQuantity: 3
+            }
+
+        ];
+
+
+        /*
+        ------------------------------------------------------------
+        5. INITIALIZE LOCAL STORAGE
+        ------------------------------------------------------------
+        */
+
+        function initializeResources() {
+
+            const storedResources =
+                localStorage.getItem("libraryResources");
+
+            if (!storedResources) {
+
+                localStorage.setItem(
+                    "libraryResources",
+                    JSON.stringify(initialResources)
+                );
+
+            }
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        6. GET RESOURCES
+        ------------------------------------------------------------
+        */
+
+        function getResources() {
+
+            const resources =
+                localStorage.getItem("libraryResources");
+
+            if (!resources) {
+                return [];
+            }
+
+            return JSON.parse(resources);
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        7. SAVE RESOURCES
+        ------------------------------------------------------------
+        */
+
+        function saveResources(resources) {
+
+            localStorage.setItem(
+                "libraryResources",
+                JSON.stringify(resources)
+            );
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        8. GET RESERVATIONS
+        ------------------------------------------------------------
+        */
+
+        function getReservations() {
+
+            const reservations =
+                localStorage.getItem("libraryReservations");
+
+            if (!reservations) {
+                return [];
+            }
+
+            return JSON.parse(reservations);
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        9. SAVE RESERVATIONS
+        ------------------------------------------------------------
+        */
+
+        function saveReservations(reservations) {
+
+            localStorage.setItem(
+                "libraryReservations",
+                JSON.stringify(reservations)
+            );
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        10. GENERATE UNIQUE ID
+        ------------------------------------------------------------
+        */
+
+        function generateId(prefix) {
+
+            return (
+                prefix +
+                Date.now() +
+                Math.floor(Math.random() * 1000)
+            );
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        11. SHOW MESSAGE
+        ------------------------------------------------------------
+        */
+
+        function showMessage(text, type) {
+
+            message.textContent = text;
+
+            message.className =
+                "message " + type;
+
+            message.style.display = "block";
+
+            setTimeout(function () {
+
+                message.style.display = "none";
+
+            }, 3000);
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        12. DISPLAY USER INFORMATION
+        ------------------------------------------------------------
+        */
+
+        function displayUserInformation() {
+
+            userInfo.textContent =
+                currentUser.name +
+                " | " +
+                currentUser.department;
+
+            departmentText.textContent =
+                "Showing resources available in the " +
+                currentUser.department +
+                " department.";
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        13. GET ACTIVE RESERVATIONS FOR USER
+        ------------------------------------------------------------
+        */
+
+        function getActiveReservationsForUser() {
+
+            const reservations =
+                getReservations();
+
+            return reservations.filter(function (reservation) {
+
+                return (
+                    reservation.userId === currentUser.id &&
+                    reservation.status === "active"
+                );
+
+            });
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        14. CHECK WHETHER USER ALREADY RESERVED RESOURCE
+        ------------------------------------------------------------
+        */
+
+        function hasActiveReservation(resourceId) {
+
+            const reservations =
+                getReservations();
+
+            return reservations.some(function (reservation) {
+
+                return (
+                    reservation.userId === currentUser.id &&
+                    reservation.resourceId === resourceId &&
+                    reservation.status === "active"
+                );
+
+            });
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        15. RESERVE RESOURCE
+        ------------------------------------------------------------
+        */
+
+        function reserveResource(resourceId) {
+
+            const resources =
+                getResources();
+
+            const resource =
+                resources.find(function (item) {
+
+                    return item.id === resourceId;
+
+                });
+
+
+            /*
+            Resource doesn't exist
+            */
+
+            if (!resource) {
+
+                showMessage(
+                    "Resource not found.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            /*
+            Check availability
+            */
+
+            if (resource.availableQuantity <= 0) {
+
+                showMessage(
+                    "This resource is currently unavailable. Join the queue.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            /*
+            Check duplicate reservation
+            */
+
+            if (hasActiveReservation(resourceId)) {
+
+                showMessage(
+                    "You already have this resource reserved.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            /*
+            Check maximum reservation limit
+            */
+
+            const activeReservations =
+                getActiveReservationsForUser();
+
+            if (activeReservations.length >= 2) {
+
+                showMessage(
+                    "Maximum 2 active resource reservations allowed.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            /*
+            Create reservation
+            */
+
+            const reservations =
+                getReservations();
+
+            const newReservation = {
+
+                id: generateId("BOOK"),
+
+                resourceId: resource.id,
+
+                userId: currentUser.id,
+
+                resourceName: resource.name,
+
+                status: "active",
+
+                reservedAt:
+                    new Date().toISOString(),
+
+                returnedAt: null
+
+            };
+
+
+            /*
+            Add reservation
+            */
+
+            reservations.push(newReservation);
+
+
+            /*
+            Decrease resource quantity
+            */
+
+            resource.availableQuantity =
+                resource.availableQuantity - 1;
+
+
+            /*
+            Save both datasets
+            */
+
+            saveResources(resources);
+
+            saveReservations(reservations);
+
+
+            /*
+            Refresh UI
+            */
+
+            renderResources();
+
+
+            showMessage(
+                resource.name +
+                " reserved successfully!",
+                "success"
+            );
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        16. FILTER RESOURCES
+        ------------------------------------------------------------
+        */
+
+        function getFilteredResources() {
+
+            const resources =
+                getResources();
+
+
+            /*
+            First filter by department
+            */
+
+            let filteredResources =
+                resources.filter(function (resource) {
+
+                    return (
+                        resource.department ===
+                        currentUser.department
+                    );
+
+                });
+
+
+            /*
+            Filter by resource type
+            */
+
+            if (currentFilter !== "All") {
+
+                filteredResources =
+                    filteredResources.filter(function (resource) {
+
+                        return (
+                            resource.type ===
+                            currentFilter
+                        );
+
+                    });
+
+            }
+
+
+            /*
+            Filter by search text
+            */
+
+            const searchText =
+                searchInput.value
+                    .trim()
+                    .toLowerCase();
+
+
+            if (searchText !== "") {
+
+                filteredResources =
+                    filteredResources.filter(function (resource) {
+
+                        return (
+                            resource.name
+                                .toLowerCase()
+                                .includes(searchText) ||
+
+                            resource.type
+                                .toLowerCase()
+                                .includes(searchText)
+                        );
+
+                    });
+
+            }
+
+
+            return filteredResources;
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        17. RENDER RESOURCES
+        ------------------------------------------------------------
+        */
+
+        function renderResources() {
+
+            const resources =
+                getFilteredResources();
+
+
+            /*
+            Update count
+            */
+
+            resourceCount.textContent =
+                resources.length +
+                " resource type(s) available";
+
+
+            /*
+            Clear previous cards
+            */
+
+            resourcesGrid.innerHTML = "";
+
+
+            /*
+            No resources found
+            */
+
+            if (resources.length === 0) {
+
+                resourcesGrid.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No resources found</h3>
+                        <p>
+                            Try another search or category.
+                        </p>
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            /*
+            Create resource cards
+            */
+
+            resources.forEach(function (resource) {
+
+                const card =
+                    document.createElement("div");
+
+                card.className =
+                    "resource-card";
+
+
+                /*
+                Calculate availability percentage
+                */
+
+                const availabilityPercentage =
+                    (
+                        resource.availableQuantity /
+                        resource.totalQuantity
+                    ) * 100;
+
+
+                let progressClass = "";
+
+                if (resource.availableQuantity === 0) {
+
+                    progressClass = "empty";
+
+                }
+                else if (availabilityPercentage <= 40) {
+
+                    progressClass = "low";
+
+                }
+
+
+                /*
+                Determine availability status
+                */
+
+                let statusText = "";
+
+                let statusClass = "";
+
+                if (resource.availableQuantity > 0) {
+
+                    statusText = "Available";
+
+                    statusClass = "available";
+
+                }
+                else {
+
+                    statusText = "Currently Unavailable";
+
+                    statusClass = "unavailable";
+
+                }
+
+
+                /*
+                Determine button
+                */
+
+                let buttonHTML = "";
+
+
+                if (resource.availableQuantity > 0) {
+
+                    buttonHTML = `
+                        <button
+                            class="reserve-btn available"
+                            onclick="reserveResource('${resource.id}')"
+                        >
+                            Reserve
+                        </button>
+                    `;
+
+                }
+                else {
+
+                    buttonHTML = `
+                        <button
+                            class="reserve-btn disabled"
+                            disabled
+                        >
+                            Join Queue
+                        </button>
+                    `;
+
+                }
+
+
+                /*
+                Create complete card
+                */
+
+                card.innerHTML = `
+
+                    <span class="resource-type">
+                        ${resource.type}
+                    </span>
+
+                    <h3>
+                        ${resource.name}
+                    </h3>
+
+                    <p>
+                        Department:
+                        ${resource.department}
+                    </p>
+
+                    <div class="availability">
+
+                        <div class="availability-text">
+
+                            <span>
+                                Availability
+                            </span>
+
+                            <span>
+                                ${resource.availableQuantity}
+                                /
+                                ${resource.totalQuantity}
+                            </span>
+
+                        </div>
+
+                        <div class="progress-bar">
+
+                            <div
+                                class="progress ${progressClass}"
+                                style="width: ${availabilityPercentage}%"
+                            >
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="status ${statusClass}">
+                        ${statusText}
+                    </div>
+
+                    ${buttonHTML}
+
+                `;
+
+
+                resourcesGrid.appendChild(card);
+
+            });
+
+        }
+
+
+        /*
+        ------------------------------------------------------------
+        18. SEARCH EVENT
+        ------------------------------------------------------------
+        */
+
+        searchInput.addEventListener(
+            "input",
+            function () {
+
+                renderResources();
+
+            }
+        );
+
+
+        /*
+        ------------------------------------------------------------
+        19. FILTER BUTTON EVENTS
+        ------------------------------------------------------------
+        */
+
+        filterButtons.forEach(function (button) {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+
+                    /*
+                    Remove active class
+                    from all buttons
+                    */
+
+                    filterButtons.forEach(
+                        function (btn) {
+
+                            btn.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    /*
+                    Add active class
+                    to clicked button
+                    */
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    /*
+                    Update current filter
+                    */
+
+                    currentFilter =
+                        button.dataset.type;
+
+
+                    /*
+                    Render filtered resources
+                    */
+
+                    renderResources();
+
+                }
+            );
+
+        });
+
+
+        /*
+        ------------------------------------------------------------
+        20. LOGOUT
+        ------------------------------------------------------------
+        */
+
+        logoutBtn.addEventListener(
+            "click",
+            function () {
+
+                sessionStorage.removeItem(
+                    "currentUser"
+                );
+
+                window.location.href =
+                    "login.html";
+
+            }
+        );
+
+
+        /*
+        ------------------------------------------------------------
+        21. INITIALIZE APPLICATION
+        ------------------------------------------------------------
+        */
+
+        initializeResources();
+
+        displayUserInformation();
+
+        renderResources();
+
+    </script>
+
+</body>
+</html>
