@@ -356,7 +356,6 @@ function updateSeatStats() {
     document.getElementById("occupiedCount").textContent =
         occupiedSeats.length;
 }
-
 function displayQueue(seatId) {
 
     const queueContainer =
@@ -401,7 +400,6 @@ function displayQueue(seatId) {
     });
 }
 
-
 /* BUTTON EVENTS */
 
 document
@@ -412,15 +410,12 @@ document
 document
     .getElementById("releaseButton")
     .addEventListener("click", releaseSeat);
-
 document
     .getElementById("queueButton")
     .addEventListener("click", function () {
 
         if (selectedSeatId === null) {
-
             return;
-
         }
 
 
@@ -432,22 +427,19 @@ document
 
 
         if (!seat) {
-
             return;
-
         }
 
 
         const student = {
 
             id: currentUser.id,
-
             name: currentUser.name,
-
             department: currentUser.department,
-
             year: currentUser.year,
 
+            // Temporary until Anvi's exam system
+            // is connected.
             examStatus: "none"
 
         };
