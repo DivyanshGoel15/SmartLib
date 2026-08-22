@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLib | Create Account</title>
+    <link rel="stylesheet" href="signup.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="auth-page">
+        <section class="auth-intro">
+            <a href="landingpage.html" class="brand">SMARTLIB</a>
+            <div class="intro-copy">
+                <p class="eyebrow">SMART LIBRARY EXPERIENCE</p>
+                <h1>A smarter library starts with <em>better access.</em></h1>
+                <p>Join SmartLib to discover spaces, manage resources and stay connected to your university library.</p>
+            </div>
+            <div class="intro-features">
+                <span><b>01</b> DISCOVER</span>
+                <span><b>02</b> RESERVE</span>
+                <span><b>03</b> PRIORITISE</span>
+            </div>
+        </section>
+
+        <section class="auth-panel">
+            <div class="top-link">Already a member? <a href="login.html">Login →</a></div>
+
+            <div class="form-wrap">
+                <p class="eyebrow">CREATE ACCOUNT</p>
+                <h2>Welcome to SmartLib.</h2>
+                <p class="form-subtitle">Set up your account to enter the SmartLib workspace.</p>
+
+                <div id="message" class="message" role="alert"></div>
+
+                <form id="signupForm" novalidate>
+                    <div class="field">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" placeholder="Enter your full name" autocomplete="name">
+                        <small class="field-error" id="fullNameError"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="email">University Email</label>
+                        <input type="email" id="email" placeholder="you@university.edu" autocomplete="email">
+                        <small class="field-error" id="emailError"></small>
+                    </div>
+
+                    <div class="two-column" id="academicFields">
+                        <div class="field" id="departmentField">
+                            <label for="department">Department</label>
+                            <select id="department">
+                                <option value="">Select department</option>
+                                <option>CSE</option>
+                                <option>ECE</option>
+                                <option>Mechanical</option>
+                                <option>Civil</option>
+                                <option>Management</option>
+                            </select>
+                            <small class="field-error" id="departmentError"></small>
+                        </div>
+
+                        <div class="field" id="yearField">
+                            <label for="year">Year</label>
+                            <select id="year">
+                                <option value="">Select year</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                            </select>
+                            <small class="field-error" id="yearError"></small>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="role">Account Type</label>
+                        <select id="role">
+                            <option value="student">Student</option>
+                            <option value="faculty">Faculty</option>
+                                <option value="library_admin">Library Administration</option>
+                        </select>
+                        <small class="role-note">Faculty and Library Administration accounts have separate workspaces based on their role.</small>
+                    </div>
+
+                    <div class="two-column">
+                        <div class="field">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" placeholder="Use upper, lower, number & symbol" autocomplete="new-password">
+                            <div class="password-strength"><div id="passwordStrengthBar"></div></div>
+                            <small class="password-hint" id="passwordHint">Minimum 8 characters with uppercase, lowercase, number and special character.</small>
+                            <small class="field-error" id="passwordError"></small>
+                        </div>
+
+                        <div class="field">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword" placeholder="Re-enter password" autocomplete="new-password">
+                            <small class="field-error" id="confirmPasswordError"></small>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="primary-button">Create Account <span>→</span></button>
+                </form>
+            </div>
+        </section>
+    </main>
+    <script src="signup.js"></script>
+</body>
+</html>
