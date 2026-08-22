@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLib | Home</title>
+    <link rel="stylesheet" href="home.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="home.html">SMARTLIB</a>
+        <nav>
+            <a href="#overview">Overview</a>
+            <a href="#examStatus">Exam Status</a>
+            <a href="reservations.html">Reservations</a>
+            <a href="resources.html">Resources</a>
+        </nav>
+        <div class="user-area">
+            <span id="userName">Student</span>
+            <button id="logoutBtn" class="logout">Logout</button>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <section class="welcome" id="overview">
+            <div>
+                <p class="eyebrow">STUDENT WORKSPACE</p>
+                <h1>Good to see you, <span id="welcomeName">Student</span>.</h1>
+                <p class="welcome-text">Your SmartLib workspace keeps your department, study priorities and library activity in one place.</p>
+            </div>
+            <div class="profile-chip">
+                <span id="profileInitial">S</span>
+                <div><strong id="profileName">Student</strong><small id="profileDetails">Department · Year</small></div>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+            <article class="stat-card"><span>DEPARTMENT</span><strong id="departmentValue">—</strong><small>Your registered department</small></article>
+            <article class="stat-card"><span>YEAR</span><strong id="yearValue">—</strong><small>Your academic year</small></article>
+            <article class="stat-card"><span>RESERVATIONS</span><strong id="reservationCount">0</strong><small>Current reservations</small></article>
+        </section>
+
+        <section class="content-grid">
+            <article class="panel exam-panel" id="examStatus">
+                <div class="panel-heading">
+                    <div><p class="eyebrow">ACADEMIC PRIORITY</p><h2>Exam status</h2></div>
+                    <span id="examBadge" class="status-badge normal">NORMAL</span>
+                </div>
+                <div id="examContent" class="exam-content">
+                    <p>Checking your department's current examination schedule...</p>
+                </div>
+            </article>
+
+            <article class="panel quick-panel">
+                <p class="eyebrow">QUICK ACCESS</p>
+                <h2>Continue where you left off.</h2>
+                <a href="seats.html" class="quick-link"><span>01</span> Browse study seats <b>→</b></a>
+                <a href="resources.html" class="quick-link"><span>02</span> Explore resources <b>→</b></a>
+                <a href="reservations.html" class="quick-link"><span>03</span> View reservations <b>→</b></a>
+            </article>
+        </section>
+
+        <section class="notice">
+            <span>SMARTLIB / PRIORITY SYSTEM</span>
+            <p>During active examination periods, your academic urgency can be used by the reservation system when determining queue priority.</p>
+        </section>
+    </main>
+    <footer class="page-footer">
+        <div><strong>SMARTLIB</strong><span>UNIVERSITY LIBRARY EXPERIENCE</span></div>
+        <p>Smart spaces. Better access. Smarter study.</p>
+    </footer>
+    <script src="home.js"></script></body>
+</html>
