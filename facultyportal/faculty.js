@@ -1,6 +1,6 @@
 const currentUser = JSON.parse(sessionStorage.getItem("smartlibCurrentUser") || sessionStorage.getItem("currentUser") || "null");
 if (!currentUser || currentUser.role !== "faculty" || sessionStorage.getItem("smartlibLoggedIn") !== "true") {
-    window.location.href = "landingpage/login.html";
+    window.location.href = "../landingpage/login.html";
 }
 
 let exams = JSON.parse(localStorage.getItem("smartlibExams") || "[]");

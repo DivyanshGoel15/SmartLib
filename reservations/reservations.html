@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>SmartLib | My Reservations</title>
+
+    <link
+        rel="stylesheet"
+        href="reservations.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- ================= NAVBAR ================= -->
+
+    <header class="navbar">
+
+
+        <a
+            href="../home/home.html"
+            class="logo"
+        >
+
+            <div class="logo-symbol">
+                S
+            </div>
+
+            <div class="logo-text">
+                SMARTLIB
+            </div>
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="../home/home.html">
+                Home
+            </a>
+
+            <a href="../resources/resources.html">
+                Resources
+            </a>
+
+            <a
+                href="reservations.html"
+                class="active"
+            >
+                Reservations
+            </a>
+
+        </nav>
+
+
+        <div class="nav-buttons">
+
+            <span
+                class="user-name"
+                id="userInfo"
+            >
+                Loading...
+            </span>
+
+            <button
+                type="button"
+                class="logout-btn"
+                id="logoutBtn"
+            >
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ================= MAIN ================= -->
+
+    <main class="reservations-page">
+
+
+        <!-- ================= HEADER ================= -->
+
+        <section class="page-header">
+
+            <div class="page-header-content">
+
+                <div class="eyebrow">
+                    SMARTLIB / ACCOUNT
+                </div>
+
+                <h1>
+                    My
+                    <span>Reservations</span>
+                </h1>
+
+                <p
+                    class="department-text"
+                    id="departmentText"
+                >
+                    Loading department...
+                </p>
+
+            </div>
+
+
+            <div class="page-header-action">
+
+                <a
+                    href="../resources/resources.html"
+                    class="browse-button"
+                >
+
+                    Browse Resources
+
+                    <span>
+                        →
+                    </span>
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= STATS ================= -->
+
+        <section class="stats-grid">
+
+
+            <article class="stat-card">
+
+                <div class="stat-label">
+                    ACTIVE
+                </div>
+
+                <div
+                    class="stat-number"
+                    id="activeCount"
+                >
+                    0
+                </div>
+
+                <div class="stat-description">
+                    Current reservations
+                </div>
+
+            </article>
+
+
+            <article class="stat-card">
+
+                <div class="stat-label">
+                    QUEUE
+                </div>
+
+                <div
+                    class="stat-number"
+                    id="queueCount"
+                >
+                    0
+                </div>
+
+                <div class="stat-description">
+                    Waiting resources
+                </div>
+
+            </article>
+
+
+            <article class="stat-card">
+
+                <div class="stat-label">
+                    HISTORY
+                </div>
+
+                <div
+                    class="stat-number"
+                    id="historyCount"
+                >
+                    0
+                </div>
+
+                <div class="stat-description">
+                    Completed reservations
+                </div>
+
+            </article>
+
+
+        </section>
+
+
+
+        <!-- ================= ACTIVE RESERVATIONS ================= -->
+
+        <section class="reservation-section">
+
+
+            <div class="section-heading">
+
+                <div class="section-heading-title">
+
+                    <div class="section-number">
+                        01
+                    </div>
+
+                    <h2>
+                        Active Reservations
+                    </h2>
+
+                </div>
+
+                <p>
+                    Maximum 2 active reservations
+                </p>
+
+            </div>
+
+
+            <div
+                class="reservation-grid"
+                id="activeReservations"
+            >
+            </div>
+
+
+        </section>
+
+
+
+        <!-- ================= WAITING QUEUE ================= -->
+
+        <section class="reservation-section">
+
+
+            <div class="section-heading">
+
+                <div class="section-heading-title">
+
+                    <div class="section-number">
+                        02
+                    </div>
+
+                    <h2>
+                        Waiting Queue
+                    </h2>
+
+                </div>
+
+                <p>
+                    Resources currently unavailable
+                </p>
+
+            </div>
+
+
+            <div
+                class="reservation-grid"
+                id="queueReservations"
+            >
+            </div>
+
+
+        </section>
+
+
+
+        <!-- ================= HISTORY ================= -->
+
+        <section class="reservation-section">
+
+
+            <div class="section-heading">
+
+                <div class="section-heading-title">
+
+                    <div class="section-number">
+                        03
+                    </div>
+
+                    <h2>
+                        Reservation History
+                    </h2>
+
+                </div>
+
+                <p>
+                    Previously completed reservations
+                </p>
+
+            </div>
+
+
+            <div
+                class="reservation-grid"
+                id="reservationHistory"
+            >
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- ================= MESSAGE ================= -->
+
+    <div
+        class="message"
+        id="message"
+        role="alert"
+        aria-live="polite"
+    >
+    </div>
+
+
+
+    <!-- ================= JAVASCRIPT ================= -->
+
+    <script src="reservations.js"></script>
+
+
+</body>
+
+</html>
