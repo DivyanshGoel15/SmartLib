@@ -71,7 +71,8 @@ const currentUser = {
     id: 101,
     name: "Divyanjali",
     department: "CSE",
-    year: 2
+    year: 2,
+    examStatus: true
 };
 
 
@@ -239,12 +240,42 @@ function releaseSeat() {
 
         return;
     }
+    const queue = getQueue(selectedSeatId);
+
+    const isInQueue = queue.some(function (student) {
+
+        return student.userId === currentUser.id;
+
+    });
+
+    if (isInQueue) {
+
+        leaveQueueButton.disabled = false;
+    }
+    const nextStudent =
+        getNextStudent(seat.id);
 
 
-    seat.status = "available";
+   if (nextStudent) {
 
-    seat.occupantId = null;
+        seat.status = "occupied";
+        seat.occupantId =
+           nextStudent.userId;
+        removeFromQueue(
+           seat.id,
+           nextStudent.userId
+        );
+        alert(
+           `${nextStudent.name} automatically received ${seat.id}!`
+        );
+    } else {
+        seat.status = "available";
+        seat.occupantId = null;
+    }
     saveSeats(seats);
+
+
+   
 
 
     alert(`Seat ${seat.id} released successfully.`);
@@ -255,7 +286,7 @@ function releaseSeat() {
     document.getElementById("selectedSeat").textContent =
         "No seat selected";
 
-
+    displayQueue(seat.id);
     displaySeats();
 }
 
@@ -326,6 +357,9 @@ function updateButtons() {
         queueButton.disabled = false;
 
     }
+    const leaveQueueButton =
+        document.getElementById("leaveQueueButton");
+    leaveQueueButton.disabled = true;
 }
 
 
@@ -384,13 +418,27 @@ function displayQueue(seatId) {
             document.createElement("div");
 
 
+        const examText =
+            student.examStatus === true
+                ? "Exam Priority"
+                : "Regular";
+
+
+        const priority =
+            calculatePriority(student);
+
+
         studentCard.innerHTML = `
             <p>
-                <strong>Position:</strong> ${index + 1}
+                <strong>#${index + 1}</strong>
                 |
-                <strong>${student.name}</strong>
+                ${student.name}
                 |
                 Year ${student.year}
+                |
+                ${examText}
+                |
+                Priority: ${priority}
             </p>
         `;
 
@@ -440,7 +488,7 @@ document
 
             // Temporary until Anvi's exam system
             // is connected.
-            examStatus: "none"
+            examStatus: currentUser.examStatus
 
         };
 
@@ -466,6 +514,30 @@ document
         }
 
     });
+document
+    .getElementById("leaveQueueButton")
+    .addEventListener("click", function () {
+
+        if (selectedSeatId === null) {
+            return;
+        }
+
+        const removed =
+            removeFromQueue(
+                selectedSeatId,
+                currentUser.id
+            );
+
+        if (removed) {
+
+            alert("You left the queue.");
+
+            displayQueue(selectedSeatId);
+            updateButtons();
+
+        }
+
+    });   
 
 /* INITIAL DISPLAY */
 
