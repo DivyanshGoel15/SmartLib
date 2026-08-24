@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLib | Login</title>
+    <link rel="stylesheet" href="login.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="auth-page login-page">
+        <section class="auth-intro">
+            <a href="landingpage.html" class="brand">SMARTLIB</a>
+            <div class="intro-copy">
+                <p class="eyebrow">WELCOME BACK</p>
+                <h1>Your library. Your space. <em>Your way.</em></h1>
+                <p>Sign in to continue to your SmartLib workspace and manage your library experience.</p>
+            </div>
+            <div class="intro-features">
+                <span><b>01</b> DISCOVER</span>
+                <span><b>02</b> RESERVE</span>
+                <span><b>03</b> PRIORITISE</span>
+            </div>
+        </section>
+
+        <section class="auth-panel">
+            <div class="top-link">New to SmartLib? <a href="signup.html">Create account →</a></div>
+            <div class="form-wrap">
+                <p class="eyebrow">SIGN IN</p>
+                <h2>Welcome back.</h2>
+                <p class="form-subtitle">Enter your credentials to access your SmartLib account.</p>
+
+                <div id="message" class="message" role="alert"></div>
+
+                <form id="loginForm" novalidate>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="you@university.edu" autocomplete="email">
+                        <small class="field-error" id="emailError"></small>
+                    </div>
+
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
+                        <small class="field-error" id="passwordError"></small>
+                    </div>
+
+                    <button type="submit" class="primary-button">Login <span>→</span></button>
+                </form>
+
+                <div class="login-note">
+                    <span>SmartLib</span> uses your browser storage for this project evaluation. Your session is kept active only for the current browser session.
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="login.js"></script>
+</body>
+</html>

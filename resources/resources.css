@@ -1,0 +1,1266 @@
+/* =========================================================
+   SMARTLIB - RESOURCES
+   Matching Reservations UI
+   ========================================================= */
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   ROOT
+   ========================================================= */
+
+:root {
+
+    --cream: #f3efe7;
+    --cream-light: #faf8f3;
+
+    --charcoal: #171614;
+
+    --brown: #5a4636;
+    --brown-light: #8c7763;
+
+    --gold: #b59a68;
+
+    --text: #211f1c;
+    --muted: #746b61;
+
+    --border: rgba(23, 22, 20, 0.16);
+
+    --serif: "Playfair Display", Georgia, serif;
+    --sans: "DM Sans", Arial, sans-serif;
+
+}
+
+
+/* =========================================================
+   BODY
+   ========================================================= */
+
+html,
+body {
+
+    min-height: 100%;
+
+}
+
+
+body {
+
+    font-family: var(--sans);
+
+    background:
+        var(--cream);
+
+    color:
+        var(--text);
+
+}
+
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+a {
+
+    color:
+        inherit;
+
+    text-decoration:
+        none;
+
+}
+
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+.navbar {
+
+    width:
+        100%;
+
+    min-height:
+        72px;
+
+    padding:
+        0 6vw;
+
+    background:
+        var(--charcoal);
+
+    color:
+        var(--cream);
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    border-bottom:
+        1px solid
+        rgba(243, 239, 231, 0.12);
+
+}
+
+
+/* =========================================================
+   LOGO
+   ========================================================= */
+
+.logo {
+
+    font-family:
+        var(--sans);
+
+    font-size:
+        14px;
+
+    font-weight:
+        600;
+
+    letter-spacing:
+        3.5px;
+
+    color:
+        var(--cream);
+
+}
+
+
+/* =========================================================
+   NAV RIGHT
+   ========================================================= */
+
+.nav-right {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        24px;
+
+}
+
+
+/* =========================================================
+   USER INFO
+   ========================================================= */
+
+.user-info {
+
+    color:
+        rgba(243, 239, 231, 0.65);
+
+    font-size:
+        10px;
+
+    letter-spacing:
+        1px;
+
+}
+
+
+/* =========================================================
+   RESERVATIONS LINK
+   ========================================================= */
+
+.nav-right a {
+
+    color:
+        var(--cream);
+
+    font-size:
+        10px;
+
+    font-weight:
+        600;
+
+    letter-spacing:
+        1px;
+
+    text-transform:
+        uppercase;
+
+    padding-bottom:
+        4px;
+
+    border-bottom:
+        1px solid
+        transparent;
+
+    transition:
+        color .2s,
+        border-color .2s;
+
+}
+
+
+.nav-right a:hover {
+
+    color:
+        var(--gold);
+
+    border-color:
+        var(--gold);
+
+}
+
+
+/* =========================================================
+   LOGOUT BUTTON
+   ========================================================= */
+
+.logout-btn {
+
+    height:
+        38px;
+
+    padding:
+        0 18px;
+
+    border:
+        1px solid
+        rgba(243, 239, 231, 0.25);
+
+    border-radius:
+        0;
+
+    background:
+        transparent;
+
+    color:
+        var(--cream);
+
+    cursor:
+        pointer;
+
+    font:
+        600 10px var(--sans);
+
+    letter-spacing:
+        1px;
+
+    transition:
+        background .2s,
+        border-color .2s;
+
+}
+
+
+.logout-btn:hover {
+
+    background:
+        var(--brown);
+
+    border-color:
+        var(--brown);
+
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+.container {
+
+    width:
+        min(1200px, 88%);
+
+    margin:
+        0 auto;
+
+    padding:
+        55px 0 80px;
+
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.page-header {
+
+    display:
+        flex;
+
+    align-items:
+        flex-end;
+
+    justify-content:
+        space-between;
+
+    gap:
+        30px;
+
+    margin-bottom:
+        38px;
+
+    padding-bottom:
+        30px;
+
+    border-bottom:
+        1px solid
+        var(--border);
+
+}
+
+
+.page-header h1 {
+
+    font:
+        400 clamp(38px, 5vw, 58px) / 1.05
+        var(--serif);
+
+    letter-spacing:
+        -1px;
+
+}
+
+
+.page-header p {
+
+    margin-top:
+        12px;
+
+    color:
+        var(--muted);
+
+    font-size:
+        12px;
+
+    line-height:
+        1.7;
+
+}
+
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
+.controls {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        18px;
+
+    flex-wrap:
+        wrap;
+
+    margin-bottom:
+        22px;
+
+    padding:
+        20px;
+
+    background:
+        var(--cream-light);
+
+    border:
+        1px solid
+        var(--border);
+
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.search-box {
+
+    flex:
+        1;
+
+    min-width:
+        250px;
+
+}
+
+
+.search-box input {
+
+    width:
+        100%;
+
+    height:
+        46px;
+
+    padding:
+        0 14px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius:
+        0;
+
+    outline:
+        none;
+
+    background:
+        #fffdf9;
+
+    color:
+        var(--text);
+
+    font:
+        400 12px var(--sans);
+
+    transition:
+        border-color .2s,
+        box-shadow .2s;
+
+}
+
+
+.search-box input::placeholder {
+
+    color:
+        var(--muted);
+
+}
+
+
+.search-box input:focus {
+
+    border-color:
+        var(--brown-light);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(90, 70, 54, .07);
+
+}
+
+
+/* =========================================================
+   FILTER BUTTONS
+   ========================================================= */
+
+.filter-buttons {
+
+    display:
+        flex;
+
+    gap:
+        8px;
+
+    flex-wrap:
+        wrap;
+
+}
+
+
+.filter-btn {
+
+    height:
+        42px;
+
+    padding:
+        0 16px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius:
+        0;
+
+    background:
+        transparent;
+
+    color:
+        var(--muted);
+
+    cursor:
+        pointer;
+
+    font:
+        600 10px var(--sans);
+
+    letter-spacing:
+        .7px;
+
+    text-transform:
+        uppercase;
+
+    transition:
+        background .2s,
+        color .2s,
+        border-color .2s;
+
+}
+
+
+.filter-btn:hover {
+
+    background:
+        rgba(90, 70, 54, .06);
+
+    color:
+        var(--brown);
+
+}
+
+
+.filter-btn.active {
+
+    background:
+        var(--charcoal);
+
+    color:
+        var(--cream);
+
+    border-color:
+        var(--charcoal);
+
+}
+
+
+/* =========================================================
+   RESOURCE COUNT
+   ========================================================= */
+
+.resource-count {
+
+    margin:
+        28px 0 15px;
+
+    color:
+        var(--muted);
+
+    font-size:
+        10px;
+
+    font-weight:
+        600;
+
+    letter-spacing:
+        1.5px;
+
+    text-transform:
+        uppercase;
+
+}
+
+
+/* =========================================================
+   RESOURCES GRID
+   ========================================================= */
+
+.resources-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(280px, 1fr)
+        );
+
+    gap:
+        18px;
+
+}
+
+
+/* =========================================================
+   RESOURCE CARD
+   ========================================================= */
+
+.resource-card {
+
+    position:
+        relative;
+
+    background:
+        var(--cream-light);
+
+    border:
+        1px solid
+        var(--border);
+
+    padding:
+        26px;
+
+    min-height:
+        300px;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    transition:
+        transform .2s,
+        box-shadow .2s,
+        border-color .2s;
+
+}
+
+
+.resource-card:hover {
+
+    transform:
+        translateY(-3px);
+
+    border-color:
+        rgba(90, 70, 54, .35);
+
+    box-shadow:
+        0 10px 28px
+        rgba(23, 22, 20, .07);
+
+}
+
+
+/* =========================================================
+   RESOURCE TYPE
+   ========================================================= */
+
+.resource-type {
+
+    display:
+        inline-block;
+
+    width:
+        fit-content;
+
+    padding:
+        6px 10px;
+
+    margin-bottom:
+        18px;
+
+    border:
+        1px solid
+        rgba(181, 154, 104, .45);
+
+    color:
+        var(--brown);
+
+    font-size:
+        9px;
+
+    font-weight:
+        600;
+
+    letter-spacing:
+        1.5px;
+
+    text-transform:
+        uppercase;
+
+}
+
+
+/* =========================================================
+   RESOURCE TITLE
+   ========================================================= */
+
+.resource-card h3 {
+
+    font:
+        400 25px / 1.2
+        var(--serif);
+
+    color:
+        var(--text);
+
+    margin-bottom:
+        10px;
+
+}
+
+
+.resource-card > p {
+
+    color:
+        var(--muted);
+
+    font-size:
+        11px;
+
+    line-height:
+        1.7;
+
+}
+
+
+/* =========================================================
+   AVAILABILITY
+   ========================================================= */
+
+.availability {
+
+    margin-top:
+        auto;
+
+    padding-top:
+        25px;
+
+}
+
+
+.availability-text {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    margin-bottom:
+        8px;
+
+    color:
+        var(--muted);
+
+    font-size:
+        9px;
+
+    font-weight:
+        600;
+
+    letter-spacing:
+        1px;
+
+    text-transform:
+        uppercase;
+
+}
+
+
+/* =========================================================
+   PROGRESS BAR
+   ========================================================= */
+
+.progress-bar {
+
+    width:
+        100%;
+
+    height:
+        4px;
+
+    background:
+        rgba(23, 22, 20, .10);
+
+    overflow:
+        hidden;
+
+}
+
+
+.progress {
+
+    height:
+        100%;
+
+    background:
+        var(--brown);
+
+    transition:
+        width .3s ease;
+
+}
+
+
+.progress.low {
+
+    background:
+        var(--gold);
+
+}
+
+
+.progress.empty {
+
+    background:
+        #9b4d42;
+
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.status {
+
+    margin-top:
+        15px;
+
+    margin-bottom:
+        14px;
+
+    font-size:
+        9px;
+
+    font-weight:
+        600;
+
+    letter-spacing:
+        1.5px;
+
+    text-transform:
+        uppercase;
+
+}
+
+
+.status.available {
+
+    color:
+        #657f5f;
+
+}
+
+
+.status.unavailable {
+
+    color:
+        #9b4d42;
+
+}
+
+
+/* =========================================================
+   RESERVE BUTTON
+   ========================================================= */
+
+.reserve-btn {
+
+    width:
+        100%;
+
+    height:
+        45px;
+
+    border:
+        0;
+
+    border-radius:
+        0;
+
+    cursor:
+        pointer;
+
+    font:
+        600 10px var(--sans);
+
+    letter-spacing:
+        1px;
+
+    text-transform:
+        uppercase;
+
+    transition:
+        background .2s,
+        transform .2s;
+
+}
+
+
+.reserve-btn.available {
+
+    background:
+        var(--charcoal);
+
+    color:
+        var(--cream);
+
+}
+
+
+.reserve-btn.available:hover {
+
+    background:
+        var(--brown);
+
+    transform:
+        translateY(-1px);
+
+}
+
+
+.reserve-btn.disabled {
+
+    background:
+        rgba(23, 22, 20, .12);
+
+    color:
+        var(--muted);
+
+    cursor:
+        not-allowed;
+
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.empty-state {
+
+    grid-column:
+        1 / -1;
+
+    background:
+        var(--cream-light);
+
+    padding:
+        55px 25px;
+
+    border:
+        1px solid
+        var(--border);
+
+    text-align:
+        center;
+
+}
+
+
+.empty-state h3 {
+
+    font:
+        400 28px
+        var(--serif);
+
+    color:
+        var(--text);
+
+    margin-bottom:
+        9px;
+
+}
+
+
+.empty-state p {
+
+    color:
+        var(--muted);
+
+    font-size:
+        11px;
+
+}
+
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+.message {
+
+    position:
+        fixed;
+
+    top:
+        90px;
+
+    right:
+        25px;
+
+    min-width:
+        280px;
+
+    max-width:
+        400px;
+
+    padding:
+        14px 17px;
+
+    border:
+        1px solid
+        var(--border);
+
+    background:
+        var(--cream-light);
+
+    color:
+        var(--text);
+
+    font-size:
+        11px;
+
+    line-height:
+        1.5;
+
+    display:
+        none;
+
+    z-index:
+        1000;
+
+    box-shadow:
+        0 10px 30px
+        rgba(23, 22, 20, .12);
+
+}
+
+
+.message.success {
+
+    border-left:
+        3px solid
+        #657f5f;
+
+    color:
+        #3f5d3f;
+
+}
+
+
+.message.error {
+
+    border-left:
+        3px solid
+        #9b4d42;
+
+    color:
+        #7c342c;
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .navbar {
+
+        padding:
+            0 20px;
+
+    }
+
+
+    .nav-right {
+
+        gap:
+            12px;
+
+    }
+
+
+    .user-info {
+
+        display:
+            none;
+
+    }
+
+
+    .container {
+
+        width:
+            92%;
+
+        padding-top:
+            35px;
+
+    }
+
+
+    .page-header {
+
+        flex-direction:
+            column;
+
+        align-items:
+            flex-start;
+
+        gap:
+            15px;
+
+    }
+
+
+    .page-header h1 {
+
+        font-size:
+            40px;
+
+    }
+
+
+    .controls {
+
+        padding:
+            15px;
+
+    }
+
+
+    .search-box {
+
+        width:
+            100%;
+
+        min-width:
+            100%;
+
+    }
+
+
+    .filter-buttons {
+
+        width:
+            100%;
+
+    }
+
+
+    .filter-btn {
+
+        flex:
+            1;
+
+    }
+
+
+    .resources-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .resource-card {
+
+        min-height:
+            280px;
+
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .navbar {
+
+        min-height:
+            64px;
+
+    }
+
+
+    .logo {
+
+        font-size:
+            12px;
+
+        letter-spacing:
+            2.5px;
+
+    }
+
+
+    .nav-right a {
+
+        display:
+            none;
+
+    }
+
+
+    .logout-btn {
+
+        height:
+            34px;
+
+        padding:
+            0 13px;
+
+        font-size:
+            9px;
+
+    }
+
+
+    .container {
+
+        width:
+            90%;
+
+        padding-bottom:
+            50px;
+
+    }
+
+
+    .page-header h1 {
+
+        font-size:
+            36px;
+
+    }
+
+
+    .resource-card {
+
+        padding:
+            22px;
+
+    }
+
+
+    .resource-card h3 {
+
+        font-size:
+            23px;
+
+    }
+
+
+    .message {
+
+        right:
+            15px;
+
+        left:
+            15px;
+
+        min-width:
+            auto;
+
+    }
+
+}

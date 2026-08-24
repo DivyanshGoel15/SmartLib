@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLib | Faculty Workspace</title>
+    <link rel="stylesheet" href="faculty.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="faculty.html">SMARTLIB</a>
+    <div class="portal-title">FACULTY WORKSPACE</div>
+    <div class="user-area"><span id="facultyName">Faculty</span><button id="logoutBtn" class="logout">Logout</button></div>
+</header>
+
+<main class="faculty-shell">
+    <section class="hero-row">
+        <div>
+            <p class="eyebrow">FACULTY WORKSPACE</p>
+            <h1>Good to see you, <span id="welcomeName">Faculty</span>.</h1>
+            <p>Manage the academic information relevant to your department without accessing institution-wide student data.</p>
+        </div>
+        <div class="department-card">
+            <span>YOUR DEPARTMENT</span>
+            <strong id="departmentValue">—</strong>
+        </div>
+    </section>
+
+    <section class="stats-grid">
+        <article class="stat"><span>DEPARTMENT</span><strong id="departmentStat">—</strong><small>Your assigned department</small></article>
+        <article class="stat"><span>ACTIVE EXAMS</span><strong id="activeExamCount">0</strong><small>Currently running in your department</small></article>
+        <article class="stat"><span>UPCOMING</span><strong id="upcomingExamCount">0</strong><small>Upcoming department examinations</small></article>
+    </section>
+
+    <section class="content-grid">
+        <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">ACADEMIC SCHEDULE</p><h2>Your department exams</h2></div><button id="addFacultyExamBtn" class="primary-button">+ Add Exam</button></div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Year</th><th>Examination</th><th>Schedule</th><th>Status</th></tr></thead>
+                    <tbody id="examTableBody"></tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="panel resource-panel">
+            <p class="eyebrow">FACULTY RESOURCES</p>
+            <h2>Library resources.</h2>
+            <p>Browse the same SmartLib resource catalogue available to your department and guide students toward useful materials.</p>
+            <a href="../resources/resources.html" class="resource-button">Explore Resources <span>→</span></a>
+        </article>
+
+        <article class="panel note-panel">
+            <p class="eyebrow">FACULTY ACCESS</p>
+            <h2>A focused workspace.</h2>
+            <p>You can view the academic schedule associated with your department. Institution-wide student accounts and stream summaries are reserved for Library Administration.</p>
+            <div class="access-list">
+                <div><span>01</span><p>View department examination schedules</p></div>
+                <div><span>02</span><p>Monitor active academic periods</p></div>
+                <div><span>03</span><p>Support the SmartLib priority system</p></div>
+            </div>
+        </article>
+    </section>
+
+    <section class="data-note"><span>SMARTLIB / ROLE-BASED ACCESS</span><p>Faculty accounts see only the academic information relevant to their department. Library Administration has access to the institution-wide library data view.</p></section>
+</main>
+
+<footer class="page-footer">
+    <div><strong>SMARTLIB</strong><span>FACULTY WORKSPACE</span></div>
+    <p>Academic support, resources and examination planning.</p>
+</footer>
+
+<div id="facultyExamModal" class="modal hidden">
+    <div class="modal-card">
+        <button id="closeFacultyModal" class="close">×</button>
+        <p class="eyebrow">ADD EXAMINATION</p>
+        <h2>Schedule a department exam.</h2>
+        <form id="facultyExamForm">
+            <label>Year<select id="facultyExamYear" required><option value="">Select year</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></label>
+            <label>Exam Name<input id="facultyExamName" type="text" placeholder="e.g. Internal Assessment" required></label>
+            <div class="two-column"><label>Start Date<input id="facultyExamStart" type="date" required></label><label>End Date<input id="facultyExamEnd" type="date" required></label></div>
+            <p id="facultyModalError" class="modal-error"></p>
+            <button class="primary-button" type="submit">Save Examination <span>→</span></button>
+        </form>
+    </div>
+</div>
+<script src="faculty.js"></script></body>
+</html>

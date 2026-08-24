@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLib | Library Administration</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="admin.html">SMARTLIB</a>
+        <div class="portal-title">LIBRARY ADMINISTRATION</div>
+        <div class="user-area"><span id="adminName">Faculty</span><button id="logoutBtn" class="logout">Logout</button></div>
+    </header>
+
+    <main class="admin-shell">
+        <section class="admin-header">
+            <div><p class="eyebrow">LIBRARY ADMINISTRATION</p><h1>Library overview.</h1><p>Monitor institution-wide library data, academic schedules and student activity across every stream.</p></div>
+            <button id="addExamBtn" class="primary-button">+ Add Exam</button>
+        </section>
+
+        <section class="stats-grid">
+            <article class="stat"><span>REGISTERED STUDENTS</span><strong id="userCount">0</strong></article>
+            <article class="stat"><span>ACTIVE EXAMS</span><strong id="activeExamCount">0</strong></article>
+            <article class="stat"><span>DEPARTMENTS</span><strong id="departmentCount">5</strong></article>
+        </section>
+
+        <section class="stream-section panel">
+            <div class="panel-heading"><div><p class="eyebrow">INSTITUTION-WIDE VIEW</p><h2>Streams at a glance</h2></div><span class="stream-note">Student accounts only</span></div>
+            <div id="streamGrid" class="stream-grid"></div>
+        </section>
+
+        <section class="management-grid">
+            <article class="panel">
+                <div class="panel-heading"><div><p class="eyebrow">ACADEMIC DATA</p><h2>Exam management</h2></div><span id="examMessage" class="inline-message"></span></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Department</th><th>Year</th><th>Exam</th><th>Schedule</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="examTableBody"></tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="panel users-panel">
+                <div class="student-panel-heading"><div><p class="eyebrow">STUDENT DATA</p><h2>Students by stream</h2></div><button id="addStudentBtn" class="primary-button small-button">+ Add Student</button></div>
+                <div id="userList" class="user-list"></div>
+            </article>
+        </section>
+
+        <section class="data-note"><span>SMARTLIB / DATA STORAGE</span><p>For this evaluation, SmartLib stores student accounts and academic schedules in the browser's localStorage. Library Administration can view institution-wide student data; faculty accounts have a separate department-focused workspace.</p></section>
+    <section class="admin-section" id="studentDirectoryTools"><div class="section-heading"><span class="eyebrow">STUDENT DIRECTORY</span><h2>Find students</h2></div><div class="directory-tools"><input id="studentSearch" type="search" placeholder="Search by name or email"><select id="studentDepartmentFilter"><option value="">All departments</option></select><select id="studentYearFilter"><option value="">All years</option><option>1st</option><option>2nd</option><option>3rd</option><option>4th</option></select><select id="studentSort"><option value="nameAsc">Name A–Z</option><option value="nameDesc">Name Z–A</option><option value="year">Year</option><option value="department">Department</option></select></div><div id="studentDirectory" class="student-directory"></div></section><section class="admin-section"><div class="section-heading"><span class="eyebrow">ACTIVITY</span><h2>Recent activity</h2></div><div id="activityFeed"></div></section></main>
+
+    <footer class="page-footer">
+        <div><strong>SMARTLIB</strong><span>LIBRARY ADMINISTRATION</span></div>
+        <p>Institution-wide library data and academic coordination.</p>
+    </footer>
+
+    <div id="studentModal" class="modal hidden">
+        <div class="modal-card">
+            <button id="closeStudentModal" class="close">×</button>
+            <p class="eyebrow">ADD STUDENT</p>
+            <h2>Register a student.</h2>
+            <form id="studentForm">
+                <label>Full Name<input id="studentName" type="text" placeholder="Student full name" required></label>
+                <label>University Email<input id="studentEmail" type="email" placeholder="student@university.edu" required></label>
+                <div class="two-column"><label>Department<select id="studentDepartment" required><option value="">Select department</option><option>CSE</option><option>ECE</option><option>Mechanical</option><option>Civil</option><option>Management</option></select></label><label>Year<select id="studentYear" required><option value="">Select year</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></label></div>
+                <label>Temporary Password<input id="studentPassword" type="password" placeholder="Upper + lower + number + symbol" required></label>
+                <p class="modal-helper">Password must be at least 8 characters and include uppercase, lowercase, number and special character.</p>
+                <p id="studentModalError" class="modal-error"></p>
+                <button class="primary-button" type="submit">Add Student <span>→</span></button>
+            </form>
+        </div>
+    </div>
+
+    <div id="examModal" class="modal hidden">
+        <div class="modal-card">
+            <button id="closeModal" class="close">×</button>
+            <p class="eyebrow" id="modalEyebrow">ADD EXAM</p>
+            <h2 id="modalTitle">Add examination</h2>
+            <form id="examForm">
+                <input type="hidden" id="examId">
+                <label>Department<select id="examDepartment" required><option value="">Select department</option><option>CSE</option><option>ECE</option><option>Mechanical</option><option>Civil</option><option>Management</option></select></label>
+                <label>Year<select id="examYear" required><option value="">Select year</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></label>
+                <label>Exam Name<input id="examName" type="text" placeholder="e.g. End Semester Examination" required></label>
+                <div class="two-column"><label>Start Date<input id="examStart" type="date" required></label><label>End Date<input id="examEnd" type="date" required></label></div>
+                <p id="modalError" class="modal-error"></p>
+                <button class="primary-button" type="submit">Save Examination <span>→</span></button>
+            </form>
+        </div>
+    </div>
+    <script src="admin.js"></script></body>
+</html>
