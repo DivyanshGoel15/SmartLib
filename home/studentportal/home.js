@@ -31,7 +31,7 @@ if (
 ) {
 
     window.location.href =
-        "../landingpage/login.html";
+        "/landingpage/login.html";
 
 }
 
@@ -985,7 +985,8 @@ if (logoutButton) {
             );
 
 
-            window.location.href = "../../landingpage/landingpage.html";
+            window.location.href =
+                "/landingpage/login.html";
 
         }
     );
