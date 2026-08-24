@@ -1,210 +1,898 @@
+/* =========================================================
+   SMARTLIB — SEAT RESERVATION
+   ========================================================= */
+
+:root {
+    --cream: #f3efe7;
+    --cream-light: #faf8f3;
+    --charcoal: #171614;
+    --brown: #5a4636;
+    --brown-light: #8c7763;
+    --gold: #b59a68;
+    --text: #211f1c;
+    --muted: #746b61;
+    --border: rgba(23, 22, 20, 0.14);
+
+    --green: #5f7456;
+    --green-bg: #e8eee5;
+
+    --red: #9b4d42;
+    --red-bg: #f5e4e1;
+
+    --grey: #858079;
+    --grey-bg: #e7e4df;
+
+    --blue: #4f647d;
+
+    --serif: "Playfair Display", Georgia, serif;
+    --sans: "DM Sans", Arial, sans-serif;
+}
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
-    color: #222;
+    min-height: 100vh;
+
+    background: var(--cream);
+
+    color: var(--text);
+
+    font-family: var(--sans);
+
+    line-height: 1.5;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
 }
 
 
-/* NAVBAR */
+/* =========================================================
+   NAVBAR
+   ========================================================= */
 
 .navbar {
-    background-color: #1f2937;
-    color: white;
+    height: 78px;
 
-    padding: 18px 40px;
+    padding: 0 6vw;
+
+    background: var(--charcoal);
+
+    color: var(--cream);
 
     display: flex;
-    justify-content: space-between;
     align-items: center;
+
+    gap: 35px;
+
+    border-bottom: 1px solid rgba(243, 239, 231, 0.15);
+
+    position: sticky;
+    top: 0;
+
+    z-index: 100;
+}
+
+.navbar .brand,
+.navbar .logo {
+    font-size: 14px;
+
+    font-weight: 600;
+
+    letter-spacing: 3.5px;
+
+    white-space: nowrap;
 }
 
 .navbar nav {
     display: flex;
-    gap: 25px;
+
+    align-items: center;
+
+    gap: 28px;
+
+    margin-left: auto;
 }
 
-.navbar a {
-    color: white;
-    text-decoration: none;
+.navbar nav a {
+    color: rgba(243, 239, 231, 0.62);
+
+    font-size: 10px;
+
+    letter-spacing: 1px;
+
+    transition: color 0.2s ease;
+}
+
+.navbar nav a:hover {
+    color: var(--gold);
+}
+
+.navbar > a {
+    color: var(--cream);
 }
 
 
-/* MAIN */
+/* =========================================================
+   MAIN
+   ========================================================= */
 
 main {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 0 25px;
+    width: min(1180px, 86vw);
+
+    margin: 0 auto;
+
+    padding: 70px 0 90px;
 }
 
 
-/* HEADER */
+/* =========================================================
+   LIBRARY HEADER
+   ========================================================= */
 
 .library-header {
-    text-align: center;
-    margin-bottom: 40px;
+    position: relative;
+
+    padding-bottom: 45px;
+
+    border-bottom: 1px solid var(--border);
+
+    margin-bottom: 35px;
+}
+
+.library-header::after {
+    content: "";
+
+    position: absolute;
+
+    right: 0;
+    bottom: -1px;
+
+    width: 80px;
+
+    height: 1px;
+
+    background: var(--gold);
+}
+
+.library-header .eyebrow {
+    margin-bottom: 15px;
+
+    color: var(--brown);
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    letter-spacing: 3px;
 }
 
 .library-header h1 {
-    font-size: 36px;
-    margin-bottom: 10px;
+    max-width: 750px;
+
+    font: 400 clamp(42px, 5vw, 66px) / 1.05 var(--serif);
+
+    letter-spacing: -1px;
+
+    color: var(--charcoal);
 }
 
 .library-header p {
-    color: #666;
+    max-width: 650px;
+
+    margin-top: 18px;
+
+    color: var(--muted);
+
+    font-size: 14px;
+
+    line-height: 1.8;
 }
 
 
-/* STATS */
+/* =========================================================
+   STATS
+   ========================================================= */
 
 .seat-stats {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 25px;
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 14px;
+
+    margin: 0 0 45px;
 }
 
 .stat-card {
-    background-color: white;
-    padding: 20px 35px;
-    border-radius: 10px;
-    min-width: 140px;
+    min-height: 125px;
 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 24px 25px;
+
+    background: var(--cream-light);
+
+    border: 1px solid var(--border);
+
+    border-radius: 0;
+
+    box-shadow: none;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+
+    border-color: rgba(90, 70, 54, 0.3);
 }
 
 .stat-card h3 {
-    font-size: 28px;
+    font: 400 34px var(--serif);
+
+    color: var(--charcoal);
+
+    margin-bottom: 5px;
+}
+
+.stat-card p,
+.stat-card span {
+    color: var(--muted);
+
+    font-size: 9px;
+
+    letter-spacing: 1.8px;
+
+    text-transform: uppercase;
 }
 
 
-/* SEATS */
+/* =========================================================
+   SEAT SECTION
+   ========================================================= */
 
 .seat-section {
-    background-color: white;
-    padding: 30px;
-    border-radius: 12px;
-    margin-bottom: 30px;
+    padding: 35px;
+
+    background: var(--cream-light);
+
+    border: 1px solid var(--border);
+
+    border-radius: 0;
+
+    margin-bottom: 18px;
 }
 
 .seat-section h2 {
-    margin-bottom: 25px;
+    font: 400 34px var(--serif);
+
+    color: var(--charcoal);
+
+    margin-bottom: 8px;
 }
+
+.seat-section > p {
+    color: var(--muted);
+
+    font-size: 12px;
+
+    margin-bottom: 28px;
+}
+
+
+/* =========================================================
+   SEAT LEGEND
+   ========================================================= */
+
+.seat-legend {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 20px;
+
+    padding: 15px 0;
+
+    margin-bottom: 25px;
+
+    border-top: 1px solid var(--border);
+
+    border-bottom: 1px solid var(--border);
+}
+
+.seat-legend span {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    color: var(--muted);
+
+    font-size: 9px;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
+}
+
+.seat-legend i {
+    display: inline-block;
+
+    width: 10px;
+    height: 10px;
+
+    border-radius: 50%;
+}
+
+.legend-available {
+    background: var(--green);
+}
+
+.legend-occupied {
+    background: var(--red);
+}
+
+.legend-restricted {
+    background: var(--grey);
+}
+
+
+/* =========================================================
+   SEAT GRID
+   ========================================================= */
 
 .seat-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+
+    grid-template-columns: repeat(5, 1fr);
+
+    gap: 13px;
 }
 
 
-/* SEAT CARD */
+/* =========================================================
+   SEAT CARD
+   ========================================================= */
 
 .seat {
-    padding: 25px 15px;
-    border-radius: 10px;
+    position: relative;
+
+    min-height: 105px;
+
+    padding: 20px 12px;
+
+    border-radius: 0;
+
     text-align: center;
 
     cursor: pointer;
 
-    border: 2px solid transparent;
+    border: 1px solid transparent;
 
-    transition: 0.2s;
+    background: white;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+}
+
+.seat::before {
+    content: "";
+
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    margin-bottom: 10px;
+
+    background: currentColor;
+
+    opacity: 0.8;
 }
 
 .seat h3 {
-    margin-bottom: 8px;
+    margin-bottom: 5px;
+
+    font: 500 15px var(--sans);
+
+    letter-spacing: 0.5px;
 }
 
 .seat p {
-    font-size: 14px;
+    font-size: 8px;
+
+    letter-spacing: 1.5px;
+
+    text-transform: uppercase;
 }
 
 
-/* AVAILABLE */
+/* =========================================================
+   AVAILABLE
+   ========================================================= */
 
-.available {
-    background-color: #dcfce7;
-    border-color: #22c55e;
+.seat.available {
+    background: var(--green-bg);
+
+    border-color: rgba(95, 116, 86, 0.3);
+
+    color: var(--green);
 }
 
-.available:hover {
+.seat.available:hover {
     transform: translateY(-3px);
+
+    border-color: var(--green);
+
+    box-shadow: 0 8px 20px rgba(95, 116, 86, 0.13);
 }
 
 
-/* OCCUPIED */
+/* =========================================================
+   OCCUPIED
+   ========================================================= */
 
-.occupied {
-    background-color: #fee2e2;
-    border-color: #ef4444;
-    cursor: not-allowed;
-}
+.seat.occupied {
+    background: var(--red-bg) !important;
 
+    border-color: rgba(155, 77, 66, 0.4) !important;
 
-/* SELECTED */
-
-.selected {
-    border: 3px solid #2563eb;
-    transform: translateY(-3px);
-}
-
-
-/* SELECTION */
-
-.selection-section {
-    background-color: white;
-    padding: 30px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-}
-
-.selection-section h2 {
-    margin-bottom: 15px;
-}
-
-.selection-section button {
-    margin-top: 20px;
-    margin-right: 10px;
-
-    padding: 12px 20px;
-
-    border: none;
-    border-radius: 7px;
+    color: var(--red);
 
     cursor: pointer;
 }
 
-#reserveButton {
-    background-color: #2563eb;
-    color: white;
+.seat.occupied::before {
+    background: var(--red);
 }
+
+.seat.occupied h3 {
+    color: var(--red);
+}
+
+.seat.occupied p {
+    color: var(--red);
+}
+
+.seat.occupied:hover {
+    transform: translateY(-2px);
+
+    border-color: var(--red) !important;
+
+    box-shadow: 0 8px 20px rgba(155, 77, 66, 0.12);
+}
+
+
+/* =========================================================
+   RESTRICTED
+   OTHER DEPARTMENTS
+   ========================================================= */
+
+.seat.restricted {
+    background: var(--grey-bg) !important;
+
+    border-color: rgba(133, 128, 121, 0.25) !important;
+
+    color: var(--grey);
+
+    opacity: 0.42;
+
+    cursor: not-allowed;
+
+    filter: blur(0.5px);
+
+    position: relative;
+}
+
+.seat.restricted::before {
+    background: var(--grey);
+}
+
+.seat.restricted h3,
+.seat.restricted p {
+    color: var(--grey);
+}
+
+.seat.restricted:hover {
+    transform: none;
+
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   SELECTED SEAT
+   ========================================================= */
+
+.seat.selected {
+    outline: 2px solid var(--gold);
+
+    outline-offset: 3px;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 0 0 5px rgba(181, 154, 104, 0.1);
+}
+
+
+/* =========================================================
+   SELECTION PANEL
+   ========================================================= */
+
+.selection-section {
+    padding: 30px 35px;
+
+    background: var(--cream-light);
+
+    border: 1px solid var(--border);
+
+    border-radius: 0;
+
+    margin-bottom: 18px;
+}
+
+.selection-section h2 {
+    font: 400 30px var(--serif);
+
+    margin-bottom: 8px;
+}
+
+.selection-section p {
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.selection-section button {
+    margin-top: 20px;
+
+    margin-right: 8px;
+
+    min-height: 45px;
+
+    padding: 0 22px;
+
+    border: 0;
+
+    border-radius: 0;
+
+    cursor: pointer;
+
+    font: 600 10px var(--sans);
+
+    letter-spacing: 1px;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.selection-section button:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+
+/* RESERVE */
+
+#reserveButton {
+    background: var(--charcoal);
+
+    color: var(--cream);
+}
+
+#reserveButton:hover:not(:disabled) {
+    background: var(--brown);
+}
+
+
+/* RELEASE */
 
 #releaseButton {
-    background-color: #dc2626;
+    background: var(--red);
+
     color: white;
 }
 
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+#releaseButton:hover:not(:disabled) {
+    background: #7c3d35;
 }
 
 
 /* QUEUE */
 
+#queueButton {
+    background: var(--brown);
+
+    color: white;
+}
+
+#queueButton:hover:not(:disabled) {
+    background: var(--charcoal);
+}
+
+
+/* DISABLED */
+
+button:disabled {
+    opacity: 0.35;
+
+    cursor: not-allowed;
+
+    transform: none !important;
+}
+
+
+/* =========================================================
+   QUEUE SECTION
+   ========================================================= */
+
 .queue-section {
-    background-color: white;
-    padding: 30px;
-    border-radius: 12px;
+    padding: 35px;
+
+    background: var(--cream-light);
+
+    border: 1px solid var(--border);
+
+    border-radius: 0;
 }
 
 .queue-section h2 {
-    margin-bottom: 20px;
+    font: 400 34px var(--serif);
+
+    margin-bottom: 8px;
+}
+
+.queue-section > p {
+    color: var(--muted);
+
+    font-size: 12px;
+
+    margin-bottom: 25px;
+}
+
+#queueContainer {
+    border-top: 1px solid var(--border);
+
+    color: var(--text);
+}
+
+#queueContainer > div {
+    padding: 17px 5px;
+
+    border-bottom: 1px solid var(--border);
+
+    font-size: 12px;
+}
+
+#queueContainer > div:last-child {
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   ACCESS RESTRICTED MESSAGE
+   ========================================================= */
+
+.access-message {
+    display: none;
+
+    margin-top: 18px;
+
+    padding: 14px 16px;
+
+    background: #eee8df;
+
+    border-left: 2px solid var(--gold);
+
+    color: var(--brown);
+
+    font-size: 11px;
+
+    line-height: 1.6;
+}
+
+.access-message.show {
+    display: block;
+}
+
+.access-message strong {
+    display: block;
+
+    margin-bottom: 3px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.page-footer {
+    width: 100%;
+
+    padding: 28px 6vw;
+
+    background: var(--charcoal);
+
+    color: var(--cream);
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 25px;
+
+    border-top: 1px solid rgba(243, 239, 231, 0.12);
+}
+
+.page-footer strong {
+    font-size: 14px;
+
+    letter-spacing: 3px;
+}
+
+.page-footer span {
+    margin-left: 18px;
+
+    color: var(--gold);
+
+    font-size: 8px;
+
+    letter-spacing: 2px;
+}
+
+.page-footer p {
+    color: rgba(243, 239, 231, 0.5);
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 950px) {
+
+    .seat-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    main {
+        width: 90vw;
+    }
+
+}
+
+
+@media (max-width: 750px) {
+
+    .navbar {
+        padding: 0 5vw;
+    }
+
+    .navbar nav {
+        display: none;
+    }
+
+    .seat-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .seat-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .seat-section,
+    .selection-section,
+    .queue-section {
+        padding: 25px;
+    }
+
+}
+
+
+@media (max-width: 520px) {
+
+    main {
+        width: 90vw;
+
+        padding: 45px 0 60px;
+    }
+
+    .library-header h1 {
+        font-size: 42px;
+    }
+
+    .seat-container {
+        grid-template-columns: repeat(2, 1fr);
+
+        gap: 10px;
+    }
+
+    .seat {
+        min-height: 95px;
+    }
+
+    .seat-legend {
+        gap: 12px;
+
+        flex-direction: column;
+    }
+
+    .selection-section button {
+        width: 100%;
+
+        margin-right: 0;
+    }
+
+    .page-footer {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+    .page-footer span {
+        display: block;
+
+        margin-left: 0;
+
+        margin-top: 5px;
+    }
+
+}
+
+
+@media (max-width: 360px) {
+
+    .seat-container {
+        grid-template-columns: 1fr;
+    }
+
+    .library-header h1 {
+        font-size: 36px;
+    }
+
 }

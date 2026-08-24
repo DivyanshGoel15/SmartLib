@@ -1,53 +1,72 @@
-const defaultSeats = [
-    {
-        id: "S01",
-        department: "CSE",
-        status: "available",
-        occupantId: null
-    },
-    {
-        id: "S02",
-        department: "CSE",
-        status: "available",
-        occupantId: null
-    },
-    {
-        id: "S03",
-        department: "CSE",
-        status: "occupied",
-        occupantId: 102
-    },
-    {
-        id: "S04",
-        department: "CSE",
-        status: "available",
-        occupantId: null
-    },
-    {
-        id: "S05",
-        department: "CSE",
-        status: "occupied",
-        occupantId: 105
-    },
-    {
-        id: "S06",
-        department: "CSE",
-        status: "available",
-        occupantId: null
-    },
-    {
-        id: "S07",
-        department: "CSE",
-        status: "available",
-        occupantId: null
-    },
-    {
-        id: "S08",
-        department: "CSE",
-        status: "available",
-        occupantId: null
-    }
+const departments = [
+    "CSE",
+    "ECE",
+    "Mechanical",
+    "Civil",
+    "Management"
 ];
+const seatNumbers = [
+    3, 7, 12, 16, 21,
+    26, 31, 37, 43, 48,
+
+    1, 6, 11, 18, 23,
+    28, 34, 39, 45, 50,
+
+    2, 9, 14, 19, 25,
+    30, 35, 41, 46, 49,
+
+    4, 8, 13, 20, 24,
+    29, 36, 40, 44, 47,
+
+    5, 10, 15, 17, 22,
+    27, 32, 33, 38, 42
+];
+const testOccupants = {
+    CSE: [9001, 9002, 9003],
+    ECE: [9011, 9012, 9013],
+    Mechanical: [9021, 9022, 9023],
+    Civil: [9031, 9032, 9033],
+    Management: [9041, 9042, 9043]
+};
+
+
+const defaultSeats = [];
+
+departments.forEach(function (department, departmentIndex) {
+
+    const start = departmentIndex * 10;
+
+    const departmentSeats =
+        seatNumbers.slice(start, start + 10);
+
+    departmentSeats.forEach(function (number, index) {
+
+        const isOccupied = index < 3;
+
+        defaultSeats.push({
+
+            id:
+                `${department}-S${String(number).padStart(2, "0")}`,
+
+            department:
+                department,
+
+            status:
+                isOccupied
+                    ? "occupied"
+                    : "available",
+
+            occupantId:
+                isOccupied
+                    ? testOccupants[department][index]
+                    : null
+
+        });
+
+    });
+
+});
+
 
 
 let seats = getStoredSeats();
@@ -66,16 +85,34 @@ let selectedSeatId = null;
 
 
 /* TEMPORARY CURRENT USER */
+const storedUser =
+    sessionStorage.getItem("smartlibCurrentUser");
+
+if (!storedUser) {
+
+    alert("Please login to access SmartLib seats.");
+
+    window.location.href = "landingpage/login.html";
+
+}
+
+const loggedInUser =
+    JSON.parse(storedUser);
+
 
 const currentUser = {
-    id: 101,
-    name: "Divyanjali",
-    department: "CSE",
-    year: 2,
-    examStatus: true
+
+    id: loggedInUser.id,
+
+    name: loggedInUser.name,
+
+    department: loggedInUser.department,
+
+    year: loggedInUser.year,
+
+    role: loggedInUser.role
+
 };
-
-
 /* DISPLAY SEATS */
 
 function displaySeats() {
@@ -92,16 +129,27 @@ function displaySeats() {
             document.createElement("div");
 
         seatCard.classList.add("seat");
+        const accessible =
+            canAccessSeat(seat);
+        if (!accessible) {
+
+            seatCard.classList.add(
+            "restricted"
+        );
+        }
 
 
-        if (seat.status === "available") {
+        if (!accessible) {
 
-            seatCard.classList.add("available");
+          seatCard.classList.add("restricted");
+
+        } else if (seat.status === "occupied") {
+
+          seatCard.classList.add("occupied");
 
         } else {
 
-            seatCard.classList.add("occupied");
-
+           seatCard.classList.add("available");
         }
 
 
@@ -116,16 +164,21 @@ function displaySeats() {
             <h3>${seat.id}</h3>
             <p>${seat.status}</p>
         `;
+        if (accessible) {
+
+          seatCard.addEventListener(
+            "click",
+            function () {
+               selectSeat(seat.id);
+            }
+            );
+        }
+
 
 
        
 
-        seatCard.addEventListener(
-           "click",
-            function () {
-                selectSeat(seat.id);
-            }
-);
+       
 
 
 
@@ -158,55 +211,96 @@ function selectSeat(seatId) {
 function reserveSeat() {
 
     if (selectedSeatId === null) {
-
         alert("Please select a seat first.");
-
         return;
     }
 
-
     const seat = seats.find(function (seat) {
-
         return seat.id === selectedSeatId;
+    });
+
+    if (!seat) {
+        alert("Seat not found.");
+        return;
+    }
+
+    // Students can only reserve one seat
+    const alreadyReserved = seats.some(function (existingSeat) {
+
+        return (
+            existingSeat.status === "occupied" &&
+            String(existingSeat.occupantId) === String(currentUser.id)
+        );
 
     });
 
+    if (alreadyReserved) {
+        alert(
+            "You already have a reserved seat. Release it before reserving another seat."
+        );
+        return;
+    }
 
-    if (!seat) {
+    // Department access
+    if (
+        currentUser.role !== "library_admin" &&
+        seat.department !== currentUser.department
+    ) {
 
-        alert("Seat not found.");
+        alert(
+            `You can only reserve seats in the ${currentUser.department} library.`
+        );
 
         return;
     }
 
-
+    // Seat already occupied
     if (seat.status === "occupied") {
-
         alert("This seat is already occupied.");
-
         return;
     }
 
-
+    // Reserve
     seat.status = "occupied";
-
     seat.occupantId = currentUser.id;
+
+    // Remove user from EVERY queue after getting a seat.
+    // This also returns how many queue entries were removed.
+    const removedCount = removeFromAllQueues(currentUser.id);
+
+    // Save seat data
     saveSeats(seats);
 
-
-    alert(`Seat ${seat.id} reserved successfully.`);
-
-
+    // Clear selection
     selectedSeatId = null;
 
     document.getElementById("selectedSeat").textContent =
         "No seat selected";
 
-
+    // Refresh everything
     displaySeats();
+
+    // Clear queue display
+    const queueContainer =
+        document.getElementById("queueContainer");
+
+    if (queueContainer) {
+        queueContainer.innerHTML =
+            "<p>No students are waiting.</p>";
+    }
+
+   if (removedCount > 0) {
+        alert(
+           `Seat ${seat.id} reserved successfully. You have been removed from all queues.`
+        );
+    } else {
+        alert(
+           `Seat ${seat.id} reserved successfully.`
+        );
+    }
 }
 
-
+/* RELEASE SEAT */
 /* RELEASE SEAT */
 
 function releaseSeat() {
@@ -216,6 +310,7 @@ function releaseSeat() {
         alert("Please select your seat first.");
 
         return;
+
     }
 
 
@@ -231,65 +326,74 @@ function releaseSeat() {
         alert("Seat not found.");
 
         return;
+
     }
 
 
-    if (seat.occupantId !== currentUser.id) {
+    if (String(seat.occupantId) !== String(currentUser.id)) {
 
         alert("You can only release your own seat.");
 
         return;
+
     }
-    const queue = getQueue(selectedSeatId);
-
-    const isInQueue = queue.some(function (student) {
-
-        return student.userId === currentUser.id;
-
-    });
-
-    if (isInQueue) {
-
-        leaveQueueButton.disabled = false;
-    }
-    const nextStudent =
-        getNextStudent(seat.id);
 
 
-   if (nextStudent) {
+    // Release the current seat
 
-        seat.status = "occupied";
-        seat.occupantId =
-           nextStudent.userId;
-        removeFromQueue(
-           seat.id,
-           nextStudent.userId
-        );
-        alert(
-           `${nextStudent.name} automatically received ${seat.id}!`
-        );
-    } else {
-        seat.status = "available";
-        seat.occupantId = null;
-    }
+    seat.status = "available";
+
+    seat.occupantId = null;
+
+
+    // Automatically hand the seat to the
+    // highest-priority student in the queue
+
+    const handedOffStudent =
+        handoffSeat(seat.id, seats);
+
+
     saveSeats(seats);
 
 
-   
+    // Show what happened
 
+    if (handedOffStudent) {
 
-    alert(`Seat ${seat.id} released successfully.`);
+        alert(
+            `Seat ${seat.id} was automatically handed to ${handedOffStudent.name}.`
+        );
+
+    } else {
+
+        alert(
+            `Seat ${seat.id} released successfully.`
+        );
+
+    }
 
 
     selectedSeatId = null;
 
+
     document.getElementById("selectedSeat").textContent =
         "No seat selected";
 
-    displayQueue(seat.id);
-    displaySeats();
-}
 
+    displaySeats();
+
+}
+function hasReservedSeat() {
+
+    return seats.some(function (seat) {
+
+        return (
+            seat.status === "occupied" &&
+            String(seat.occupantId) === String(currentUser.id)
+        );
+
+    });
+}
 
 /* UPDATE BUTTONS */
 function updateButtons() {
@@ -303,66 +407,127 @@ function updateButtons() {
     const queueButton =
         document.getElementById("queueButton");
 
+    const leaveQueueButton =
+        document.getElementById("leaveQueueButton");
 
+
+    // Disable everything initially
     reserveButton.disabled = true;
-
     releaseButton.disabled = true;
-
     queueButton.disabled = true;
+    leaveQueueButton.disabled = true;
 
 
+    // Nothing selected
     if (selectedSeatId === null) {
-
         return;
-
     }
 
 
-    const seat = seats.find(function (seat) {
+    const seat =
+        seats.find(function (seat) {
 
-        return seat.id === selectedSeatId;
+            return seat.id === selectedSeatId;
 
-    });
+        });
 
 
     if (!seat) {
-
         return;
-
     }
 
+
+    const queue =
+        getQueue(selectedSeatId);
+
+
+    const isInQueue =
+        queue.some(function (student) {
+
+            return String(student.userId) ===
+                   String(currentUser.id);
+
+        });
+
+
+    const alreadyHasSeat =
+        hasReservedSeat();
+
+
+    /*
+     * =========================================
+     * OWN OCCUPIED SEAT
+     * =========================================
+     */
+
+    if (
+        seat.status === "occupied" &&
+        String(seat.occupantId) ===
+        String(currentUser.id)
+    ) {
+
+        // This is MY seat
+        releaseButton.disabled = false;
+
+        // I cannot queue while I already have a seat
+        queueButton.disabled = true;
+
+        // I cannot reserve another seat
+        reserveButton.disabled = true;
+
+        return;
+    }
+
+
+    /*
+     * =========================================
+     * AVAILABLE SEAT
+     * =========================================
+     */
 
     if (seat.status === "available") {
 
-        reserveButton.disabled = false;
+        // Only allow reservation if user
+        // doesn't already have another seat
+        reserveButton.disabled =
+            alreadyHasSeat;
 
+        return;
     }
 
+
+    /*
+     * =========================================
+     * SOMEONE ELSE'S OCCUPIED SEAT
+     * =========================================
+     */
 
     if (
         seat.status === "occupied" &&
-        seat.occupantId === currentUser.id
+        String(seat.occupantId) !==
+        String(currentUser.id)
     ) {
 
-        releaseButton.disabled = false;
+        // Can't queue if already holding a seat
+        queueButton.disabled =
+            isInQueue || alreadyHasSeat;
 
     }
 
 
-    if (
-        seat.status === "occupied" &&
-        seat.occupantId !== currentUser.id
-    ) {
+    /*
+     * =========================================
+     * ALREADY IN QUEUE
+     * =========================================
+     */
 
-        queueButton.disabled = false;
+    if (isInQueue) {
+
+        leaveQueueButton.disabled = false;
 
     }
-    const leaveQueueButton =
-        document.getElementById("leaveQueueButton");
-    leaveQueueButton.disabled = true;
+
 }
-
-
 /* SEAT STATISTICS */
 
 function updateSeatStats() {
@@ -419,10 +584,9 @@ function displayQueue(seatId) {
 
 
         const examText =
-            student.examStatus === true
-                ? "Exam Priority"
-                : "Regular";
-
+            isExamActive(student)
+               ? "Exam Priority"
+               : "Regular";
 
         const priority =
             calculatePriority(student);
@@ -447,6 +611,21 @@ function displayQueue(seatId) {
 
     });
 }
+function canAccessSeat(seat) {
+
+    if (currentUser.role === "library_admin") {
+
+        return true;
+
+    }
+
+
+    return (
+        seat.department ===
+        currentUser.department
+    );
+
+}
 
 /* BUTTON EVENTS */
 
@@ -461,6 +640,14 @@ document
 document
     .getElementById("queueButton")
     .addEventListener("click", function () {
+        if (hasReservedSeat()) {
+
+            alert(
+              "You already have a reserved seat. Release it before joining a queue."
+            );
+
+            return;
+}
 
         if (selectedSeatId === null) {
             return;
@@ -475,6 +662,19 @@ document
 
 
         if (!seat) {
+            return;
+        }
+
+        if (seat.status !== "occupied") {
+            alert("You can only join the queue for an occupied seat.");
+            return;
+        }
+
+        if (
+            String(seat.occupantId) ===
+            String(currentUser.id)
+        ) {
+            alert("This is your seat. You cannot join its queue.");
             return;
         }
 
@@ -519,8 +719,11 @@ document
     .addEventListener("click", function () {
 
         if (selectedSeatId === null) {
+
             return;
+
         }
+
 
         const removed =
             removeFromQueue(
@@ -528,16 +731,31 @@ document
                 currentUser.id
             );
 
+
         if (removed) {
 
-            alert("You left the queue.");
+            alert(
+                `You left the queue for ${selectedSeatId}.`
+            );
 
-            displayQueue(selectedSeatId);
-            updateButtons();
+        } else {
+
+            alert(
+                "You are not in this queue."
+            );
 
         }
 
-    });   
+
+        displayQueue(
+            selectedSeatId
+        );
+
+
+        updateButtons();
+
+    });
+
 
 /* INITIAL DISPLAY */
 
