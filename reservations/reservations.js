@@ -806,6 +806,76 @@ logoutBtn.addEventListener(
    INITIALIZE
    ========================================================= */
 
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
 displayUser();
 
 renderPage();
+
+
+/* =========================================================
+   SYNC WITH LIBRARY ADMIN
+========================================================= */
+
+function syncReservationsPage() {
+
+    renderPage();
+
+}
+
+
+/*
+   Another SmartLib page changed localStorage
+*/
+
+window.addEventListener(
+    "storage",
+    function (event) {
+
+        if (
+            event.key === "libraryResources" ||
+            event.key === "libraryReservations"
+        ) {
+
+            syncReservationsPage();
+
+        }
+
+    }
+);
+
+
+/*
+   User returned to this page
+*/
+
+window.addEventListener(
+    "pageshow",
+    function () {
+
+        syncReservationsPage();
+
+    }
+);
+
+
+/*
+   Browser tab became visible again
+*/
+
+document.addEventListener(
+    "visibilitychange",
+    function () {
+
+        if (
+            document.visibilityState === "visible"
+        ) {
+
+            syncReservationsPage();
+
+        }
+
+    }
+);
