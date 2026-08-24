@@ -985,8 +985,7 @@ if (logoutButton) {
             );
 
 
-            window.location.href =
-                "../landingpage/login.html";
+            window.location.href = "../../landingpage/landingpage.html";
 
         }
     );

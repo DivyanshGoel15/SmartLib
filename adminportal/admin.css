@@ -1,6 +1,28 @@
 /* =========================================================
-   SMARTLIB — LIBRARY STAFF ADMINISTRATION
-========================================================= */
+   SMARTLIB ADMIN
+   Matches HOME / PORTAL visual system
+   ========================================================= */
+
+:root {
+    --cream: #f3efe7;
+    --light: #faf8f3;
+    --white: #fffdf9;
+    --charcoal: #171614;
+    --brown: #5a4636;
+    --brown-light: #8c7763;
+    --gold: #b59a68;
+    --text: #211f1c;
+    --muted: #746b61;
+    --border: rgba(23,22,20,.14);
+    --success: #506047;
+    --warning: #76583d;
+    --danger: #8d3d32;
+    --serif: "Playfair Display", Georgia, serif;
+    --sans: "DM Sans", Arial, sans-serif;
+}
+
+
+/* ================= RESET ================= */
 
 * {
     box-sizing: border-box;
@@ -8,51 +30,52 @@
     padding: 0;
 }
 
-:root {
-    --bg: #f7f6f2;
-    --surface: #ffffff;
-    --text: #171717;
-    --muted: #77736c;
-    --border: #e5e2dc;
-    --soft: #f1efe9;
-    --accent: #171717;
-    --danger: #a63d3d;
-    --success: #2e7d50;
-    --warning: #9a6b12;
+html {
+    scroll-behavior: smooth;
 }
 
 body {
     min-height: 100vh;
-    background: var(--bg);
+    background: var(--cream);
     color: var(--text);
-    font-family: "DM Sans", sans-serif;
+    font-family: var(--sans);
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
 }
 
 
-/* =========================================================
-   TOPBAR
-========================================================= */
+/* ================= TOPBAR ================= */
 
 .topbar {
-    height: 72px;
-    padding: 0 48px;
+    height: 78px;
+    padding: 0 6vw;
 
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 35px;
 
-    background: #fff;
-    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+
+    background: var(--charcoal);
+    color: var(--cream);
+
+    border-bottom:
+        1px solid rgba(243,239,231,.15);
 }
 
 .brand {
-    color: var(--text);
-    text-decoration: none;
+    color: var(--cream);
 
-    font-family: "Playfair Display", serif;
-    font-size: 24px;
+    font-family: var(--sans);
+    font-size: 14px;
     font-weight: 600;
-    letter-spacing: 1px;
+
+    letter-spacing: 3.5px;
 }
 
 .portal-title {
@@ -60,126 +83,138 @@ body {
     left: 50%;
     transform: translateX(-50%);
 
-    font-size: 11px;
+    color: rgba(243,239,231,.65);
+
+    font-size: 9px;
     font-weight: 600;
-    letter-spacing: 2px;
-    color: #777;
+
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+}
+
+.topbar nav {
+    display: flex;
+    gap: 26px;
+    margin-left: auto;
+}
+
+.topbar nav a {
+    color: rgba(243,239,231,.62);
+
+    font-size: 10px;
+    letter-spacing: .3px;
+
+    transition: .2s;
+}
+
+.topbar nav a:hover {
+    color: var(--gold);
 }
 
 .user-area {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 16px;
 
-    font-size: 13px;
-    color: #555;
+    color: rgba(243,239,231,.7);
+    font-size: 10px;
 }
 
 .logout {
-    border: 1px solid var(--border);
-    background: #fff;
+    padding: 9px 14px;
 
-    padding: 9px 16px;
+    border: 1px solid
+        rgba(243,239,231,.3);
 
-    border-radius: 4px;
-
-    font-family: inherit;
-    font-size: 12px;
+    background: transparent;
+    color: var(--cream);
 
     cursor: pointer;
 
-    transition: .2s ease;
+    font: 500 10px var(--sans);
+
+    transition: .2s;
 }
 
 .logout:hover {
-    background: #f3f2ee;
+    border-color: var(--gold);
+    color: var(--gold);
 }
 
 
-/* =========================================================
-   MAIN SHELL
-========================================================= */
+/* ================= MAIN ================= */
 
 .admin-shell {
-    width: min(1400px, calc(100% - 80px));
+    width: min(1180px, 86vw);
     margin: 0 auto;
 
-    padding: 55px 0 80px;
+    padding: 75px 0 80px;
 }
 
 
-/* =========================================================
-   HEADER
-========================================================= */
+/* ================= HEADER ================= */
 
 .admin-header {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
 
-    gap: 40px;
-
-    margin-bottom: 38px;
+    gap: 50px;
+    margin-bottom: 55px;
 }
 
 .eyebrow {
-    margin-bottom: 10px;
+    margin-bottom: 16px;
 
-    font-size: 10px;
+    color: var(--brown);
+
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: 2px;
 
-    color: #8a867f;
+    letter-spacing: 3px;
 }
 
 .admin-header h1 {
-    font-family: "Playfair Display", serif;
+    margin-bottom: 18px;
 
-    font-size: clamp(38px, 5vw, 62px);
-    line-height: 1;
+    font:
+        400 clamp(42px,5vw,68px)/1.05
+        var(--serif);
 
-    font-weight: 500;
-
-    margin-bottom: 16px;
+    letter-spacing: -1px;
 }
 
 .admin-header > div > p:last-child {
-    max-width: 650px;
+    max-width: 600px;
 
     color: var(--muted);
 
     font-size: 15px;
-    line-height: 1.7;
+    line-height: 1.8;
 }
 
 
-/* =========================================================
-   BUTTONS
-========================================================= */
+/* ================= BUTTONS ================= */
 
 .primary-button {
-    border: none;
-
-    background: #171717;
-    color: #fff;
-
     padding: 13px 20px;
 
-    border-radius: 4px;
+    border: 0;
 
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
+    background: var(--charcoal);
+    color: var(--cream);
 
     cursor: pointer;
 
-    white-space: nowrap;
+    font: 600 11px var(--sans);
 
-    transition: .2s ease;
+    transition:
+        background .2s,
+        transform .2s;
 }
 
 .primary-button:hover {
-    background: #383838;
+    background: var(--brown);
     transform: translateY(-1px);
 }
 
@@ -188,64 +223,55 @@ body {
 }
 
 
-/* =========================================================
-   STATS
-========================================================= */
+/* ================= STATS ================= */
 
 .stats-grid {
     display: grid;
-
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns:
+        repeat(4, 1fr);
 
     gap: 14px;
 
-    margin-bottom: 32px;
+    margin-bottom: 45px;
 }
 
 .stat {
     min-height: 145px;
-
     padding: 25px;
-
-    background: var(--surface);
-
-    border: 1px solid var(--border);
 
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+
+    background: var(--light);
+    border: 1px solid var(--border);
 }
 
 .stat span {
+    color: var(--brown);
+
     font-size: 10px;
-    letter-spacing: 1.5px;
     font-weight: 600;
 
-    color: #89857e;
+    letter-spacing: 2px;
 }
 
 .stat strong {
-    font-family: "Playfair Display", serif;
-
-    font-size: 42px;
-    font-weight: 500;
+    font:
+        400 42px var(--serif);
 
     line-height: 1;
 }
 
 
-/* =========================================================
-   PANELS
-========================================================= */
+/* ================= PANELS ================= */
 
 .panel {
-    background: var(--surface);
+    margin-bottom: 18px;
+    padding: 35px;
 
+    background: var(--light);
     border: 1px solid var(--border);
-
-    padding: 30px;
-
-    margin-bottom: 30px;
 }
 
 .panel-heading {
@@ -255,71 +281,68 @@ body {
 
     gap: 20px;
 
-    margin-bottom: 24px;
+    margin-bottom: 25px;
+    padding-bottom: 22px;
+
+    border-bottom: 1px solid var(--border);
 }
 
 .panel-heading h2 {
-    font-family: "Playfair Display", serif;
-
-    font-size: 28px;
-    font-weight: 500;
+    font:
+        400 36px/1.1
+        var(--serif);
 }
 
 .inline-message {
-    font-size: 12px;
+    margin-top: 7px;
+
     color: var(--muted);
+
+    font-size: 11px;
+    line-height: 1.6;
 }
 
 
-/* =========================================================
-   SEARCH / FILTERS
-========================================================= */
+/* ================= SEARCH ================= */
 
 .directory-tools {
-    display: flex;
-    gap: 10px;
+    display: grid;
 
-    margin-bottom: 22px;
+    grid-template-columns:
+        2fr 1fr 1fr 1fr;
+
+    gap: 12px;
+
+    margin: 22px 0;
 }
 
 .directory-tools input,
 .directory-tools select {
-    height: 43px;
+    width: 100%;
+    height: 44px;
 
     padding: 0 13px;
 
     border: 1px solid var(--border);
 
-    background: #fff;
-
+    background: var(--white);
     color: var(--text);
 
-    font-family: "DM Sans", sans-serif;
-    font-size: 13px;
-
-    border-radius: 3px;
-
     outline: none;
-}
 
-.directory-tools input {
-    flex: 1;
-    min-width: 260px;
-}
-
-.directory-tools select {
-    width: 180px;
+    font: 400 12px var(--sans);
 }
 
 .directory-tools input:focus,
 .directory-tools select:focus {
-    border-color: #777;
+    border-color: var(--brown-light);
+    box-shadow:
+        0 0 0 3px
+        rgba(90,70,54,.06);
 }
 
 
-/* =========================================================
-   TABLE
-========================================================= */
+/* ================= TABLE ================= */
 
 .table-wrap {
     width: 100%;
@@ -328,8 +351,9 @@ body {
 
 table {
     width: 100%;
-    border-collapse: collapse;
     min-width: 850px;
+
+    border-collapse: collapse;
 }
 
 thead tr {
@@ -340,41 +364,40 @@ thead tr {
 th {
     padding: 13px 12px;
 
-    text-align: left;
+    color: var(--brown);
 
-    color: #88847d;
+    text-align: left;
 
     font-size: 9px;
     font-weight: 600;
 
-    letter-spacing: 1.4px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
 }
 
 td {
     padding: 17px 12px;
 
-    border-bottom: 1px solid #eee;
-
-    font-size: 13px;
+    border-bottom: 1px solid var(--border);
 
     color: #444;
 
+    font-size: 13px;
     vertical-align: middle;
 }
 
 tbody tr {
-    transition: background .15s ease;
+    transition: background .15s;
 }
 
 tbody tr:hover {
-    background: #faf9f6;
+    background: #f5f1e9;
 }
 
 td strong {
     display: block;
 
-    color: #202020;
+    color: var(--text);
 
     font-size: 13px;
     font-weight: 600;
@@ -385,7 +408,7 @@ td small {
 
     margin-top: 4px;
 
-    color: #aaa;
+    color: #9b938a;
 
     font-size: 10px;
 }
@@ -393,91 +416,78 @@ td small {
 .empty-table {
     padding: 45px 20px !important;
 
-    text-align: center;
+    color: var(--muted);
 
-    color: #999;
+    text-align: center;
 }
 
 
-/* =========================================================
-   STATUS BADGES
-========================================================= */
+/* ================= STATUS ================= */
 
 .status-badge {
     display: inline-flex;
     align-items: center;
 
-    padding: 6px 10px;
+    padding: 7px 10px;
 
-    border-radius: 20px;
-
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 600;
 
-    letter-spacing: .8px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
 }
 
 .status-badge.available {
+    background: #e8ece4;
     color: var(--success);
-    background: #edf7f0;
 }
 
 .status-badge.warning {
+    background: #eee4d7;
     color: var(--warning);
-    background: #fff6df;
 }
 
 .status-badge.unavailable {
+    background: #f6e7e4;
     color: var(--danger);
-    background: #fbeeee;
 }
 
 .status-badge.returned {
-    color: #4f6599;
-    background: #eef2fa;
+    background: #e8ebe9;
+    color: #50645b;
 }
 
 .status-badge.cancelled {
-    color: #777;
-    background: #f1f1f1;
+    background: #ebe8e3;
+    color: var(--muted);
 }
 
 
-/* =========================================================
-   DANGER BUTTON
-========================================================= */
+/* ================= DELETE ================= */
 
 .danger-button {
-    border: 1px solid #e4caca;
+    padding: 8px 12px;
 
-    background: #fff;
+    border: 1px solid
+        rgba(141,61,50,.25);
 
+    background: transparent;
     color: var(--danger);
-
-    padding: 7px 12px;
-
-    border-radius: 3px;
-
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 500;
 
     cursor: pointer;
 
-    transition: .2s ease;
+    font: 500 10px var(--sans);
+
+    transition: .2s;
 }
 
 .danger-button:hover {
-    background: #fff2f2;
-
-    border-color: #d6a4a4;
+    background: #f6e7e4;
+    border-color: var(--danger);
 }
 
 
-/* =========================================================
-   ACTIVITY
-========================================================= */
+/* ================= ACTIVITY ================= */
 
 .activity-feed {
     display: flex;
@@ -496,20 +506,19 @@ td small {
 }
 
 .activity-item:last-child {
-    border-bottom: none;
+    border-bottom: 0;
 }
 
 .activity-dot {
-    width: 8px;
-    height: 8px;
-
-    min-width: 8px;
+    width: 7px;
+    height: 7px;
+    min-width: 7px;
 
     margin-top: 6px;
 
     border-radius: 50%;
 
-    background: #222;
+    background: var(--brown);
 }
 
 .activity-item strong {
@@ -520,47 +529,45 @@ td small {
 .activity-item p {
     margin: 4px 0;
 
-    color: #777;
+    color: var(--muted);
 
     font-size: 12px;
 }
 
 .activity-item small {
-    color: #aaa;
-
+    color: #a29a91;
     font-size: 10px;
 }
 
 
-/* =========================================================
-   DATA NOTE
-========================================================= */
+/* ================= DATA NOTE ================= */
 
 .data-note {
-    padding: 25px 0;
-
-    border-top: 1px solid var(--border);
-
     display: flex;
     justify-content: space-between;
 
     gap: 30px;
+
+    padding: 25px 0;
+
+    border-top: 1px solid var(--border);
 }
 
 .data-note span {
-    font-size: 9px;
-    letter-spacing: 1.5px;
-    font-weight: 600;
-
-    color: #8a867f;
+    color: var(--brown);
 
     white-space: nowrap;
+
+    font-size: 9px;
+    font-weight: 600;
+
+    letter-spacing: 1.5px;
 }
 
 .data-note p {
     max-width: 700px;
 
-    color: #8a867f;
+    color: var(--muted);
 
     font-size: 11px;
     line-height: 1.7;
@@ -569,25 +576,21 @@ td small {
 }
 
 
-/* =========================================================
-   MODAL
-========================================================= */
+/* ================= MODAL ================= */
 
 .modal {
     position: fixed;
-
     inset: 0;
 
     z-index: 9999;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
     padding: 20px;
 
-    background: rgba(0, 0, 0, .45);
+    background: rgba(23,22,20,.55);
 }
 
 .modal.hidden {
@@ -597,93 +600,114 @@ td small {
 .modal-card {
     position: relative;
 
-    width: min(520px, 100%);
+    width: min(520px,100%);
+    max-height: 90vh;
+
+    overflow-y: auto;
 
     padding: 35px;
 
-    background: #fff;
+    background: var(--light);
 
-    border-radius: 5px;
+    border: 1px solid var(--border);
 
-    box-shadow: 0 25px 80px rgba(0, 0, 0, .2);
+    box-shadow:
+        0 25px 80px
+        rgba(23,22,20,.2);
 }
 
 .modal-card h2 {
-    font-family: "Playfair Display", serif;
-
-    font-size: 30px;
-    font-weight: 500;
-
     margin-bottom: 25px;
+
+    font:
+        400 34px/1.1
+        var(--serif);
 }
 
 .close {
     position: absolute;
 
-    top: 13px;
+    top: 12px;
     right: 17px;
 
-    border: none;
+    border: 0;
 
-    background: none;
-
-    color: #777;
-
-    font-size: 28px;
+    background: transparent;
+    color: var(--muted);
 
     cursor: pointer;
+
+    font-size: 27px;
 }
+
+.close:hover {
+    color: var(--brown);
+}
+
+
+/* ================= FORM ================= */
 
 .modal-card label {
     display: block;
 
     margin-bottom: 17px;
 
-    color: #444;
+    color: var(--text);
 
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
 }
 
 .modal-card input,
 .modal-card select {
     width: 100%;
-
     height: 44px;
 
     margin-top: 7px;
-
     padding: 0 12px;
 
     border: 1px solid var(--border);
 
-    background: #fff;
-
-    border-radius: 3px;
-
-    font-family: "DM Sans", sans-serif;
-    font-size: 13px;
+    background: var(--white);
+    color: var(--text);
 
     outline: none;
+
+    font: 400 12px var(--sans);
 }
 
 .modal-card input:focus,
 .modal-card select:focus {
-    border-color: #777;
+    border-color: var(--brown-light);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(90,70,54,.06);
 }
 
 .modal-card .primary-button {
     width: 100%;
-
     margin-top: 8px;
 }
 
 .two-column {
     display: grid;
 
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns:
+        1fr 1fr;
 
     gap: 14px;
+}
+
+.form-help {
+    display: block;
+
+    margin-top: 6px;
+
+    color: #999;
+
+    font-size: 10px;
+    line-height: 1.5;
 }
 
 .modal-error {
@@ -697,9 +721,7 @@ td small {
 }
 
 
-/* =========================================================
-   MESSAGE
-========================================================= */
+/* ================= MESSAGE ================= */
 
 .message {
     position: fixed;
@@ -713,49 +735,228 @@ td small {
 
     padding: 13px 18px;
 
-    background: #171717;
+    background: var(--charcoal);
+    color: var(--cream);
 
-    color: #fff;
+    font-size: 11px;
 
-    border-radius: 4px;
-
-    font-size: 12px;
-
-    box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+    box-shadow:
+        0 10px 30px
+        rgba(23,22,20,.15);
 }
 
 .message.error {
-    background: #9f3e3e;
+    background: #8d3d32;
 }
 
 .message.success {
-    background: #222;
+    background: var(--charcoal);
 }
 
 
-/* =========================================================
-   EMPTY STATE
-========================================================= */
+/* ================= EMPTY ================= */
 
 .empty-state {
-    padding: 35px;
+    padding: 35px 20px;
 
-    text-align: center;
-
-    color: #999;
+    color: var(--muted);
 
     font-size: 13px;
+
+    text-align: center;
 }
 
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+/* ================= STUDENT ================= */
+
+.admin-extension-panel {
+    margin-bottom: 18px;
+}
+
+.student-row {
+    display: grid;
+
+    grid-template-columns:
+        2fr 1fr 1fr auto;
+
+    gap: 18px;
+
+    align-items: center;
+
+    padding: 18px 0;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.student-row div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.student-row span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.student-row button {
+    padding: 8px 12px;
+
+    border: 1px solid var(--border);
+
+    background: transparent;
+
+    cursor: pointer;
+}
+
+
+/* ================= EXAMS ================= */
+
+.exam-table {
+    min-width: 1050px;
+}
+
+.exam-form {
+    display: grid;
+
+    grid-template-columns:
+        2fr 1fr 1fr 1fr auto;
+
+    gap: 12px;
+
+    margin: 20px 0 30px;
+}
+
+.exam-form input,
+.exam-form select {
+    padding: 13px;
+
+    border: 1px solid var(--border);
+
+    background: var(--white);
+
+    color: var(--text);
+
+    outline: none;
+
+    font: 400 12px var(--sans);
+}
+
+.exam-form input:focus,
+.exam-form select:focus {
+    border-color: var(--brown-light);
+}
+
+.exam-form button,
+.portal-action {
+    padding: 13px 18px;
+
+    border: 0;
+
+    background: var(--charcoal);
+    color: var(--cream);
+
+    cursor: pointer;
+
+    font: 600 11px var(--sans);
+
+    transition: .2s;
+}
+
+.exam-form button:hover,
+.portal-action:hover {
+    background: var(--brown);
+}
+
+.faculty-exam-row {
+    display: flex;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 18px 0;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.faculty-exam-row div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.faculty-exam-row span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.faculty-exam-row button {
+    padding: 8px 12px;
+
+    border: 1px solid var(--border);
+
+    background: transparent;
+
+    cursor: pointer;
+}
+
+
+/* ================= FOOTER ================= */
+
+.page-footer,
+.portal-footer {
+    width: 100%;
+
+    margin-top: auto;
+    padding: 28px 6vw;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 30px;
+
+    background: var(--charcoal);
+    color: var(--cream);
+
+    border-top:
+        1px solid
+        rgba(243,239,231,.12);
+}
+
+.page-footer div {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.page-footer strong {
+    font-size: 14px;
+    letter-spacing: 3px;
+}
+
+.page-footer span {
+    color: var(--gold);
+
+    font-size: 9px;
+    letter-spacing: 2px;
+}
+
+.page-footer p,
+.portal-footer span {
+    color: rgba(243,239,231,.55);
+    font-size: 11px;
+}
+
+
+/* ================= RESPONSIVE ================= */
 
 @media (max-width: 1000px) {
 
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns:
+            repeat(2,1fr);
     }
 
     .admin-header {
@@ -763,6 +964,15 @@ td small {
         flex-direction: column;
     }
 
+    .directory-tools {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .exam-form {
+        grid-template-columns:
+            1fr 1fr;
+    }
 }
 
 
@@ -770,17 +980,16 @@ td small {
 
     .topbar {
         height: auto;
+        min-height: 70px;
 
-        padding: 18px 20px;
+        padding: 16px 5vw;
 
         flex-wrap: wrap;
-
-        gap: 15px;
+        gap: 12px;
     }
 
     .portal-title {
         position: static;
-
         transform: none;
 
         order: 3;
@@ -790,50 +999,47 @@ td small {
         text-align: left;
     }
 
+    .topbar nav {
+        display: none;
+    }
+
     .user-area {
-        gap: 8px;
+        margin-left: auto;
     }
 
     .admin-shell {
-        width: calc(100% - 30px);
+        width: 90vw;
 
-        padding-top: 35px;
+        padding-top: 55px;
     }
 
     .stats-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .stat {
-        min-height: 120px;
-
-        padding: 18px;
-    }
-
-    .stat strong {
-        font-size: 32px;
+        grid-template-columns:
+            1fr 1fr;
     }
 
     .panel {
-        padding: 20px;
+        padding: 25px;
     }
 
     .panel-heading {
-        align-items: flex-start;
         flex-direction: column;
     }
 
     .directory-tools {
-        flex-direction: column;
-    }
-
-    .directory-tools input,
-    .directory-tools select {
-        width: 100%;
-        min-width: 0;
+        grid-template-columns: 1fr;
     }
 
     .two-column {
+        grid-template-columns: 1fr;
+    }
+
+    .student-row {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .exam-form {
         grid-template-columns: 1fr;
     }
 
@@ -845,6 +1051,11 @@ td small {
         text-align: left;
     }
 
+    .page-footer,
+    .portal-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 
@@ -855,11 +1066,18 @@ td small {
     }
 
     .admin-header h1 {
-        font-size: 40px;
+        font-size: 42px;
+    }
+
+    .student-row {
+        grid-template-columns: 1fr;
+    }
+
+    .faculty-exam-row {
+        flex-direction: column;
     }
 
     .topbar {
         padding: 15px;
     }
-
 }
