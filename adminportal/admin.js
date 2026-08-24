@@ -1,1691 +1,1520 @@
-/* =========================================================
-   SMARTLIB - LIBRARY ADMIN
-   ========================================================= */
+/*
+============================================================
+SMARTLIB
+LIBRARY STAFF ADMINISTRATION
+============================================================
+*/
 
 
-/* =========================================================
-   CURRENT USER
-   ========================================================= */
+/*
+============================================================
+1. DOM ELEMENTS
+============================================================
+*/
 
-const currentUser =
-    JSON.parse(
-        sessionStorage.getItem("smartlibCurrentUser") ||
-        sessionStorage.getItem("currentUser") ||
-        "null"
+const resourceTableBody =
+    document.getElementById("resourceTableBody");
+
+const reservationTableBody =
+    document.getElementById("reservationTableBody");
+
+const resourceCount =
+    document.getElementById("resourceCount");
+
+const availableCount =
+    document.getElementById("availableCount");
+
+const reservationCount =
+    document.getElementById("reservationCount");
+
+const studentCount =
+    document.getElementById("studentCount");
+
+const activityFeed =
+    document.getElementById("activityFeed");
+
+const message =
+    document.getElementById("message");
+
+
+
+/*
+============================================================
+2. STORAGE
+============================================================
+*/
+
+function getResources() {
+
+    return JSON.parse(
+        localStorage.getItem("libraryResources") || "[]"
     );
-
-
-/* =========================================================
-   LOGIN CHECK
-   ========================================================= */
-
-const isLoggedIn =
-    sessionStorage.getItem("smartlibLoggedIn") === "true" ||
-    sessionStorage.getItem("currentUser") !== null ||
-    sessionStorage.getItem("smartlibCurrentUser") !== null;
-
-
-if (
-    !currentUser ||
-    currentUser.role !== "library_admin" ||
-    !isLoggedIn
-) {
-
-    window.location.href =
-        "../landingpage/login.html";
 
 }
 
 
-/* =========================================================
-   DATA
-   ========================================================= */
-
-const departments = [
-    "CSE",
-    "ECE",
-    "Mechanical",
-    "Civil",
-    "Management"
-];
-
-
-let exams =
-    JSON.parse(
-        localStorage.getItem(
-            "smartlibExams"
-        ) || "[]"
-    );
-
-
-let users =
-    JSON.parse(
-        localStorage.getItem(
-            "smartlibUsers"
-        ) || "[]"
-    );
-
-
-/* =========================================================
-   STORAGE
-   ========================================================= */
-
-function saveExams() {
+function saveResources(resources) {
 
     localStorage.setItem(
-        "smartlibExams",
-        JSON.stringify(exams)
+        "libraryResources",
+        JSON.stringify(resources)
     );
 
 }
 
 
-function saveUsers() {
+function getReservations() {
+
+    return JSON.parse(
+        localStorage.getItem("libraryReservations") || "[]"
+    );
+
+}
+
+
+function saveReservations(reservations) {
 
     localStorage.setItem(
-        "smartlibUsers",
-        JSON.stringify(users)
+        "libraryReservations",
+        JSON.stringify(reservations)
     );
 
 }
 
 
-function getStudents() {
+/*
+============================================================
+3. STUDENTS
+============================================================
+*/
 
-    users =
-        JSON.parse(
-            localStorage.getItem(
-                "smartlibUsers"
-            ) || "[]"
+function getUsers() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem("smartlibUsers") || "[]"
         );
 
+    } catch (error) {
 
-    return users.filter(
-        u => u.role === "student"
-    );
-
-}
-
-
-/* =========================================================
-   DATE FUNCTIONS
-   ========================================================= */
-
-function formatDate(value) {
-
-    const d =
-        new Date(value);
-
-
-    return Number.isNaN(
-        d.getTime()
-    )
-        ? "—"
-        : d.toLocaleDateString(
-            "en-IN",
-            {
-                day: "2-digit",
-                month: "short",
-                year: "numeric"
-            }
+        console.error(
+            "Error reading SmartLib users:",
+            error
         );
 
-}
-
-
-function getStatus(exam) {
-
-    const start =
-        new Date(
-            exam.startDate
-        );
-
-
-    const end =
-        new Date(
-            exam.endDate
-        );
-
-
-    if (
-        Number.isNaN(
-            start.getTime()
-        ) ||
-        Number.isNaN(
-            end.getTime()
-        )
-    ) {
-
-        return "Unknown";
+        return [];
 
     }
 
-
-    const now =
-        new Date();
+}
 
 
-    now.setHours(
-        0,
-        0,
-        0,
-        0
-    );
+/*
+============================================================
+4. MESSAGE
+============================================================
+*/
+
+function showMessage(text, type = "success") {
+
+    message.textContent = text;
+
+    message.className =
+        "message " + type;
+
+    message.style.display =
+        "block";
 
 
-    start.setHours(
-        0,
-        0,
-        0,
-        0
-    );
+    setTimeout(() => {
 
+        message.style.display =
+            "none";
 
-    end.setHours(
-        23,
-        59,
-        59,
-        999
-    );
-
-
-    return now < start
-        ? "Upcoming"
-        : now <= end
-            ? "Active"
-            : "Finished";
+    }, 3000);
 
 }
 
 
-/* =========================================================
-   STUDENTS
-   ========================================================= */
 
-function studentsFor(
-    department
-) {
+/*
+============================================================
+5. ID GENERATOR
+============================================================
+*/
 
-    return getStudents()
-        .filter(
-            u =>
-                u.department ===
-                department
+function generateId(prefix) {
+
+    return (
+        prefix +
+        Date.now() +
+        Math.floor(
+            Math.random() * 1000
         )
-        .sort(
-            (a, b) =>
-                (a.year || "")
-                    .localeCompare(
-                        b.year || ""
-                    ) ||
-                (a.name || "")
-                    .localeCompare(
-                        b.name || ""
-                    )
-        );
+    );
 
 }
 
 
-/* =========================================================
-   STATS
-   ========================================================= */
+
+/*
+============================================================
+6. STATS
+============================================================
+*/
 
 function renderStats() {
 
-    document.getElementById(
-        "userCount"
-    ).textContent =
-        getStudents().length;
+    const resources =
+        getResources();
+
+    const reservations =
+        getReservations();
+
+    const users =
+        getUsers();
 
 
-    document.getElementById(
-        "activeExamCount"
-    ).textContent =
-        exams.filter(
-            e =>
-                getStatus(e) ===
-                "Active"
+    /* =====================================================
+       1. TOTAL RESOURCE TYPES
+       ===================================================== */
+
+    const totalResourceTypes =
+        resources.length;
+
+
+    /* =====================================================
+       2. AVAILABLE COPIES
+       ===================================================== */
+
+    const totalAvailableCopies =
+        resources.reduce(
+            (total, resource) => {
+
+                return (
+                    total +
+                    Number(
+                        resource.availableQuantity || 0
+                    )
+                );
+
+            },
+            0
+        );
+
+
+    /* =====================================================
+       3. ACTIVE RESERVATIONS
+       ===================================================== */
+
+    const activeReservations =
+        reservations.filter(
+            reservation =>
+                reservation.status === "active"
         ).length;
 
 
-    document.getElementById(
-        "departmentCount"
-    ).textContent =
-        departments.length;
+    /* =====================================================
+       4. REGISTERED STUDENTS
+       ===================================================== */
+
+    const registeredStudents =
+        users.filter(
+            user =>
+                user.role === "student"
+        ).length;
+
+
+    /* =====================================================
+       UPDATE DASHBOARD
+       ===================================================== */
+
+    resourceCount.textContent =
+        totalResourceTypes;
+
+    availableCount.textContent =
+        totalAvailableCopies;
+
+    reservationCount.textContent =
+        activeReservations;
+
+    studentCount.textContent =
+        registeredStudents;
 
 }
 
 
-/* =========================================================
-   DEPARTMENT STREAMS
-   ========================================================= */
 
-function renderStreams() {
+/*
+============================================================
+7. RESOURCE FILTERS
+============================================================
+*/
 
-    document.getElementById(
-        "streamGrid"
-    ).innerHTML =
-        departments
-            .map(
-                d => {
+function populateDepartmentFilter() {
 
-                    const list =
-                        studentsFor(d);
+    const resources =
+        getResources();
 
-
-                    const active =
-                        exams.filter(
-                            e =>
-                                e.department === d &&
-                                getStatus(e) === "Active"
-                        ).length;
-
-
-                    return `
-                        <article class="stream-card">
-
-                            <div class="stream-top">
-
-                                <span class="stream-code">
-                                    ${d}
-                                </span>
-
-                                <span class="stream-count">
-                                    ${list.length} students
-                                </span>
-
-                            </div>
-
-
-                            <div class="stream-meta">
-
-                                <span>
-                                    ACTIVE EXAMS
-                                </span>
-
-                                <strong>
-                                    ${active}
-                                </strong>
-
-                            </div>
-
-
-                            <div class="stream-years">
-
-                                ${
-                                    [
-                                        "1st Year",
-                                        "2nd Year",
-                                        "3rd Year",
-                                        "4th Year"
-                                    ]
-                                    .map(
-                                        y => `
-                                            <span>
-                                                ${y.replace(
-                                                    " Year",
-                                                    ""
-                                                )}
-                                                <b>
-                                                    ${
-                                                        list.filter(
-                                                            u =>
-                                                                u.year === y
-                                                        ).length
-                                                    }
-                                                </b>
-                                            </span>
-                                        `
-                                    )
-                                    .join("")
-                                }
-
-                            </div>
-
-                        </article>
-                    `;
-
-                }
-            )
-            .join("");
-
-}
-
-
-/* =========================================================
-   EXAMS
-   ========================================================= */
-
-function renderExams() {
-
-    const body =
-        document.getElementById(
-            "examTableBody"
-        );
-
-
-    const sorted =
-        [...exams].sort(
-            (a, b) =>
-                (a.department || "")
-                    .localeCompare(
-                        b.department || ""
-                    ) ||
-                new Date(a.startDate) -
-                new Date(b.startDate)
-        );
-
-
-    body.innerHTML =
-        sorted.length
-            ? sorted
-                .map(
-                    e => {
-
-                        const status =
-                            getStatus(e);
-
-
-                        return `
-                            <tr>
-
-                                <td>
-                                    <strong>
-                                        ${e.department}
-                                    </strong>
-                                </td>
-
-                                <td>
-                                    ${e.year}
-                                </td>
-
-                                <td>
-                                    ${e.name}
-                                </td>
-
-                                <td>
-                                    <small>
-                                        ${formatDate(
-                                            e.startDate
-                                        )}
-                                        <br>
-                                        ${formatDate(
-                                            e.endDate
-                                        )}
-                                    </small>
-                                </td>
-
-                                <td>
-
-                                    <span
-                                        class="status ${status.toLowerCase()}"
-                                    >
-                                        ${status.toUpperCase()}
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <div class="actions">
-
-                                        <button
-                                            class="action edit-btn"
-                                            data-id="${e.id}"
-                                        >
-                                            Edit
-                                        </button>
-
-                                        <button
-                                            class="action delete-btn"
-                                            data-id="${e.id}"
-                                        >
-                                            Delete
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-                        `;
-
-                    }
+    const departments =
+        [
+            ...new Set(
+                resources.map(
+                    resource =>
+                        resource.department
                 )
-                .join("")
-            : `
-                <tr>
-                    <td colspan="6">
-                        No examinations have been added yet.
-                    </td>
-                </tr>
-            `;
-
-}
-
-
-/* =========================================================
-   USERS
-   ========================================================= */
-
-function renderUsers() {
-
-    const list =
-        document.getElementById(
-            "userList"
-        );
-
-
-    list.innerHTML =
-        departments
-            .map(
-                d => {
-
-                    const ds =
-                        studentsFor(d);
-
-
-                    return `
-                        <div class="stream-user-group">
-
-                            <div class="group-heading">
-
-                                <strong>
-                                    ${d}
-                                </strong>
-
-                                <span>
-                                    ${ds.length} students
-                                </span>
-
-                            </div>
-
-
-                            ${
-                                ds.length
-                                    ? ds
-                                        .map(
-                                            u => `
-                                                <div class="user-item">
-
-                                                    <div class="user-main">
-
-                                                        <strong>
-                                                            ${u.name}
-                                                        </strong>
-
-                                                        <small>
-                                                            ${u.email}
-                                                        </small>
-
-                                                        <small>
-                                                            ${
-                                                                u.year ||
-                                                                "Year not specified"
-                                                            }
-                                                        </small>
-
-                                                    </div>
-
-
-                                                    <button
-                                                        class="remove-student"
-                                                        data-id="${u.id}"
-                                                    >
-                                                        Remove
-                                                    </button>
-
-                                                </div>
-                                            `
-                                        )
-                                        .join("")
-                                    : `
-                                        <p class="exam-empty">
-                                            No students registered.
-                                        </p>
-                                    `
-                            }
-
-                        </div>
-                    `;
-
-                }
             )
-            .join("");
-
-}
+        ];
 
 
-/* =========================================================
-   EXAM MODAL
-   ========================================================= */
-
-function openModal(
-    exam = null
-) {
-
-    document.getElementById(
-        "examModal"
-    ).classList.remove(
-        "hidden"
-    );
-
-
-    document.getElementById(
-        "modalEyebrow"
-    ).textContent =
-        exam
-            ? "EDIT EXAM"
-            : "ADD EXAM";
-
-
-    document.getElementById(
-        "modalTitle"
-    ).textContent =
-        exam
-            ? "Update examination"
-            : "Add examination";
-
-
-    document.getElementById(
-        "examId"
-    ).value =
-        exam?.id || "";
-
-
-    document.getElementById(
-        "examDepartment"
-    ).value =
-        exam?.department || "";
-
-
-    document.getElementById(
-        "examYear"
-    ).value =
-        exam?.year || "";
-
-
-    document.getElementById(
-        "examName"
-    ).value =
-        exam?.name || "";
-
-
-    document.getElementById(
-        "examStart"
-    ).value =
-        exam?.startDate || "";
-
-
-    document.getElementById(
-        "examEnd"
-    ).value =
-        exam?.endDate || "";
-
-
-    document.getElementById(
-        "modalError"
-    ).textContent =
-        "";
-
-}
-
-
-function closeModal() {
-
-    document.getElementById(
-        "examModal"
-    ).classList.add(
-        "hidden"
-    );
-
-}
-
-
-/* =========================================================
-   STUDENT MODAL
-   ========================================================= */
-
-function openStudentModal() {
-
-    document.getElementById(
-        "studentModal"
-    ).classList.remove(
-        "hidden"
-    );
-
-
-    document.getElementById(
-        "studentForm"
-    ).reset();
-
-
-    document.getElementById(
-        "studentModalError"
-    ).textContent =
-        "";
-
-}
-
-
-function closeStudentModal() {
-
-    document.getElementById(
-        "studentModal"
-    ).classList.add(
-        "hidden"
-    );
-
-}
-
-
-function strongPassword(
-    password
-) {
-
-    return (
-        password.length >= 8 &&
-        /[A-Z]/.test(password) &&
-        /[a-z]/.test(password) &&
-        /\d/.test(password) &&
-        /[^A-Za-z0-9]/.test(password)
-    );
-
-}
-
-
-/* =========================================================
-   STUDENT DIRECTORY
-   ========================================================= */
-
-function renderStudentDirectory() {
-
-    const container =
+    const select =
         document.getElementById(
-            "studentDirectory"
+            "resourceDepartmentFilter"
         );
 
 
-    if (!container) {
+    select.innerHTML =
+        `<option value="">All departments</option>`;
+
+
+    departments.forEach(
+        department => {
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                department;
+
+            option.textContent =
+                department;
+
+            select.appendChild(option);
+
+        }
+    );
+
+}
+
+
+
+/*
+============================================================
+8. RENDER RESOURCES
+============================================================
+*/
+
+function renderResources() {
+
+    const resources =
+        getResources();
+
+
+    const search =
+        document.getElementById(
+            "resourceSearch"
+        )
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const type =
+        document.getElementById(
+            "resourceTypeFilter"
+        )
+        .value;
+
+
+    const department =
+        document.getElementById(
+            "resourceDepartmentFilter"
+        )
+        .value;
+
+
+    const filtered =
+        resources.filter(
+            resource => {
+
+                const matchesSearch =
+                    resource.name
+                        .toLowerCase()
+                        .includes(search);
+
+
+                const matchesType =
+                    !type ||
+                    resource.type === type;
+
+
+                const matchesDepartment =
+                    !department ||
+                    resource.department === department;
+
+
+                return (
+                    matchesSearch &&
+                    matchesType &&
+                    matchesDepartment
+                );
+
+            }
+        );
+
+
+    resourceTableBody.innerHTML =
+        "";
+
+
+    if (filtered.length === 0) {
+
+        resourceTableBody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    class="empty-table"
+                >
+                    No resources found.
+                </td>
+
+            </tr>
+
+        `;
 
         return;
 
     }
 
 
-    const q =
-        (
-            document.getElementById(
-                "studentSearch"
-            )?.value ||
-            ""
+    filtered.forEach(
+        resource => {
+
+            const total =
+                Number(
+                    resource.totalQuantity || 0
+                );
+
+            const available =
+                Number(
+                    resource.availableQuantity || 0
+                );
+
+            const issued =
+                total - available;
+
+
+            let status =
+                "Available";
+
+            let statusClass =
+                "available";
+
+
+            if (available === 0) {
+
+                status =
+                    "Fully issued";
+
+                statusClass =
+                    "unavailable";
+
+            }
+
+            else if (
+                available <=
+                total * 0.4
+            ) {
+
+                status =
+                    "Limited";
+
+                statusClass =
+                    "warning";
+
+            }
+
+
+            const row =
+                document.createElement("tr");
+
+
+            row.innerHTML = `
+
+                <td>
+
+                    <strong>
+                        ${escapeHTML(resource.name)}
+                    </strong>
+
+                    <small>
+                        ${resource.id}
+                    </small>
+
+                </td>
+
+
+                <td>
+                    ${escapeHTML(resource.type)}
+                </td>
+
+
+                <td>
+                    ${escapeHTML(resource.department)}
+                </td>
+
+
+                <td>
+
+                    <strong>
+                        ${available}
+                    </strong>
+
+                    / ${total}
+
+                    <small>
+                        ${issued} issued
+                    </small>
+
+                </td>
+
+
+                <td>
+
+                    <span
+                        class="status-badge ${statusClass}"
+                    >
+                        ${status}
+                    </span>
+
+                </td>
+
+
+                <td>
+
+                    <button
+                        class="danger-button"
+                        onclick="deleteResource('${resource.id}')"
+                    >
+                        Delete
+                    </button>
+
+                </td>
+
+            `;
+
+
+            resourceTableBody.appendChild(row);
+
+        }
+    );
+
+}
+
+
+
+/*
+============================================================
+9. ADD RESOURCE
+============================================================
+*/
+
+function addResource(event) {
+
+    event.preventDefault();
+
+
+    const name =
+        document.getElementById(
+            "resourceName"
         )
-        .trim()
-        .toLowerCase();
+        .value
+        .trim();
+
+
+    const type =
+        document.getElementById(
+            "resourceType"
+        )
+        .value;
 
 
     const department =
         document.getElementById(
-            "studentDepartmentFilter"
-        )?.value ||
-        "";
+            "resourceDepartment"
+        )
+        .value;
 
 
-    const year =
-        document.getElementById(
-            "studentYearFilter"
-        )?.value ||
-        "";
-
-
-    const sort =
-        document.getElementById(
-            "studentSort"
-        )?.value ||
-        "nameAsc";
-
-
-    let list =
-        getStudents().filter(
-            u =>
-                (
-                    !q ||
-                    `${u.name || ""} ${u.email || ""}`
-                        .toLowerCase()
-                        .includes(q)
-                ) &&
-                (
-                    !department ||
-                    u.department === department
-                ) &&
-                (
-                    !year ||
-                    String(
-                        u.year || ""
-                    ).startsWith(year)
-                )
+    const quantity =
+        Number(
+            document.getElementById(
+                "resourceQuantity"
+            ).value
         );
 
 
-    list.sort(
-        (a, b) => {
+    const error =
+        document.getElementById(
+            "resourceModalError"
+        );
 
-            if (
-                sort ===
-                "nameDesc"
-            ) {
+
+    error.textContent =
+        "";
+
+
+    if (
+        !name ||
+        !type ||
+        !department ||
+        quantity < 1
+    ) {
+
+        error.textContent =
+            "Please enter valid resource details.";
+
+        return;
+
+    }
+
+
+    const resources =
+        getResources();
+
+
+    const duplicate =
+        resources.some(
+            resource =>
+                resource.name
+                    .toLowerCase() ===
+                name.toLowerCase() &&
+                resource.department ===
+                department
+        );
+
+
+    if (duplicate) {
+
+        error.textContent =
+            "This resource already exists.";
+
+        return;
+
+    }
+
+
+    const newResource = {
+
+        id:
+            generateId("RES"),
+
+        name:
+            name,
+
+        type:
+            type,
+
+        department:
+            department,
+
+        totalQuantity:
+            quantity,
+
+        availableQuantity:
+            quantity
+
+    };
+
+
+    resources.push(
+        newResource
+    );
+
+
+    saveResources(
+        resources
+    );
+
+
+    closeResourceModal();
+
+
+    document.getElementById(
+        "resourceForm"
+    ).reset();
+
+
+    refreshDashboard();
+
+
+    showMessage(
+        "Resource added successfully."
+    );
+
+}
+
+
+
+/*
+============================================================
+10. DELETE RESOURCE
+============================================================
+*/
+
+function deleteResource(resourceId) {
+
+    const resources =
+        getResources();
+
+    const reservations =
+        getReservations();
+
+
+    const resource =
+        resources.find(
+            item =>
+                item.id === resourceId
+        );
+
+
+    if (!resource) {
+
+        return;
+
+    }
+
+
+    const activeReservation =
+        reservations.some(
+            reservation =>
+                reservation.resourceId ===
+                    resourceId &&
+                reservation.status ===
+                    "active"
+        );
+
+
+    if (activeReservation) {
+
+        showMessage(
+            "Cannot delete a resource with an active reservation.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+            `Delete "${resource.name}"?`
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const updatedResources =
+        resources.filter(
+            item =>
+                item.id !== resourceId
+        );
+
+
+    saveResources(
+        updatedResources
+    );
+
+
+    refreshDashboard();
+
+
+    showMessage(
+        "Resource deleted."
+    );
+
+}
+
+
+
+/*
+============================================================
+11. RENDER RESERVATIONS
+============================================================
+*/
+
+function renderReservations() {
+
+    const reservations =
+        getReservations();
+
+    const resources =
+        getResources();
+
+    const users =
+        getUsers();
+
+
+    const search =
+        document.getElementById(
+            "reservationSearch"
+        )
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const status =
+        document.getElementById(
+            "reservationStatusFilter"
+        )
+        .value;
+
+
+    const filtered =
+        reservations.filter(
+            reservation => {
+
+                const user =
+                    users.find(
+                        item =>
+                            String(item.id) ===
+                            String(reservation.userId)
+                    );
+
+
+                const userName =
+                 reservation.userName ||
+                  user?.name ||
+                  "Unknown User";
+
+
+                const resourceName =
+                    reservation.resourceName ||
+                    "Unknown Resource";
+
+
+                const searchable =
+                    (
+                        userName +
+                        " " +
+                        resourceName +
+                        " " +
+                        (user?.email || "") +
+                        " " +
+                        (user?.department || "")
+                    )
+                    .toLowerCase();
+
+
+                const matchesSearch =
+                    searchable.includes(
+                        search
+                    );
+
+
+                const matchesStatus =
+                    !status ||
+                    reservation.status === status;
+
 
                 return (
-                    b.name || ""
-                ).localeCompare(
-                    a.name || ""
+                    matchesSearch &&
+                    matchesStatus
                 );
 
             }
+        );
 
 
-            if (
-                sort ===
-                "department"
-            ) {
+    reservationTableBody.innerHTML =
+        "";
 
-                return (
-                    a.department || ""
-                ).localeCompare(
-                    b.department || ""
+
+    if (filtered.length === 0) {
+
+        reservationTableBody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    class="empty-table"
+                >
+                    No reservations found.
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    filtered
+        .sort(
+            (a, b) =>
+                new Date(b.reservedAt) -
+                new Date(a.reservedAt)
+        )
+        .forEach(
+            reservation => {
+
+                const user =
+                    users.find(
+                        item =>
+                            String(item.id) ===
+                            String(reservation.userId)
+                    );
+
+
+                const resource =
+                    resources.find(
+                        item =>
+                            item.id ===
+                            reservation.resourceId
+                    );
+
+
+                const userName =
+                    user?.name ||
+                    "Unknown User";
+
+
+                const userRole =
+                    user?.role ||
+                    "unknown";
+
+
+                const roleLabel =
+                    userRole === "faculty"
+                        ? "Faculty"
+                        : userRole === "student"
+                            ? "Student"
+                            : userRole === "library_admin"
+                                ? "Library Admin"
+                                : "Unknown";
+
+
+                const department =
+                     reservation.department ||
+                     user?.department ||
+                     resource?.department ||
+                     "—";
+
+
+                const email =
+                    user?.email ||
+                    "No email available";
+
+
+                const date =
+                    reservation.reservedAt
+                        ? new Date(
+                            reservation.reservedAt
+                        ).toLocaleDateString(
+                            "en-IN",
+                            {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric"
+                            }
+                        )
+                        : "—";
+
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+
+                    <td>
+
+                        <strong>
+                            ${escapeHTML(userName)}
+                        </strong>
+
+                        <small>
+                            ${roleLabel}
+                        </small>
+
+                        <small>
+                            ${escapeHTML(email)}
+                        </small>
+
+                    </td>
+
+
+                    <td>
+
+                        <strong>
+                            ${escapeHTML(
+                                reservation.resourceName ||
+                                resource?.name ||
+                                "Unknown Resource"
+                            )}
+                        </strong>
+
+                        <small>
+                            ${escapeHTML(
+                                resource?.type ||
+                                ""
+                            )}
+                        </small>
+
+                    </td>
+
+
+                    <td>
+                        ${escapeHTML(department)}
+                    </td>
+
+
+                    <td>
+                        ${date}
+                    </td>
+
+
+                    <td>
+
+                        <span
+                            class="status-badge ${getReservationStatusClass(reservation.status)}"
+                        >
+                            ${reservation.status}
+                        </span>
+
+                    </td>
+
+
+                    <td>
+
+                        ${
+                            reservation.status === "active"
+
+                            ?
+
+                            `
+                            <button
+                                class="danger-button"
+                                onclick="cancelReservation('${reservation.id}')"
+                            >
+                                Cancel
+                            </button>
+                            `
+
+                            :
+
+                            `
+                            <button
+                                class="danger-button"
+                                onclick="deleteReservation('${reservation.id}')"
+                            >
+                                Delete
+                            </button>
+                            `
+                        }
+
+                    </td>
+
+                `;
+
+
+                reservationTableBody.appendChild(
+                    row
                 );
 
             }
+        );
+
+}
 
 
-            if (
-                sort ===
-                "year"
-            ) {
 
-                return (
-                    a.year || ""
-                ).localeCompare(
-                    b.year || ""
-                );
+/*
+============================================================
+12. RESERVATION STATUS
+============================================================
+*/
 
-            }
+function getReservationStatusClass(status) {
+
+    if (status === "active") {
+
+        return "available";
+
+    }
 
 
-            return (
-                a.name || ""
-            ).localeCompare(
-                b.name || ""
+    if (status === "returned") {
+
+        return "returned";
+
+    }
+
+
+    return "cancelled";
+
+}
+
+
+
+/*
+============================================================
+13. CANCEL RESERVATION
+============================================================
+*/
+
+function cancelReservation(
+    reservationId
+) {
+
+    const reservations =
+        getReservations();
+
+    const resources =
+        getResources();
+
+
+    const reservation =
+        reservations.find(
+            item =>
+                item.id ===
+                reservationId
+        );
+
+
+    if (
+        !reservation ||
+        reservation.status !== "active"
+    ) {
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+            "Cancel this reservation?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    reservation.status =
+        "cancelled";
+
+
+    reservation.returnedAt =
+        new Date().toISOString();
+
+
+    const resource =
+        resources.find(
+            item =>
+                item.id ===
+                reservation.resourceId
+        );
+
+
+    if (resource) {
+
+        resource.availableQuantity =
+            Math.min(
+                Number(resource.availableQuantity || 0) + 1,
+                Number(resource.totalQuantity || 0)
+            );
+
+    }
+
+
+    saveReservations(
+        reservations
+    );
+
+
+    saveResources(
+        resources
+    );
+
+
+    refreshDashboard();
+
+
+    showMessage(
+        "Reservation cancelled and resource returned."
+    );
+
+}
+
+
+
+/*
+============================================================
+14. DELETE RESERVATION
+============================================================
+*/
+
+function deleteReservation(
+    reservationId
+) {
+
+    const reservations =
+        getReservations();
+
+
+    const confirmed =
+        confirm(
+            "Delete this reservation record?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const updated =
+        reservations.filter(
+            reservation =>
+                reservation.id !==
+                reservationId
+        );
+
+
+    saveReservations(
+        updated
+    );
+
+
+    refreshDashboard();
+
+
+    showMessage(
+        "Reservation record deleted."
+    );
+
+}
+
+
+
+/*
+============================================================
+15. ACTIVITY FEED
+============================================================
+*/
+
+function renderActivity() {
+
+    const reservations =
+        getReservations();
+
+
+    const activities =
+        reservations
+            .sort(
+                (a, b) =>
+                    new Date(b.reservedAt) -
+                    new Date(a.reservedAt)
+            )
+            .slice(0, 8);
+
+
+    activityFeed.innerHTML =
+        "";
+
+
+    if (activities.length === 0) {
+
+        activityFeed.innerHTML = `
+
+            <div class="empty-state">
+
+                No recent library activity.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    activities.forEach(
+        reservation => {
+
+            const item =
+                document.createElement("div");
+
+
+            item.className =
+                "activity-item";
+
+
+            const date =
+                reservation.reservedAt
+                    ? new Date(
+                        reservation.reservedAt
+                    ).toLocaleString(
+                        "en-IN"
+                    )
+                    : "";
+
+
+            item.innerHTML = `
+
+                <div class="activity-dot"></div>
+
+                <div>
+
+                    <strong>
+                        ${escapeHTML(
+                            reservation.resourceName ||
+                            "Resource"
+                        )}
+                    </strong>
+
+                    <p>
+                        Reservation created
+                    </p>
+
+                    <small>
+                        ${date}
+                    </small>
+
+                </div>
+
+            `;
+
+
+            activityFeed.appendChild(
+                item
             );
 
         }
     );
 
-
-    container.innerHTML =
-        list.length
-            ? list
-                .map(
-                    u => `
-                        <div class="student-row">
-
-                            <div>
-
-                                <strong>
-                                    ${u.name || "Unnamed"}
-                                </strong>
-
-                                <span>
-                                    ${u.email || ""}
-                                </span>
-
-                            </div>
-
-                            <span>
-                                ${u.department || "—"}
-                            </span>
-
-                            <span>
-                                ${u.year || "—"}
-                            </span>
-
-                            <button
-                                type="button"
-                                data-directory-remove="${u.id}"
-                            >
-                                Remove
-                            </button>
-
-                        </div>
-                    `
-                )
-                .join("")
-            : `
-                <div class="empty-state">
-                    No students match your search or filters.
-                </div>
-            `;
+}
 
 
-    container
-        .querySelectorAll(
-            "[data-directory-remove]"
-        )
-        .forEach(
-            btn => {
 
-                btn.addEventListener(
-                    "click",
-                    () => {
+/*
+============================================================
+16. MODAL
+============================================================
+*/
 
-                        const id =
-                            String(
-                                btn.dataset
-                                    .directoryRemove
-                            );
+const resourceModal =
+    document.getElementById(
+        "resourceModal"
+    );
 
 
-                        users =
-                            getStudents()
-                                .filter(
-                                    u =>
-                                        String(
-                                            u.id
-                                        ) !== id
-                                );
+function openResourceModal() {
 
-
-                        saveUsers();
-
-                        renderStats();
-
-                        renderStreams();
-
-                        renderUsers();
-
-                        renderStudentDirectory();
-
-                    }
-                );
-
-            }
-        );
+    resourceModal.classList.remove(
+        "hidden"
+    );
 
 }
 
 
-/* =========================================================
-   DEPARTMENT FILTER
-   ========================================================= */
+function closeResourceModal() {
 
-function populateDepartmentFilter() {
-
-    const select =
-        document.getElementById(
-            "studentDepartmentFilter"
-        );
-
-
-    if (!select) {
-
-        return;
-
-    }
-
-
-    select.innerHTML =
-        '<option value="">All departments</option>' +
-        departments
-            .map(
-                d =>
-                    `<option value="${d}">${d}</option>`
-            )
-            .join("");
+    resourceModal.classList.add(
+        "hidden"
+    );
 
 }
 
 
-/* =========================================================
-   ACTIVITY
-   ========================================================= */
-
-function addActivity(
-    messageText
-) {
-
-    const log =
-        JSON.parse(
-            localStorage.getItem(
-                "smartlibActivity"
-            ) || "[]"
-        );
+document
+    .getElementById("addResourceBtn")
+    .addEventListener(
+        "click",
+        openResourceModal
+    );
 
 
-    log.unshift(
-        {
-            message:
-                messageText,
+document
+    .getElementById("addResourceBtnTop")
+    .addEventListener(
+        "click",
+        openResourceModal
+    );
 
-            time:
-                new Date().toISOString()
+
+document
+    .getElementById("closeResourceModal")
+    .addEventListener(
+        "click",
+        closeResourceModal
+    );
+
+
+
+/*
+============================================================
+17. SEARCH / FILTERS
+============================================================
+*/
+
+document
+    .getElementById("resourceSearch")
+    .addEventListener(
+        "input",
+        renderResources
+    );
+
+
+document
+    .getElementById("resourceTypeFilter")
+    .addEventListener(
+        "change",
+        renderResources
+    );
+
+
+document
+    .getElementById("resourceDepartmentFilter")
+    .addEventListener(
+        "change",
+        renderResources
+    );
+
+
+document
+    .getElementById("reservationSearch")
+    .addEventListener(
+        "input",
+        renderReservations
+    );
+
+
+document
+    .getElementById("reservationStatusFilter")
+    .addEventListener(
+        "change",
+        renderReservations
+    );
+
+
+
+/*
+============================================================
+18. FORM
+============================================================
+*/
+
+document
+    .getElementById("resourceForm")
+    .addEventListener(
+        "submit",
+        addResource
+    );
+
+
+
+/*
+============================================================
+19. LOGOUT
+============================================================
+*/
+
+document
+    .getElementById("logoutBtn")
+    .addEventListener(
+        "click",
+        function () {
+
+            sessionStorage.removeItem(
+                "currentUser"
+            );
+
+            sessionStorage.removeItem(
+                "smartlibCurrentUser"
+            );
+
+            sessionStorage.removeItem(
+                "smartlibLoggedIn"
+            );
+
+
+            window.location.href =
+                "../landingpage/login.html";
+
         }
     );
 
 
-    localStorage.setItem(
-        "smartlibActivity",
-        JSON.stringify(
-            log.slice(
-                0,
-                20
-            )
-        )
-    );
 
+/*
+============================================================
+20. HTML ESCAPE
+============================================================
+*/
+
+function escapeHTML(value) {
+
+    return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+
+/*
+============================================================
+21. REFRESH
+============================================================
+*/
+
+function refreshDashboard() {
+
+    renderStats();
+
+    populateDepartmentFilter();
+
+    renderResources();
+
+    renderReservations();
 
     renderActivity();
 
 }
 
 
-function renderActivity() {
 
-    const feed =
-        document.getElementById(
-            "activityFeed"
-        );
+/*
+============================================================
+22. INITIALIZE
+============================================================
+*/
 
-
-    if (!feed) {
-
-        return;
-
-    }
-
-
-    const log =
-        JSON.parse(
-            localStorage.getItem(
-                "smartlibActivity"
-            ) || "[]"
-        );
-
-
-    feed.innerHTML =
-        log.length
-            ? log
-                .slice(
-                    0,
-                    10
-                )
-                .map(
-                    x =>
-                        `
-                        <div class="activity-item">
-
-                            <span>
-                                ${
-                                    new Date(
-                                        x.time
-                                    ).toLocaleTimeString(
-                                        [],
-                                        {
-                                            hour: "2-digit",
-                                            minute: "2-digit"
-                                        }
-                                    )
-                                }
-                            </span>
-
-                            <strong>
-                                ${x.message}
-                            </strong>
-
-                        </div>
-                        `
-                )
-                .join("")
-            : `
-                <div class="empty-state">
-                    No recent activity.
-                </div>
-            `;
-
-}
-
-
-/* =========================================================
-   ADMIN NAME
-   ========================================================= */
-
-document.getElementById(
-    "adminName"
-).textContent =
-    currentUser.name ||
-    "Library Admin";
-
-
-/* =========================================================
-   EVENT LISTENERS
-   ========================================================= */
-
-document.getElementById(
-    "addExamBtn"
-).addEventListener(
-    "click",
-    () => openModal()
-);
-
-
-document.getElementById(
-    "closeModal"
-).addEventListener(
-    "click",
-    closeModal
-);
-
-
-document.getElementById(
-    "examModal"
-).addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target.id ===
-            "examModal"
-        ) {
-
-            closeModal();
-
-        }
-
-    }
-);
-
-
-document.getElementById(
-    "addStudentBtn"
-).addEventListener(
-    "click",
-    openStudentModal
-);
-
-
-document.getElementById(
-    "closeStudentModal"
-).addEventListener(
-    "click",
-    closeStudentModal
-);
-
-
-document.getElementById(
-    "studentModal"
-).addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target.id ===
-            "studentModal"
-        ) {
-
-            closeStudentModal();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   EXAM FORM
-   ========================================================= */
-
-document.getElementById(
-    "examForm"
-).addEventListener(
-    "submit",
-    event => {
-
-        event.preventDefault();
-
-
-        const id =
-            document.getElementById(
-                "examId"
-            ).value;
-
-
-        const exam = {
-
-            id:
-                id
-                    ? Number(id)
-                    : Date.now(),
-
-            department:
-                document.getElementById(
-                    "examDepartment"
-                ).value,
-
-            year:
-                document.getElementById(
-                    "examYear"
-                ).value,
-
-            name:
-                document.getElementById(
-                    "examName"
-                ).value
-                    .trim(),
-
-            startDate:
-                document.getElementById(
-                    "examStart"
-                ).value,
-
-            endDate:
-                document.getElementById(
-                    "examEnd"
-                ).value
-
-        };
-
-
-        const error =
-            document.getElementById(
-                "modalError"
-            );
-
-
-        if (
-            !exam.department ||
-            !exam.year ||
-            !exam.name ||
-            !exam.startDate ||
-            !exam.endDate
-        ) {
-
-            error.textContent =
-                "Please complete all fields.";
-
-            return;
-
-        }
-
-
-        if (
-            new Date(
-                exam.endDate
-            ) <
-            new Date(
-                exam.startDate
-            )
-        ) {
-
-            error.textContent =
-                "End date cannot be before start date.";
-
-            return;
-
-        }
-
-
-        if (id) {
-
-            exams =
-                exams.map(
-                    x =>
-                        x.id === Number(id)
-                            ? exam
-                            : x
-                );
-
-        } else {
-
-            exams.push(
-                exam
-            );
-
-        }
-
-
-        saveExams();
-
-        renderExams();
-
-        renderStats();
-
-        renderStreams();
-
-        closeModal();
-
-
-        document.getElementById(
-            "examMessage"
-        ).textContent =
-            id
-                ? "Exam updated."
-                : "Exam added.";
-
-
-        addActivity(
-            id
-                ? "Exam updated"
-                : "Exam added"
-        );
-
-    }
-);
-
-
-/* =========================================================
-   STUDENT FORM
-   ========================================================= */
-
-document.getElementById(
-    "studentForm"
-).addEventListener(
-    "submit",
-    event => {
-
-        event.preventDefault();
-
-
-        const name =
-            document.getElementById(
-                "studentName"
-            ).value.trim();
-
-
-        const email =
-            document.getElementById(
-                "studentEmail"
-            ).value
-                .trim()
-                .toLowerCase();
-
-
-        const department =
-            document.getElementById(
-                "studentDepartment"
-            ).value;
-
-
-        const year =
-            document.getElementById(
-                "studentYear"
-            ).value;
-
-
-        const password =
-            document.getElementById(
-                "studentPassword"
-            ).value;
-
-
-        const error =
-            document.getElementById(
-                "studentModalError"
-            );
-
-
-        if (
-            !name ||
-            !department ||
-            !year
-        ) {
-
-            error.textContent =
-                "Please complete all fields.";
-
-            return;
-
-        }
-
-
-        if (
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                .test(email)
-        ) {
-
-            error.textContent =
-                "Enter a valid email address.";
-
-            return;
-
-        }
-
-
-        if (
-            getStudents().some(
-                u =>
-                    u.email ===
-                    email
-            ) ||
-            users.some(
-                u =>
-                    u.email ===
-                    email
-            )
-        ) {
-
-            error.textContent =
-                "An account with this email already exists.";
-
-            return;
-
-        }
-
-
-        if (
-            !strongPassword(
-                password
-            )
-        ) {
-
-            error.textContent =
-                "Password must include 8+ characters, uppercase, lowercase, number and special character.";
-
-            return;
-
-        }
-
-
-        users.push({
-
-            id:
-                Date.now(),
-
-            name,
-
-            email,
-
-            department,
-
-            year,
-
-            role:
-                "student",
-
-            password,
-
-            createdAt:
-                new Date().toISOString(),
-
-            addedBy:
-                currentUser.id
-
-        });
-
-
-        saveUsers();
-
-        renderStats();
-
-        renderStreams();
-
-        renderUsers();
-
-        renderStudentDirectory();
-
-        closeStudentModal();
-
-
-        document.getElementById(
-            "examMessage"
-        ).textContent =
-            "Student added.";
-
-
-        addActivity(
-            "Student added"
-        );
-
-    }
-);
-
-
-/* =========================================================
-   EXAM TABLE ACTIONS
-   ========================================================= */
-
-document.getElementById(
-    "examTableBody"
-).addEventListener(
-    "click",
-    event => {
-
-        const id =
-            Number(
-                event.target.dataset.id
-            );
-
-
-        if (!id) {
-
-            return;
-
-        }
-
-
-        const exam =
-            exams.find(
-                x =>
-                    x.id === id
-            );
-
-
-        if (
-            event.target.classList
-                .contains(
-                    "edit-btn"
-                )
-        ) {
-
-            openModal(
-                exam
-            );
-
-        }
-
-
-        if (
-            event.target.classList
-                .contains(
-                    "delete-btn"
-                )
-        ) {
-
-            if (
-                confirm(
-                    `Delete ${exam.name}?`
-                )
-            ) {
-
-                exams =
-                    exams.filter(
-                        x =>
-                            x.id !== id
-                    );
-
-
-                saveExams();
-
-                renderExams();
-
-                renderStats();
-
-                renderStreams();
-
-                addActivity(
-                    "Exam deleted"
-                );
-
-            }
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   STUDENT REMOVE
-   ========================================================= */
-
-document.getElementById(
-    "userList"
-).addEventListener(
-    "click",
-    event => {
-
-        const id =
-            Number(
-                event.target.dataset.id
-            );
-
-
-        if (
-            !id ||
-            !event.target.classList
-                .contains(
-                    "remove-student"
-                )
-        ) {
-
-            return;
-
-        }
-
-
-        const student =
-            getStudents().find(
-                u =>
-                    u.id === id
-            );
-
-
-        if (!student) {
-
-            return;
-
-        }
-
-
-        if (
-            confirm(
-                `Remove ${student.name} from SmartLib?`
-            )
-        ) {
-
-            users =
-                getStudents()
-                    .filter(
-                        u =>
-                            u.id !== id
-                    );
-
-
-            saveUsers();
-
-            renderStats();
-
-            renderStreams();
-
-            renderUsers();
-
-            renderStudentDirectory();
-
-            addActivity(
-                "Student removed"
-            );
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
-
-document.getElementById(
-    "logoutBtn"
-).addEventListener(
-    "click",
-    () => {
-
-        sessionStorage.removeItem(
-            "smartlibCurrentUser"
-        );
-
-        sessionStorage.removeItem(
-            "currentUser"
-        );
-
-        sessionStorage.removeItem(
-            "smartlibLoggedIn"
-        );
-
-
-        window.location.href =
-            "../landingpage/login.html";
-
-    }
-);
-
-
-/* =========================================================
-   DIRECTORY FILTERS
-   ========================================================= */
-
-[
-    "studentSearch",
-    "studentDepartmentFilter",
-    "studentYearFilter",
-    "studentSort"
-]
-.forEach(
-    id => {
-
-        document.getElementById(
-            id
-        )?.addEventListener(
-            "input",
-            renderStudentDirectory
-        );
-
-
-        document.getElementById(
-            id
-        )?.addEventListener(
-            "change",
-            renderStudentDirectory
-        );
-
-    }
-);
-
-
-/* =========================================================
-   INITIALIZE
-   ========================================================= */
-
-populateDepartmentFilter();
-
-renderStats();
-
-renderStreams();
-
-renderExams();
-
-renderUsers();
-
-renderStudentDirectory();
-
-renderActivity();
+refreshDashboard();

@@ -9,11 +9,23 @@
 
 const currentUser =
     JSON.parse(
-        sessionStorage.getItem("currentUser")
+        sessionStorage.getItem("smartlibCurrentUser") ||
+        sessionStorage.getItem("currentUser") ||
+        "null"
     );
 
 
-if (!currentUser) {
+/* =========================================================
+   2. CHECK LOGIN
+   ========================================================= */
+
+const isLoggedIn =
+    sessionStorage.getItem("smartlibLoggedIn") === "true" ||
+    sessionStorage.getItem("currentUser") !== null ||
+    sessionStorage.getItem("smartlibCurrentUser") !== null;
+
+
+if (!currentUser || !isLoggedIn) {
 
     window.location.href =
         "../landingpage/login.html";
@@ -22,7 +34,7 @@ if (!currentUser) {
 
 
 /* =========================================================
-   2. DOM ELEMENTS
+   3. DOM ELEMENTS
    ========================================================= */
 
 const resourcesGrid =
@@ -51,14 +63,14 @@ const filterButtons =
 
 
 /* =========================================================
-   3. CURRENT FILTER
+   4. CURRENT FILTER
    ========================================================= */
 
 let currentFilter = "All";
 
 
 /* =========================================================
-   4. INITIAL RESOURCE DATA
+   5. INITIAL RESOURCE DATA
    ========================================================= */
 
 const initialResources = [
@@ -157,7 +169,7 @@ const initialResources = [
 
 
 /* =========================================================
-   5. INITIALIZE RESOURCES
+   6. INITIALIZE RESOURCES
    ========================================================= */
 
 function initializeResources() {
@@ -166,6 +178,16 @@ function initializeResources() {
         localStorage.getItem(
             "libraryResources"
         );
+
+
+    /*
+       IMPORTANT:
+
+       Do NOT overwrite existing localStorage data.
+
+       This allows the ADMIN page to add/delete resources
+       and this page will use those same resources.
+    */
 
     if (!storedResources) {
 
@@ -182,7 +204,7 @@ function initializeResources() {
 
 
 /* =========================================================
-   6. GET RESOURCES
+   7. GET RESOURCES
    ========================================================= */
 
 function getResources() {
@@ -192,17 +214,20 @@ function getResources() {
             "libraryResources"
         );
 
+
     if (!resources) {
-
         return [];
-
     }
+
 
     try {
 
-        return JSON.parse(resources);
+        return JSON.parse(
+            resources
+        );
 
     }
+
     catch (error) {
 
         console.error(
@@ -218,7 +243,7 @@ function getResources() {
 
 
 /* =========================================================
-   7. SAVE RESOURCES
+   8. SAVE RESOURCES
    ========================================================= */
 
 function saveResources(resources) {
@@ -232,7 +257,7 @@ function saveResources(resources) {
 
 
 /* =========================================================
-   8. GET RESERVATIONS
+   9. GET RESERVATIONS
    ========================================================= */
 
 function getReservations() {
@@ -242,11 +267,11 @@ function getReservations() {
             "libraryReservations"
         );
 
+
     if (!reservations) {
-
         return [];
-
     }
+
 
     try {
 
@@ -255,6 +280,7 @@ function getReservations() {
         );
 
     }
+
     catch (error) {
 
         console.error(
@@ -270,12 +296,10 @@ function getReservations() {
 
 
 /* =========================================================
-   9. SAVE RESERVATIONS
+   10. SAVE RESERVATIONS
    ========================================================= */
 
-function saveReservations(
-    reservations
-) {
+function saveReservations(reservations) {
 
     localStorage.setItem(
         "libraryReservations",
@@ -288,7 +312,7 @@ function saveReservations(
 
 
 /* =========================================================
-   10. GENERATE UNIQUE ID
+   11. GENERATE UNIQUE ID
    ========================================================= */
 
 function generateId(prefix) {
@@ -305,13 +329,18 @@ function generateId(prefix) {
 
 
 /* =========================================================
-   11. SHOW MESSAGE
+   12. SHOW MESSAGE
    ========================================================= */
 
 function showMessage(
     text,
     type
 ) {
+
+    if (!message) {
+        return;
+    }
+
 
     message.textContent =
         text;
@@ -337,34 +366,42 @@ function showMessage(
 
 
 /* =========================================================
-   12. DISPLAY USER
+   13. DISPLAY USER
    ========================================================= */
 
 function displayUser() {
 
     if (!currentUser) {
-
         return;
-
     }
 
 
     userInfo.textContent =
         currentUser.name +
         " | " +
-        currentUser.department;
+        (
+            currentUser.department ||
+            currentUser.role ||
+            "User"
+        );
 
+
+    /*
+       IMPORTANT:
+
+       Resources are now institution-wide.
+
+       They are NOT restricted by department.
+    */
 
     departmentText.textContent =
-        "Resources available for the " +
-        currentUser.department +
-        " department.";
+        "Browse resources available across the library.";
 
 }
 
 
 /* =========================================================
-   13. GET USER RESERVATIONS
+   14. GET USER RESERVATIONS
    ========================================================= */
 
 function getUserReservations() {
@@ -372,12 +409,13 @@ function getUserReservations() {
     const reservations =
         getReservations();
 
+
     return reservations.filter(
         function (reservation) {
 
             return (
-                reservation.userId ===
-                currentUser.id
+                String(reservation.userId) ===
+                String(currentUser.id)
             );
 
         }
@@ -387,25 +425,21 @@ function getUserReservations() {
 
 
 /* =========================================================
-   14. CHECK WHETHER RESOURCE IS ALREADY RESERVED
+   15. GET ACTIVE RESERVATIONS FOR USER
    ========================================================= */
 
-function hasActiveReservation(
-    resourceId
-) {
+function getActiveReservationsForUser() {
 
     const reservations =
         getReservations();
 
-    return reservations.some(
+
+    return reservations.filter(
         function (reservation) {
 
             return (
-                reservation.userId ===
-                currentUser.id &&
-
-                reservation.resourceId ===
-                resourceId &&
+                String(reservation.userId) ===
+                String(currentUser.id) &&
 
                 reservation.status ===
                 "active"
@@ -418,7 +452,45 @@ function hasActiveReservation(
 
 
 /* =========================================================
-   15. RESERVE RESOURCE
+   16. CHECK WHETHER RESOURCE IS ALREADY RESERVED
+   ========================================================= */
+
+function hasActiveReservation(
+    resourceId
+) {
+
+    const reservations =
+        getReservations();
+
+
+    return reservations.some(
+        function (reservation) {
+
+            return (
+
+                String(reservation.userId) ===
+                String(currentUser.id)
+
+                &&
+
+                String(reservation.resourceId) ===
+                String(resourceId)
+
+                &&
+
+                reservation.status ===
+                "active"
+
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   17. RESERVE RESOURCE
    ========================================================= */
 
 function reserveResource(
@@ -434,13 +506,17 @@ function reserveResource(
             function (item) {
 
                 return (
-                    item.id ===
-                    resourceId
+                    String(item.id) ===
+                    String(resourceId)
                 );
 
             }
         );
 
+
+    /* -----------------------------------------
+       Resource not found
+       ----------------------------------------- */
 
     if (!resource) {
 
@@ -459,7 +535,7 @@ function reserveResource(
        ----------------------------------------- */
 
     if (
-        resource.availableQuantity <= 0
+        Number(resource.availableQuantity) <= 0
     ) {
 
         showMessage(
@@ -484,6 +560,28 @@ function reserveResource(
 
         showMessage(
             "You already have this resource reserved.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    /* -----------------------------------------
+       Maximum 2 active reservations
+       ----------------------------------------- */
+
+    const activeReservations =
+        getActiveReservationsForUser();
+
+
+    if (
+        activeReservations.length >= 2
+    ) {
+
+        showMessage(
+            "Maximum 2 active resource reservations allowed.",
             "error"
         );
 
@@ -521,8 +619,14 @@ function reserveResource(
         userName:
             currentUser.name,
 
+        userEmail:
+            currentUser.email || "",
+
         department:
-            currentUser.department,
+            currentUser.department || "",
+
+        userRole:
+            currentUser.role || "student",
 
         reservedAt:
             new Date().toISOString(),
@@ -549,16 +653,22 @@ function reserveResource(
        Reduce availability
        ----------------------------------------- */
 
-    resource.availableQuantity--;
+    resource.availableQuantity =
+        Number(resource.availableQuantity) - 1;
 
 
     /* -----------------------------------------
-       Save everything
+       Save reservation
        ----------------------------------------- */
 
     saveReservations(
         reservations
     );
+
+
+    /* -----------------------------------------
+       Save updated resource
+       ----------------------------------------- */
 
     saveResources(
         resources
@@ -566,11 +676,15 @@ function reserveResource(
 
 
     /* -----------------------------------------
-       Refresh UI
+       Refresh resources
        ----------------------------------------- */
 
     renderResources();
 
+
+    /* -----------------------------------------
+       Success message
+       ----------------------------------------- */
 
     showMessage(
         resource.name +
@@ -582,14 +696,55 @@ function reserveResource(
 
 
 /* =========================================================
-   16. FILTER RESOURCES
+   18. FILTER RESOURCES
    ========================================================= */
 
 function getFilteredResources() {
 
+    /*
+       IMPORTANT:
+
+       We intentionally DO NOT filter by
+       currentUser.department.
+
+       Admin-created resources should be visible
+       across the library.
+    */
+
     const resources =
         getResources();
 
+
+    let filteredResources =
+        [...resources];
+
+
+    /* -----------------------------------------
+       Type filter
+       ----------------------------------------- */
+
+    if (
+        currentFilter !== "All"
+    ) {
+
+        filteredResources =
+            filteredResources.filter(
+                function (resource) {
+
+                    return (
+                        resource.type ===
+                        currentFilter
+                    );
+
+                }
+            );
+
+    }
+
+
+    /* -----------------------------------------
+       Search filter
+       ----------------------------------------- */
 
     const searchText =
         searchInput.value
@@ -597,50 +752,98 @@ function getFilteredResources() {
             .toLowerCase();
 
 
-    return resources.filter(
-        function (resource) {
+    if (
+        searchText !== ""
+    ) {
 
-            const matchesFilter =
-                currentFilter === "All" ||
-                resource.type ===
-                    currentFilter;
+        filteredResources =
+            filteredResources.filter(
+                function (resource) {
+
+                    const name =
+                        String(
+                            resource.name || ""
+                        ).toLowerCase();
 
 
-            const matchesSearch =
-                !searchText ||
+                    const department =
+                        String(
+                            resource.department || ""
+                        ).toLowerCase();
 
-                resource.name
-                    .toLowerCase()
-                    .includes(
-                        searchText
-                    ) ||
 
-                resource.department
-                    .toLowerCase()
-                    .includes(
-                        searchText
-                    ) ||
+                    const type =
+                        String(
+                            resource.type || ""
+                        ).toLowerCase();
 
-                resource.type
-                    .toLowerCase()
-                    .includes(
-                        searchText
+
+                    return (
+
+                        name.includes(
+                            searchText
+                        )
+
+                        ||
+
+                        department.includes(
+                            searchText
+                        )
+
+                        ||
+
+                        type.includes(
+                            searchText
+                        )
+
                     );
 
-
-            return (
-                matchesFilter &&
-                matchesSearch
+                }
             );
 
-        }
-    );
+    }
+
+
+    return filteredResources;
 
 }
 
 
 /* =========================================================
-   17. RENDER RESOURCES
+   19. ESCAPE HTML
+   ========================================================= */
+
+function escapeHTML(value) {
+
+    return String(
+        value ?? ""
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================================
+   20. RENDER RESOURCES
    ========================================================= */
 
 function renderResources() {
@@ -670,7 +873,9 @@ function renderResources() {
        Empty state
        ----------------------------------------- */
 
-    if (resources.length === 0) {
+    if (
+        resources.length === 0
+    ) {
 
         resourcesGrid.innerHTML = `
 
@@ -694,11 +899,12 @@ function renderResources() {
 
 
     /* -----------------------------------------
-       Create cards
+       Create resource cards
        ----------------------------------------- */
 
     resources.forEach(
         function (resource) {
+
 
             const card =
                 document.createElement(
@@ -711,6 +917,22 @@ function renderResources() {
 
 
             /* ---------------------------------
+               Quantities
+               --------------------------------- */
+
+            const totalQuantity =
+                Number(
+                    resource.totalQuantity || 0
+                );
+
+
+            const availableQuantity =
+                Number(
+                    resource.availableQuantity || 0
+                );
+
+
+            /* ---------------------------------
                Availability percentage
                --------------------------------- */
 
@@ -719,13 +941,13 @@ function renderResources() {
 
 
             if (
-                resource.totalQuantity > 0
+                totalQuantity > 0
             ) {
 
                 availabilityPercentage =
                     (
-                        resource.availableQuantity /
-                        resource.totalQuantity
+                        availableQuantity /
+                        totalQuantity
                     ) * 100;
 
             }
@@ -735,17 +957,19 @@ function renderResources() {
                Progress class
                --------------------------------- */
 
-            let progressClass = "";
+            let progressClass =
+                "";
 
 
             if (
-                resource.availableQuantity === 0
+                availableQuantity === 0
             ) {
 
                 progressClass =
                     "empty";
 
             }
+
             else if (
                 availabilityPercentage <= 40
             ) {
@@ -761,12 +985,11 @@ function renderResources() {
                --------------------------------- */
 
             let statusText;
-
             let statusClass;
 
 
             if (
-                resource.availableQuantity > 0
+                availableQuantity > 0
             ) {
 
                 statusText =
@@ -776,6 +999,7 @@ function renderResources() {
                     "available";
 
             }
+
             else {
 
                 statusText =
@@ -788,7 +1012,7 @@ function renderResources() {
 
 
             /* ---------------------------------
-               Reservation state
+               Existing reservation
                --------------------------------- */
 
             const alreadyReserved =
@@ -798,7 +1022,7 @@ function renderResources() {
 
 
             /* ---------------------------------
-               Button
+               Reservation button
                --------------------------------- */
 
             let buttonHTML;
@@ -820,19 +1044,16 @@ function renderResources() {
                 `;
 
             }
+
             else if (
-                resource.availableQuantity > 0
+                availableQuantity > 0
             ) {
 
                 buttonHTML = `
 
                     <button
                         class="reserve-btn available"
-                        onclick="
-                            reserveResource(
-                                '${resource.id}'
-                            )
-                        "
+                        onclick="reserveResource('${escapeHTML(resource.id)}')"
                     >
                         Reserve
                     </button>
@@ -840,6 +1061,7 @@ function renderResources() {
                 `;
 
             }
+
             else {
 
                 buttonHTML = `
@@ -863,18 +1085,18 @@ function renderResources() {
             card.innerHTML = `
 
                 <span class="resource-type">
-                    ${resource.type}
+                    ${escapeHTML(resource.type)}
                 </span>
 
 
                 <h3>
-                    ${resource.name}
+                    ${escapeHTML(resource.name)}
                 </h3>
 
 
                 <p>
                     Department:
-                    ${resource.department}
+                    ${escapeHTML(resource.department)}
                 </p>
 
 
@@ -887,9 +1109,11 @@ function renderResources() {
                         </span>
 
                         <span>
-                            ${resource.availableQuantity}
+
+                            ${availableQuantity}
                             /
-                            ${resource.totalQuantity}
+                            ${totalQuantity}
+
                         </span>
 
                     </div>
@@ -934,7 +1158,7 @@ function renderResources() {
 
 
 /* =========================================================
-   18. SEARCH
+   21. SEARCH
    ========================================================= */
 
 searchInput.addEventListener(
@@ -948,7 +1172,7 @@ searchInput.addEventListener(
 
 
 /* =========================================================
-   19. FILTER BUTTONS
+   22. FILTER BUTTONS
    ========================================================= */
 
 filterButtons.forEach(
@@ -958,8 +1182,9 @@ filterButtons.forEach(
             "click",
             function () {
 
+
                 /* -----------------------------
-                   Update active button
+                   Remove active state
                    ----------------------------- */
 
                 filterButtons.forEach(
@@ -972,6 +1197,10 @@ filterButtons.forEach(
                     }
                 );
 
+
+                /* -----------------------------
+                   Add active state
+                   ----------------------------- */
 
                 button.classList.add(
                     "active"
@@ -1000,7 +1229,7 @@ filterButtons.forEach(
 
 
 /* =========================================================
-   20. LOGOUT
+   23. LOGOUT
    ========================================================= */
 
 logoutBtn.addEventListener(
@@ -1008,7 +1237,15 @@ logoutBtn.addEventListener(
     function () {
 
         sessionStorage.removeItem(
+            "smartlibCurrentUser"
+        );
+
+        sessionStorage.removeItem(
             "currentUser"
+        );
+
+        sessionStorage.removeItem(
+            "smartlibLoggedIn"
         );
 
 
@@ -1020,7 +1257,7 @@ logoutBtn.addEventListener(
 
 
 /* =========================================================
-   21. INITIALIZE PAGE
+   24. INITIALIZE PAGE
    ========================================================= */
 
 initializeResources();
