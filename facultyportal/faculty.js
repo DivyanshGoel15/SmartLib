@@ -70,21 +70,46 @@ document.getElementById("facultyExamForm").addEventListener("submit", event => {
     event.preventDefault();
     const start = document.getElementById("facultyExamStart").value;
     const end = document.getElementById("facultyExamEnd").value;
+    const time = document.getElementById("facultyExamTime").value;
     const error = document.getElementById("facultyModalError");
     if (new Date(end) < new Date(start)) {
         error.textContent = "End date cannot be before start date.";
         return;
     }
-    exams.push({
-        id: Date.now(),
-        department: currentUser.department,
-        year: document.getElementById("facultyExamYear").value,
-        name: document.getElementById("facultyExamName").value.trim(),
-        startDate: start,
-        endDate: end,
-        createdBy: currentUser.id,
-        createdByRole: "faculty"
-    });
+   exams.push({
+
+    id:
+        Date.now(),
+
+    department:
+        currentUser.department,
+
+    year:
+        document.getElementById(
+            "facultyExamYear"
+        ).value,
+
+    name:
+        document.getElementById(
+            "facultyExamName"
+        ).value.trim(),
+
+    startDate:
+        start,
+
+    endDate:
+        end,
+
+    time:
+        time,
+
+    createdBy:
+        currentUser.id,
+
+    createdByRole:
+        "faculty"
+
+});
     saveExams();
     closeFacultyModal();
     render();
