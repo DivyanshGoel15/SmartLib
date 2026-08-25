@@ -4018,25 +4018,20 @@ document.addEventListener("DOMContentLoaded", function () {
        ========================================================= */
 
     function adminGetExams() {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem("libraryExams") || "[]"
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Unable to load exams:",
-                error
-            );
-
-            return [];
-
-        }
-
+    try {
+        return JSON.parse(
+            localStorage.getItem("smartlibExams") ||
+            localStorage.getItem("libraryExams") ||
+            "[]"
+        );
+    } catch (error) {
+        console.error(
+            "Unable to load exams:",
+            error
+        );
+        return [];
     }
+}
 
 
     function adminSaveExams(exams) {
@@ -5518,6 +5513,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         ${escapeHTML(
                             exam.date ||
                             exam.examDate ||
+                            exam.startDate ||
+                            exam.endDate ||
                             "—"
                         )}
                     </td>
