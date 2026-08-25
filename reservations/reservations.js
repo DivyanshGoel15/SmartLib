@@ -349,8 +349,17 @@ function returnResource(
             function (item) {
 
                 return (
-                    String(item.id) ===
-                    String(reservationId)
+
+                    String(
+                        item.id
+                    )
+
+                    ===
+
+                    String(
+                        reservationId
+                    )
+
                 );
 
             }
@@ -370,8 +379,15 @@ function returnResource(
 
 
     if (
-        reservation.userId !==
-        currentUser.id
+        String(
+            reservation.userId
+        )
+
+        !==
+
+        String(
+            currentUser.id
+        )
     ) {
 
         showMessage(
@@ -408,10 +424,17 @@ function returnResource(
             function (item) {
 
                 return (
-                    String(item.id) ===
+
+                    String(
+                        item.id
+                    )
+
+                    ===
+
                     String(
                         reservation.resourceId
                     )
+
                 );
 
             }
@@ -425,6 +448,10 @@ function returnResource(
     reservation.returnedAt =
         new Date().toISOString();
 
+
+    /*
+     * Return resource.
+     */
 
     if (resource) {
 
@@ -457,14 +484,75 @@ function returnResource(
     );
 
 
+    /*
+     * AUTOMATIC PRIORITY HANDOFF
+     */
+
+    let promotedStudent =
+        null;
+
+
+    if (
+        resource &&
+
+        typeof handoffResource ===
+        "function"
+    ) {
+
+        const updatedReservations =
+            getReservations();
+
+
+        const result =
+            handoffResource(
+                resource.id,
+                resources,
+                updatedReservations
+            );
+
+
+        if (result) {
+
+            promotedStudent =
+                result.student;
+
+
+            saveResources(
+                resources
+            );
+
+
+            saveReservations(
+                updatedReservations
+            );
+
+        }
+
+    }
+
+
     renderPage();
 
 
-    showMessage(
-        reservation.resourceName +
-        " returned successfully.",
-        "success"
-    );
+    if (
+        promotedStudent
+    ) {
+
+        showMessage(
+            reservation.resourceName +
+            " returned. The next priority student has been assigned the resource.",
+            "success"
+        );
+
+    } else {
+
+        showMessage(
+            reservation.resourceName +
+            " returned successfully.",
+            "success"
+        );
+
+    }
 
 }
 
@@ -594,28 +682,593 @@ function renderActiveReservations() {
 
 function renderQueue() {
 
-    queueReservations.innerHTML = `
+    queueReservations.innerHTML =
+        "";
 
-        <div class="queue-card">
 
-            <div class="queue-placeholder">
+    if (
+        typeof getQueues !==
+        "function"
+    ) {
 
-                <strong>
-                    Queue Integration Pending
-                </strong>
+        queueCount.textContent =
+            "0";
 
-                Waiting resources and queue
-                positions will appear here.
+
+        queueReservations.innerHTML = `
+
+            <div class="queue-card">
+
+                <div class="queue-placeholder">
+
+                    <strong>
+                        Priority Queue Unavailable
+                    </strong>
+
+                    <br>
+
+                    priorityQueue.js is not loaded.
+
+                </div>
 
             </div>
 
-        </div>
+        `;
 
-    `;
+        return;
+
+    }
+
+
+    const queues =
+        getQueues();
+
+
+    const resources =
+        getResources();
+
+
+    const userId =
+        String(
+            currentUser.id
+        );
+
+
+    const userQueueEntries =
+        [];
+
+
+    Object.keys(
+        queues
+    ).forEach(
+        function (resourceId) {
+
+            const queue =
+                getQueue(
+                    resourceId
+                );
+
+
+            const position =
+                queue.findIndex(
+                    function (student) {
+
+                        return (
+
+                            String(
+                                student.userId
+                            )
+
+                            ===
+
+                            userId
+
+                        );
+
+                    }
+                );
+
+
+            if (
+                position !== -1
+            ) {
+
+                const resource =
+                    resources.find(
+                        function (item) {
+
+                            return (
+
+                                String(
+                                    item.id
+                                )
+
+                                ===
+
+                                String(
+                                    resourceId
+                                )
+
+                            );
+
+                        }
+                    );
+
+
+                if (resource) {
+
+                    userQueueEntries.push({
+
+                        resource:
+                            resource,
+
+                        entry:
+                            queue[position],
+
+                        position:
+                            position + 1,
+
+                        total:
+                            queue.length,
+
+                        priority:
+                            calculatePriority(
+                                queue[position]
+                            )
+
+                    });
+
+                }
+
+            }
+
+        }
+    );
 
 
     queueCount.textContent =
-        "0";
+        userQueueEntries.length;
+
+
+    if (
+        userQueueEntries.length ===
+        0
+    ) {
+
+        queueReservations.innerHTML = `
+
+            <div class="empty-state">
+
+                <h3>
+                    No Waiting Queues
+                </h3>
+
+                <p>
+                    You are not currently waiting for any resource.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    userQueueEntries.sort(
+        function (a, b) {
+
+            return (
+
+                a.entry.requestedAt -
+                b.entry.requestedAt
+
+            );
+
+        }
+    );
+
+
+    userQueueEntries.forEach(
+        function (item) {
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+
+            card.className =
+                "reservation-card";
+
+
+            const examLabel =
+                item.entry.examStatus ===
+                "exam"
+
+                    ? "EXAM PRIORITY"
+
+                    : "REGULAR";
+
+
+            card.innerHTML = `
+
+                <div class="reservation-type">
+                    RESOURCE QUEUE
+                </div>
+
+
+                <h3>
+                    ${item.resource.name}
+                </h3>
+
+
+                <div
+                    class="reservation-status status-active"
+                >
+                    POSITION #${item.position}
+                </div>
+
+
+                <div class="reservation-info">
+
+                    <strong>
+                        Queue Position
+                    </strong>
+
+                    <br>
+
+                    ${item.position}
+                    of
+                    ${item.total}
+
+
+                    <br><br>
+
+
+                    <strong>
+                        Priority
+                    </strong>
+
+                    <br>
+
+                    ${item.priority}
+                    ·
+                    ${examLabel}
+
+
+                    <br><br>
+
+
+                    <strong>
+                        Requested
+                    </strong>
+
+                    <br>
+
+                    ${formatDateTime(
+                        new Date(
+                            item.entry.requestedAt
+                        ).toISOString()
+                    )}
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="return-btn"
+                    onclick="leaveQueue('${item.resource.id}')"
+                >
+                    LEAVE QUEUE
+                </button>
+
+            `;
+
+
+            queueReservations.appendChild(
+                card
+            );
+
+        }
+    );
+
+}
+
+function renderQueue() {
+
+    queueReservations.innerHTML =
+        "";
+
+
+    if (
+        typeof getQueues !==
+        "function"
+    ) {
+
+        queueCount.textContent =
+            "0";
+
+
+        queueReservations.innerHTML = `
+
+            <div class="queue-card">
+
+                <div class="queue-placeholder">
+
+                    <strong>
+                        Priority Queue Unavailable
+                    </strong>
+
+                    <br>
+
+                    priorityQueue.js is not loaded.
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    const queues =
+        getQueues();
+
+
+    const resources =
+        getResources();
+
+
+    const userId =
+        String(
+            currentUser.id
+        );
+
+
+    const userQueueEntries =
+        [];
+
+
+    Object.keys(
+        queues
+    ).forEach(
+        function (resourceId) {
+
+            const queue =
+                getQueue(
+                    resourceId
+                );
+
+
+            const position =
+                queue.findIndex(
+                    function (student) {
+
+                        return (
+
+                            String(
+                                student.userId
+                            )
+
+                            ===
+
+                            userId
+
+                        );
+
+                    }
+                );
+
+
+            if (
+                position !== -1
+            ) {
+
+                const resource =
+                    resources.find(
+                        function (item) {
+
+                            return (
+
+                                String(
+                                    item.id
+                                )
+
+                                ===
+
+                                String(
+                                    resourceId
+                                )
+
+                            );
+
+                        }
+                    );
+
+
+                if (resource) {
+
+                    userQueueEntries.push({
+
+                        resource:
+                            resource,
+
+                        entry:
+                            queue[position],
+
+                        position:
+                            position + 1,
+
+                        total:
+                            queue.length,
+
+                        priority:
+                            calculatePriority(
+                                queue[position]
+                            )
+
+                    });
+
+                }
+
+            }
+
+        }
+    );
+
+
+    queueCount.textContent =
+        userQueueEntries.length;
+
+
+    if (
+        userQueueEntries.length ===
+        0
+    ) {
+
+        queueReservations.innerHTML = `
+
+            <div class="empty-state">
+
+                <h3>
+                    No Waiting Queues
+                </h3>
+
+                <p>
+                    You are not currently waiting for any resource.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    userQueueEntries.sort(
+        function (a, b) {
+
+            return (
+
+                a.entry.requestedAt -
+                b.entry.requestedAt
+
+            );
+
+        }
+    );
+
+
+    userQueueEntries.forEach(
+        function (item) {
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+
+            card.className =
+                "reservation-card";
+
+
+            const examLabel =
+                item.entry.examStatus ===
+                "exam"
+
+                    ? "EXAM PRIORITY"
+
+                    : "REGULAR";
+
+
+            card.innerHTML = `
+
+                <div class="reservation-type">
+                    RESOURCE QUEUE
+                </div>
+
+
+                <h3>
+                    ${item.resource.name}
+                </h3>
+
+
+                <div
+                    class="reservation-status status-active"
+                >
+                    POSITION #${item.position}
+                </div>
+
+
+                <div class="reservation-info">
+
+                    <strong>
+                        Queue Position
+                    </strong>
+
+                    <br>
+
+                    ${item.position}
+                    of
+                    ${item.total}
+
+
+                    <br><br>
+
+
+                    <strong>
+                        Priority
+                    </strong>
+
+                    <br>
+
+                    ${item.priority}
+                    ·
+                    ${examLabel}
+
+
+                    <br><br>
+
+
+                    <strong>
+                        Requested
+                    </strong>
+
+                    <br>
+
+                    ${formatDateTime(
+                        new Date(
+                            item.entry.requestedAt
+                        ).toISOString()
+                    )}
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="return-btn"
+                    onclick="leaveQueue('${item.resource.id}')"
+                >
+                    LEAVE QUEUE
+                </button>
+
+            `;
+
+
+            queueReservations.appendChild(
+                card
+            );
+
+        }
+    );
 
 }
 
@@ -812,6 +1465,27 @@ logoutBtn.addEventListener(
 
 displayUser();
 
+
+if (
+    typeof refreshAllQueues ===
+    "function"
+) {
+
+    refreshAllQueues();
+
+}
+
+
+if (
+    typeof processAllQueueHandoffs ===
+    "function"
+) {
+
+    processAllQueueHandoffs();
+
+}
+
+
 renderPage();
 
 
@@ -836,7 +1510,9 @@ window.addEventListener(
 
         if (
             event.key === "libraryResources" ||
-            event.key === "libraryReservations"
+            event.key === "libraryReservations" ||
+            event.key === "smartlib_queues" ||
+            event.key === "smartlibExams"
         ) {
 
             syncReservationsPage();

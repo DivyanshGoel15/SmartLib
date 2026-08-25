@@ -1,5 +1,14 @@
+/* =========================================================
+   SMARTLIB
+   PRIORITY QUEUE
+   ========================================================= */
+
 const QUEUES_KEY = "smartlib_queues";
 
+
+/* =========================================================
+   GET QUEUES
+   ========================================================= */
 
 function getQueues() {
 
@@ -7,12 +16,32 @@ function getQueues() {
         localStorage.getItem(QUEUES_KEY);
 
     if (storedQueues) {
-        return JSON.parse(storedQueues);
+
+        try {
+
+            return JSON.parse(storedQueues);
+
+        } catch (error) {
+
+            console.error(
+                "Error reading queues:",
+                error
+            );
+
+            return {};
+
+        }
+
     }
 
     return {};
+
 }
 
+
+/* =========================================================
+   SAVE QUEUES
+   ========================================================= */
 
 function saveQueues(queues) {
 
@@ -20,10 +49,13 @@ function saveQueues(queues) {
         QUEUES_KEY,
         JSON.stringify(queues)
     );
+
 }
 
 
-/* CALCULATE PRIORITY */
+/* =========================================================
+   YEAR NUMBER
+   ========================================================= */
 
 function getYearNumber(year) {
 
@@ -34,312 +66,837 @@ function getYearNumber(year) {
     }
 
     const match =
-        String(year).match(/\d+/);
+        String(year || "").match(/\d+/);
 
     return match
         ? Number(match[0])
         : 0;
+
 }
 
 
-function calculatePriority(student) {
+/* =========================================================
+   NORMALIZE VALUE
+   ========================================================= */
 
-    let priority = 0;
+function normalizeValue(value) {
 
-    if (isExamActive(student)) {
+    return String(value || "")
+        .trim()
+        .toLowerCase();
 
-        priority += 100;
-
-    }
-
-    priority +=
-        getYearNumber(student.year) * 10;
-
-    return priority;
 }
 
 
-/* SORT QUEUE */
-
-function sortQueue(queue) {
-
-    queue.sort(function (studentA, studentB) {
-
-        const priorityA =
-            calculatePriority(studentA);
-
-        const priorityB =
-            calculatePriority(studentB);
-
-        if (priorityA !== priorityB) {
-
-            return priorityB - priorityA;
-
-        }
-
-        return (
-            studentA.requestedAt -
-            studentB.requestedAt
-        );
-
-    });
-
-    return queue;
-}
-
-
-/* CHECK ACTIVE EXAM */
+/* =========================================================
+   CHECK ACTIVE EXAM
+   ========================================================= */
 
 function isExamActive(student) {
 
-    const exams =
-        JSON.parse(
-            localStorage.getItem("smartlibExams") || "[]"
-        );
+    let exams = [];
 
-    const today = new Date();
+    try {
 
-    today.setHours(0, 0, 0, 0);
-
-    return exams.some(function (exam) {
-
-        if (
-            exam.department !== student.department ||
-            exam.year !== student.year
-        ) {
-
-            return false;
-
-        }
-
-        const start =
-            new Date(exam.startDate);
-
-        const end =
-            new Date(exam.endDate);
-
-        if (
-            Number.isNaN(start.getTime()) ||
-            Number.isNaN(end.getTime())
-        ) {
-
-            return false;
-
-        }
-
-        start.setHours(0, 0, 0, 0);
-
-        end.setHours(23, 59, 59, 999);
-
-        return (
-            today >= start &&
-            today <= end
-        );
-
-    });
-}
-
-
-/* ADD TO QUEUE */
-
-function addToQueue(seatId, student) {
-
-    const queues = getQueues();
-
-    if (!queues[seatId]) {
-
-        queues[seatId] = [];
-
-    }
-
-    const alreadyInQueue =
-        queues[seatId].some(function (person) {
-
-            return (
-                String(person.userId) ===
-                String(student.id)
+        exams =
+            JSON.parse(
+                localStorage.getItem(
+                    "smartlibExams"
+                ) || "[]"
             );
 
-        });
+    } catch (error) {
 
-    if (alreadyInQueue) {
+        console.error(
+            "Error reading exams:",
+            error
+        );
 
         return false;
 
     }
 
+
+    const today =
+        new Date();
+
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    return exams.some(
+        function (exam) {
+
+            if (
+
+                normalizeValue(
+                    exam.department
+                ) !==
+                normalizeValue(
+                    student.department
+                )
+
+                ||
+
+                getYearNumber(
+                    exam.year
+                ) !==
+                getYearNumber(
+                    student.year
+                )
+
+            ) {
+
+                return false;
+
+            }
+
+
+            const start =
+                new Date(
+                    exam.startDate
+                );
+
+            const end =
+                new Date(
+                    exam.endDate
+                );
+
+
+            if (
+
+                Number.isNaN(
+                    start.getTime()
+                )
+
+                ||
+
+                Number.isNaN(
+                    end.getTime()
+                )
+
+            ) {
+
+                return false;
+
+            }
+
+
+            start.setHours(
+                0,
+                0,
+                0,
+                0
+            );
+
+            end.setHours(
+                23,
+                59,
+                59,
+                999
+            );
+
+
+            return (
+
+                today >= start
+
+                &&
+
+                today <= end
+
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   CALCULATE PRIORITY
+   ========================================================= */
+
+function calculatePriority(student) {
+
+    let priority = 0;
+
+
+    /*
+     * Active examination:
+     * +100
+     */
+
+    if (
+        isExamActive(student)
+    ) {
+
+        priority += 100;
+
+    }
+
+
+    /*
+     * Higher year:
+     * 4th = 40
+     * 3rd = 30
+     * 2nd = 20
+     * 1st = 10
+     */
+
+    priority +=
+        getYearNumber(
+            student.year
+        ) * 10;
+
+
+    return priority;
+
+}
+
+
+/* =========================================================
+   SORT QUEUE
+   ========================================================= */
+
+function sortQueue(queue) {
+
+    queue.sort(
+        function (
+            studentA,
+            studentB
+        ) {
+
+            const priorityA =
+                calculatePriority(
+                    studentA
+                );
+
+            const priorityB =
+                calculatePriority(
+                    studentB
+                );
+
+
+            /*
+             * Higher priority first
+             */
+
+            if (
+                priorityA !==
+                priorityB
+            ) {
+
+                return (
+                    priorityB -
+                    priorityA
+                );
+
+            }
+
+
+            /*
+             * Same priority:
+             * first come, first served
+             */
+
+            return (
+
+                Number(
+                    studentA.requestedAt ||
+                    0
+                )
+
+                -
+
+                Number(
+                    studentB.requestedAt ||
+                    0
+                )
+
+            );
+
+        }
+    );
+
+
+    return queue;
+
+}
+
+
+/* =========================================================
+   ADD TO QUEUE
+   ========================================================= */
+
+function addToQueue(
+    resourceId,
+    student
+) {
+
+    const queues =
+        getQueues();
+
+
+    if (
+        !queues[resourceId]
+    ) {
+
+        queues[resourceId] = [];
+
+    }
+
+
+    /*
+     * Prevent duplicate queue entry
+     */
+
+    const alreadyInQueue =
+        queues[resourceId].some(
+            function (person) {
+
+                return (
+
+                    String(
+                        person.userId
+                    )
+
+                    ===
+
+                    String(
+                        student.id
+                    )
+
+                );
+
+            }
+        );
+
+
+    if (
+        alreadyInQueue
+    ) {
+
+        return false;
+
+    }
+
+
     const queueEntry = {
 
-        userId: student.id,
-        name: student.name,
-        department: student.department,
-        year: student.year,
+        userId:
+            student.id,
+
+        name:
+            student.name ||
+            "Student",
+
+        email:
+            student.email ||
+            "",
+
+        department:
+            student.department ||
+            "",
+
+        year:
+            student.year ||
+            "",
+
+        resourceId:
+            resourceId,
 
         examStatus:
             isExamActive(student)
                 ? "exam"
                 : "regular",
 
-        requestedAt: Date.now()
+        requestedAt:
+            Date.now()
 
     };
 
-    queues[seatId].push(queueEntry);
 
-    sortQueue(queues[seatId]);
+    queues[resourceId].push(
+        queueEntry
+    );
 
-    saveQueues(queues);
+
+    sortQueue(
+        queues[resourceId]
+    );
+
+
+    saveQueues(
+        queues
+    );
+
 
     return true;
+
 }
 
 
-/* REMOVE FROM QUEUE */
+/* =========================================================
+   REMOVE FROM ONE QUEUE
+   ========================================================= */
 
-function removeFromQueue(seatId, userId) {
+function removeFromQueue(
+    resourceId,
+    userId
+) {
 
-    const queues = getQueues();
+    const queues =
+        getQueues();
 
-    if (!queues[seatId]) {
+
+    if (
+        !queues[resourceId]
+    ) {
 
         return false;
 
     }
 
+
     const oldLength =
-        queues[seatId].length;
+        queues[resourceId].length;
 
-    queues[seatId] =
-        queues[seatId].filter(function (student) {
 
-            return (
-                String(student.userId) !==
-                String(userId)
-            );
+    queues[resourceId] =
+        queues[resourceId].filter(
+            function (student) {
 
-        });
+                return (
 
-    saveQueues(queues);
+                    String(
+                        student.userId
+                    )
+
+                    !==
+
+                    String(
+                        userId
+                    )
+
+                );
+
+            }
+        );
+
+
+    if (
+        queues[resourceId].length ===
+        0
+    ) {
+
+        delete queues[resourceId];
+
+    }
+
+
+    saveQueues(
+        queues
+    );
+
 
     return (
-        queues[seatId].length <
-        oldLength
+        queues[resourceId]
+            ? queues[resourceId].length <
+              oldLength
+            : oldLength > 0
     );
+
 }
 
 
-/* REMOVE USER FROM ALL QUEUES */
+/* =========================================================
+   REMOVE USER FROM ALL QUEUES
+   ========================================================= */
 
-function removeFromAllQueues(userId) {
+function removeFromAllQueues(
+    userId
+) {
 
-    const queues = getQueues();
+    const queues =
+        getQueues();
+
 
     let removedCount = 0;
 
-    Object.keys(queues).forEach(function (seatId) {
 
-        const oldLength =
-            queues[seatId].length;
+    Object.keys(
+        queues
+    ).forEach(
+        function (resourceId) {
 
-        queues[seatId] =
-            queues[seatId].filter(function (student) {
+            const oldLength =
+                queues[resourceId].length;
 
-                return (
-                    String(student.userId) !==
-                    String(userId)
+
+            queues[resourceId] =
+                queues[resourceId].filter(
+                    function (student) {
+
+                        return (
+
+                            String(
+                                student.userId
+                            )
+
+                            !==
+
+                            String(
+                                userId
+                            )
+
+                        );
+
+                    }
                 );
 
-            });
 
-        removedCount +=
-            oldLength -
-            queues[seatId].length;
+            removedCount +=
+                oldLength -
+                queues[resourceId].length;
 
-    });
 
-    saveQueues(queues);
+            if (
+                queues[resourceId].length ===
+                0
+            ) {
+
+                delete queues[
+                    resourceId
+                ];
+
+            }
+
+        }
+    );
+
+
+    saveQueues(
+        queues
+    );
+
 
     return removedCount;
+
 }
 
 
-/* GET SORTED QUEUE */
+/* =========================================================
+   GET QUEUE
+   ========================================================= */
 
-function getQueue(seatId) {
+function getQueue(
+    resourceId
+) {
 
-    const queues = getQueues();
+    const queues =
+        getQueues();
+
 
     const queue =
-        queues[seatId] || [];
+        queues[resourceId] ||
+        [];
 
-    sortQueue(queue);
+
+    sortQueue(
+        queue
+    );
+
 
     return queue;
+
 }
 
 
-/* GET HIGHEST PRIORITY STUDENT */
+/* =========================================================
+   CHECK USER IN QUEUE
+   ========================================================= */
 
-function getNextStudent(seatId) {
+function isUserInQueue(
+    resourceId,
+    userId
+) {
 
     const queue =
-        getQueue(seatId);
+        getQueue(
+            resourceId
+        );
 
-    if (queue.length === 0) {
 
-        return null;
+    return queue.some(
+        function (student) {
 
-    }
+            return (
 
-    return queue[0];
+                String(
+                    student.userId
+                )
+
+                ===
+
+                String(
+                    userId
+                )
+
+            );
+
+        }
+    );
+
 }
 
 
-/* AUTOMATIC SEAT HANDOFF */
+/* =========================================================
+   GET QUEUE POSITION
+   ========================================================= */
 
-function handoffSeat(seatId, seats) {
+function getQueuePosition(
+    resourceId,
+    userId
+) {
 
     const queue =
-        getQueue(seatId);
+        getQueue(
+            resourceId
+        );
 
-    if (queue.length === 0) {
 
-        return null;
-
-    }
-
-    const seat =
-        seats.find(function (seat) {
-
-            return seat.id === seatId;
-
-        });
-
-    if (!seat) {
-
-        return null;
-
-    }
-
-    /*
-     * Find the highest-priority student
-     * who does not already have a seat.
-     */
-
-    const nextStudent =
-        queue.find(function (student) {
-
-            return !seats.some(function (existingSeat) {
+    const index =
+        queue.findIndex(
+            function (student) {
 
                 return (
-                    existingSeat.status === "occupied" &&
-                    String(existingSeat.occupantId) ===
-                    String(student.userId)
+
+                    String(
+                        student.userId
+                    )
+
+                    ===
+
+                    String(
+                        userId
+                    )
+
                 );
 
-            });
+            }
+        );
 
-        });
+
+    if (
+        index === -1
+    ) {
+
+        return 0;
+
+    }
+
+
+    return index + 1;
+
+}
+
+
+/* =========================================================
+   GET NEXT STUDENT
+   ========================================================= */
+
+function getNextStudent(
+    resourceId
+) {
+
+    const queue =
+        getQueue(
+            resourceId
+        );
+
+
+    if (
+        queue.length === 0
+    ) {
+
+        return null;
+
+    }
+
+
+    return queue[0];
+
+}
+
+
+/* =========================================================
+   HANDOFF RESOURCE
+   ========================================================= */
+
+function handoffResource(
+    resourceId,
+    resources,
+    reservations
+) {
+
+    const resource =
+        resources.find(
+            function (item) {
+
+                return (
+
+                    String(
+                        item.id
+                    )
+
+                    ===
+
+                    String(
+                        resourceId
+                    )
+
+                );
+
+            }
+        );
+
+
+    if (!resource) {
+
+        return null;
+
+    }
+
+
+    /*
+     * No available copy
+     */
+
+    if (
+        Number(
+            resource.availableQuantity
+        ) <= 0
+    ) {
+
+        return null;
+
+    }
+
+
+    const queue =
+        getQueue(
+            resourceId
+        );
+
+
+    if (
+        queue.length === 0
+    ) {
+
+        return null;
+
+    }
+
+
+    /*
+     * Find first eligible student.
+     */
+
+    const activeReservations =
+        reservations.filter(
+            function (reservation) {
+
+                return (
+                    reservation.status ===
+                    "active"
+                );
+
+            }
+        );
+
+
+    const nextStudent =
+        queue.find(
+            function (student) {
+
+                const alreadyHasResource =
+                    activeReservations.some(
+                        function (
+                            reservation
+                        ) {
+
+                            return (
+
+                                String(
+                                    reservation.userId
+                                )
+
+                                ===
+
+                                String(
+                                    student.userId
+                                )
+
+                                &&
+
+                                String(
+                                    reservation.resourceId
+                                )
+
+                                ===
+
+                                String(
+                                    resourceId
+                                )
+
+                            );
+
+                        }
+                    );
+
+
+                const activeCount =
+                    activeReservations.filter(
+                        function (
+                            reservation
+                        ) {
+
+                            return (
+
+                                String(
+                                    reservation.userId
+                                )
+
+                                ===
+
+                                String(
+                                    student.userId
+                                )
+
+                            );
+
+                        }
+                    ).length;
+
+
+                return (
+
+                    !alreadyHasResource
+
+                    &&
+
+                    activeCount < 2
+
+                );
+
+            }
+        );
+
 
     if (!nextStudent) {
 
@@ -347,39 +904,247 @@ function handoffSeat(seatId, seats) {
 
     }
 
-    /* Give the seat to the next eligible student */
 
-    seat.status = "occupied";
+    /*
+     * Create actual reservation.
+     */
 
-    seat.occupantId =
-        nextStudent.userId;
+    const reservation = {
 
-    /* Remove from this queue */
+        id:
+            "RSV" +
+            Date.now() +
+            Math.floor(
+                Math.random() * 1000
+            ),
+
+        resourceId:
+            resource.id,
+
+        resourceName:
+            resource.name,
+
+        userId:
+            nextStudent.userId,
+
+        userName:
+            nextStudent.name,
+
+        userEmail:
+            nextStudent.email ||
+            "",
+
+        department:
+            nextStudent.department ||
+            "",
+
+        year:
+            nextStudent.year ||
+            "",
+
+        userRole:
+            "student",
+
+        reservedAt:
+            new Date().toISOString(),
+
+        returnedAt:
+            null,
+
+        status:
+            "active",
+
+        promotedFromQueue:
+            true,
+
+        queueRequestedAt:
+            nextStudent.requestedAt
+
+    };
+
+
+    reservations.push(
+        reservation
+    );
+
+
+    /*
+     * Consume one available copy.
+     */
+
+    resource.availableQuantity =
+        Math.max(
+            0,
+            Number(
+                resource.availableQuantity
+            ) - 1
+        );
+
+
+    /*
+     * Remove student from this queue.
+     */
 
     removeFromQueue(
-        seatId,
+        resourceId,
         nextStudent.userId
     );
 
-    /* Remove from every other queue */
 
-    const queues = getQueues();
+    /*
+     * Remove student from all other queues.
+     */
 
-    Object.keys(queues).forEach(function (otherSeatId) {
+    removeFromAllQueues(
+        nextStudent.userId
+    );
 
-        queues[otherSeatId] =
-            queues[otherSeatId].filter(function (student) {
 
-                return (
-                    String(student.userId) !==
-                    String(nextStudent.userId)
-                );
+    return {
 
-            });
+        reservation:
+            reservation,
 
-    });
+        resource:
+            resource,
 
-    saveQueues(queues);
+        student:
+            nextStudent
 
-    return nextStudent;
+    };
+
+}
+
+
+/* =========================================================
+   PROCESS ALL AVAILABLE RESOURCES
+   ========================================================= */
+
+function processAllQueueHandoffs() {
+
+    if (
+
+        typeof getResources !==
+        "function"
+
+        ||
+
+        typeof getReservations !==
+        "function"
+
+        ||
+
+        typeof saveResources !==
+        "function"
+
+        ||
+
+        typeof saveReservations !==
+        "function"
+
+    ) {
+
+        return 0;
+
+    }
+
+
+    const resources =
+        getResources();
+
+
+    const reservations =
+        getReservations();
+
+
+    let promotedCount = 0;
+
+
+    resources.forEach(
+        function (resource) {
+
+            while (
+
+                Number(
+                    resource.availableQuantity
+                ) > 0
+
+                &&
+
+                getQueue(
+                    resource.id
+                ).length > 0
+
+            ) {
+
+                const result =
+                    handoffResource(
+                        resource.id,
+                        resources,
+                        reservations
+                    );
+
+
+                if (!result) {
+
+                    break;
+
+                }
+
+
+                promotedCount++;
+
+            }
+
+        }
+    );
+
+
+    if (
+        promotedCount > 0
+    ) {
+
+        saveResources(
+            resources
+        );
+
+        saveReservations(
+            reservations
+        );
+
+    }
+
+
+    return promotedCount;
+
+}
+
+
+/* =========================================================
+   REFRESH QUEUE PRIORITIES
+   ========================================================= */
+
+function refreshAllQueues() {
+
+    const queues =
+        getQueues();
+
+
+    Object.keys(
+        queues
+    ).forEach(
+        function (resourceId) {
+
+            sortQueue(
+                queues[resourceId]
+            );
+
+        }
+    );
+
+
+    saveQueues(
+        queues
+    );
+
 }

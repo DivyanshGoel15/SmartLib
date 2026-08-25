@@ -493,9 +493,7 @@ function hasActiveReservation(
    17. RESERVE RESOURCE
    ========================================================= */
 
-function reserveResource(
-    resourceId
-) {
+function reserveResource(resourceId) {
 
     const resources =
         getResources();
@@ -514,10 +512,6 @@ function reserveResource(
         );
 
 
-    /* -----------------------------------------
-       Resource not found
-       ----------------------------------------- */
-
     if (!resource) {
 
         showMessage(
@@ -531,25 +525,7 @@ function reserveResource(
 
 
     /* -----------------------------------------
-       Check availability
-       ----------------------------------------- */
-
-    if (
-        Number(resource.availableQuantity) <= 0
-    ) {
-
-        showMessage(
-            "This resource is currently unavailable.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    /* -----------------------------------------
-       Prevent duplicate reservation
+       PREVENT DUPLICATE RESERVATION
        ----------------------------------------- */
 
     if (
@@ -569,7 +545,7 @@ function reserveResource(
 
 
     /* -----------------------------------------
-       Maximum 2 active reservations
+       MAXIMUM 2 ACTIVE RESERVATIONS
        ----------------------------------------- */
 
     const activeReservations =
@@ -591,104 +567,164 @@ function reserveResource(
 
 
     /* -----------------------------------------
-       Get reservations
+       RESOURCE AVAILABLE
        ----------------------------------------- */
 
-    const reservations =
-        getReservations();
+    if (
+        Number(
+            resource.availableQuantity
+        ) > 0
+    ) {
+
+        const reservations =
+            getReservations();
+
+
+        const reservation = {
+
+            id:
+                generateId("RSV"),
+
+            resourceId:
+                resource.id,
+
+            resourceName:
+                resource.name,
+
+            userId:
+                currentUser.id,
+
+            userName:
+                currentUser.name,
+
+            userEmail:
+                currentUser.email ||
+                "",
+
+            department:
+                currentUser.department ||
+                "",
+
+            year:
+                currentUser.year ||
+                "",
+
+            userRole:
+                currentUser.role ||
+                "student",
+
+            reservedAt:
+                new Date().toISOString(),
+
+            returnedAt:
+                null,
+
+            status:
+                "active",
+
+            promotedFromQueue:
+                false
+
+        };
+
+
+        reservations.push(
+            reservation
+        );
+
+
+        resource.availableQuantity =
+            Number(
+                resource.availableQuantity
+            ) - 1;
+
+
+        saveReservations(
+            reservations
+        );
+
+
+        saveResources(
+            resources
+        );
+
+
+        /*
+         * If the user had been waiting elsewhere,
+         * remove their queue entries.
+         */
+
+        if (
+            typeof removeFromAllQueues ===
+            "function"
+        ) {
+
+            removeFromAllQueues(
+                currentUser.id
+            );
+
+        }
+
+
+        renderResources();
+
+
+        showMessage(
+            resource.name +
+            " reserved successfully.",
+            "success"
+        );
+
+
+        return;
+
+    }
 
 
     /* -----------------------------------------
-       Create reservation
+       RESOURCE UNAVAILABLE
+       JOIN PRIORITY QUEUE
        ----------------------------------------- */
 
-    const reservation = {
+    if (
+        typeof addToQueue !==
+        "function"
+    ) {
 
-        id:
-            generateId("RSV"),
+        showMessage(
+            "Priority queue is not loaded.",
+            "error"
+        );
 
-        resourceId:
+        return;
+
+    }
+
+
+    const added =
+        addToQueue(
             resource.id,
-
-        resourceName:
-            resource.name,
-
-        userId:
-            currentUser.id,
-
-        userName:
-            currentUser.name,
-
-        userEmail:
-            currentUser.email || "",
-
-        department:
-            currentUser.department || "",
-
-        userRole:
-            currentUser.role || "student",
-
-        reservedAt:
-            new Date().toISOString(),
-
-        returnedAt:
-            null,
-
-        status:
-            "active"
-
-    };
+            currentUser
+        );
 
 
-    /* -----------------------------------------
-       Add reservation
-       ----------------------------------------- */
+    if (!added) {
 
-    reservations.push(
-        reservation
-    );
+        showMessage(
+            "You are already in this resource queue.",
+            "error"
+        );
 
+        return;
 
-    /* -----------------------------------------
-       Reduce availability
-       ----------------------------------------- */
+    }
 
-    resource.availableQuantity =
-        Number(resource.availableQuantity) - 1;
-
-
-    /* -----------------------------------------
-       Save reservation
-       ----------------------------------------- */
-
-    saveReservations(
-        reservations
-    );
-
-
-    /* -----------------------------------------
-       Save updated resource
-       ----------------------------------------- */
-
-    saveResources(
-        resources
-    );
-
-
-    /* -----------------------------------------
-       Refresh resources
-       ----------------------------------------- */
 
     renderResources();
 
 
-    /* -----------------------------------------
-       Success message
-       ----------------------------------------- */
-
     showMessage(
-        resource.name +
-        " reserved successfully.",
+        "Resource unavailable. You have been added to the priority queue.",
         "success"
     );
 
@@ -1064,18 +1100,59 @@ function renderResources() {
 
             else {
 
-                buttonHTML = `
+    const alreadyInQueue =
+        typeof isUserInQueue ===
+        "function" &&
+        isUserInQueue(
+            resource.id,
+            currentUser.id
+        );
 
-                    <button
-                        class="reserve-btn disabled"
-                        disabled
-                    >
-                        Join Queue
-                    </button>
 
-                `;
+    const queuePosition =
+        alreadyInQueue &&
+        typeof getQueuePosition ===
+        "function"
 
+            ? getQueuePosition(
+                resource.id,
+                currentUser.id
+            )
+
+            : 0;
+
+
+    buttonHTML = `
+
+        <button
+            class="reserve-btn ${
+                alreadyInQueue
+                    ? "disabled"
+                    : "available"
+            }"
+            onclick="${
+                alreadyInQueue
+                    ? "return false;"
+                    : `reserveResource('${escapeHTML(resource.id)}')`
+            }"
+            ${
+                alreadyInQueue
+                    ? "disabled"
+                    : ""
             }
+        >
+
+            ${
+                alreadyInQueue
+                    ? `In Queue · #${queuePosition}`
+                    : "Join Priority Queue"
+            }
+
+        </button>
+
+    `;
+
+    }
 
 
             /* ---------------------------------
