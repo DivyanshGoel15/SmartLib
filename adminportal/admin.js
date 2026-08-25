@@ -1527,7 +1527,7 @@ refreshDashboard();
 
 (function initializeAdminExtension() {
 
-    const EXAMS_KEY = "libraryExams";
+    const EXAMS_KEY = "smartlibExams";
 
 
     /* =========================================================
@@ -1562,8 +1562,8 @@ refreshDashboard();
     function getExams() {
 
         const possibleKeys = [
-            "libraryExams",
             "smartlibExams",
+            "libraryExams",
             "exams",
             "libraryExamsData"
         ];
@@ -1760,9 +1760,9 @@ refreshDashboard();
 
             exam.examTime ||
 
-            exam.startTime ||
+             exam.startTime 
 
-            "—"
+            // "—"
 
         );
 
@@ -3655,9 +3655,11 @@ refreshDashboard();
                     <td>
                         ${escapeHTML(
                             formatExamDate(
-                                getExamDate(
-                                    exam
-                                )
+                                exam.startDate ||
+            exam.date ||
+            exam.examDate ||
+            "—"
+                                
                             )
                         )}
                     </td>
@@ -4022,7 +4024,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             return JSON.parse(
-                localStorage.getItem("libraryExams") || "[]"
+                localStorage.getItem("smartlibExams") ||   localStorage.getItem("libraryExams") || "[]"
             );
 
         } catch (error) {
@@ -4042,7 +4044,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function adminSaveExams(exams) {
 
         localStorage.setItem(
-            "libraryExams",
+            "smartlibExams",
             JSON.stringify(exams)
         );
 
@@ -4185,20 +4187,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <label>
 
-                        Student ID
-
-                        <input
-                            id="adminStudentId"
-                            type="text"
-                            placeholder="e.g. 241099"
-                            required
-                        >
-
-                    </label>
-
-
-                    <label>
-
                         Email
 
                         <input
@@ -4211,14 +4199,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     </label>
 
 
-                    <label>
+                    <div class="two-column">
 
-                        Department
+                        <label>
 
-                        <select
-                            id="adminStudentDepartment"
-                            required
-                        >
+                            Department
+
+                            <select
+                                id="adminStudentDepartment"
+                                required
+                            >
 
                             <option value="">
                                 Select department
@@ -4244,19 +4234,37 @@ document.addEventListener("DOMContentLoaded", function () {
                                 Management
                             </option>
 
-                        </select>
+                            </select>
 
-                    </label>
+                        </label>
 
+                        <label>
+
+                            Year
+
+                            <select
+                                id="adminStudentYear"
+                                required
+                            >
+                                <option value="">Select year</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                            </select>
+
+                        </label>
+
+                    </div>
 
                     <label>
 
-                        Password
+                        Temporary Password
 
                         <input
                             id="adminStudentPassword"
                             type="password"
-                            placeholder="Set password"
+                            placeholder="Set temporary password"
                             required
                         >
 
@@ -4347,203 +4355,72 @@ document.addEventListener("DOMContentLoaded", function () {
 
         event.preventDefault();
 
-
         const name =
-            document
-                .getElementById(
-                    "adminStudentName"
-                )
-                .value
-                .trim();
-
-
-        const studentId =
-            document
-                .getElementById(
-                    "adminStudentId"
-                )
-                .value
-                .trim();
-
+            document.getElementById("adminStudentName").value.trim();
 
         const email =
-            document
-                .getElementById(
-                    "adminStudentEmail"
-                )
-                .value
-                .trim();
-
+            document.getElementById("adminStudentEmail").value.trim().toLowerCase();
 
         const department =
-            document
-                .getElementById(
-                    "adminStudentDepartment"
-                )
-                .value;
+            document.getElementById("adminStudentDepartment").value;
 
+        const year =
+            document.getElementById("adminStudentYear").value;
 
         const password =
-            document
-                .getElementById(
-                    "adminStudentPassword"
-                )
-                .value;
-
+            document.getElementById("adminStudentPassword").value;
 
         const error =
-            document.getElementById(
-                "adminStudentError"
-            );
-
+            document.getElementById("adminStudentError");
 
         error.textContent = "";
 
-
-        if (
-            !name ||
-            !studentId ||
-            !email ||
-            !department ||
-            !password
-        ) {
-
-            error.textContent =
-                "Please fill all fields.";
-
+        if (!name || !email || !department || !year || !password) {
+            error.textContent = "Please fill all fields.";
             return;
-
         }
 
-
-        const users =
-            JSON.parse(
-                localStorage.getItem(
-                    "smartlibUsers"
-                ) || "[]"
-            );
-
-
-        const exists =
-            users.some(
-                user =>
-
-                    String(
-                        user.id || ""
-                    ).toLowerCase() ===
-                    studentId.toLowerCase()
-
-                    ||
-
-                    String(
-                        user.studentId || ""
-                    ).toLowerCase() ===
-                    studentId.toLowerCase()
-
-                    ||
-
-                    String(
-                        user.email || ""
-                    ).toLowerCase() ===
-                    email.toLowerCase()
-
-            );
-
-
-        if (exists) {
-
-            error.textContent =
-                "Student ID or email already exists.";
-
-            return;
-
-        }
-
-
-        users.push({
-
-            id:
-                studentId,
-
-            studentId:
-                studentId,
-
-            name:
-                name,
-
-            email:
-                email,
-
-            department:
-                department,
-
-            role:
-                "student",
-
-            password:
-                password,
-
-            createdAt:
-                new Date()
-                    .toISOString()
-
-        });
-
-
-        adminSaveUsers(
-            users
+        const users = JSON.parse(
+            localStorage.getItem("smartlibUsers") || "[]"
         );
 
+        const exists = users.some(
+            user =>
+                String(user.email || "").toLowerCase() === email
+        );
 
-        document
-            .getElementById(
-                "adminStudentForm"
-            )
-            .reset();
+        if (exists) {
+            error.textContent = "An account with this email already exists.";
+            return;
+        }
 
+        users.push({
+            id: Date.now(),
+            name,
+            email,
+            department,
+            year,
+            role: "student",
+            password,
+            createdAt: new Date().toISOString()
+        });
 
-        document
-            .getElementById(
-                "adminStudentModal"
-            )
-            .classList
-            .add(
-                "hidden"
-            );
+        adminSaveUsers(users);
 
+        document.getElementById("adminStudentForm").reset();
+        document.getElementById("adminStudentModal").classList.add("hidden");
 
         adminRenderStudents();
 
-
-        if (
-            typeof renderStats ===
-            "function"
-        ) {
-
+        if (typeof renderStats === "function") {
             renderStats();
-
         }
 
-
-        if (
-            typeof showMessage ===
-            "function"
-        ) {
-
-            showMessage(
-                "Student added successfully."
-            );
-
-        } else {
-
-            alert(
-                "Student added successfully."
-            );
-
+        if (typeof showMessage === "function") {
+            showMessage("Student added successfully.");
         }
 
     }
-
 
     /* =========================================================
        RENDER STUDENTS
@@ -4896,265 +4773,94 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function createAdminExamModal() {
 
-        if (
-            document.getElementById(
-                "adminExamModal"
-            )
-        ) {
-
+        if (document.getElementById("adminExamModal")) {
             return;
-
         }
 
-
-        const modal =
-            document.createElement(
-                "div"
-            );
-
-
-        modal.id =
-            "adminExamModal";
-
-
-        modal.className =
-            "modal hidden";
-
+        const modal = document.createElement("div");
+        modal.id = "adminExamModal";
+        modal.className = "modal hidden";
 
         modal.innerHTML = `
-
             <div class="modal-card">
+                <button id="adminCloseExamModal" class="close" type="button">×</button>
+                <p class="eyebrow">ADD EXAMINATION</p>
+                <h2>Schedule a department exam.</h2>
 
-                <button
-                    id="adminCloseExamModal"
-                    class="close"
-                    type="button"
-                >
-                    ×
-                </button>
-
-
-                <p class="eyebrow">
-                    EXAM MANAGEMENT
-                </p>
-
-
-                <h2>
-                    Add exam.
-                </h2>
-
-
-                <form
-                    id="adminExamForm"
-                >
-
-
+                <form id="adminExamForm">
                     <label>
-
-                        Exam / Subject
-
-                        <input
-                            id="adminExamName"
-                            type="text"
-                            placeholder="e.g. Data Structures"
-                            required
-                        >
-
+                        Department
+                        <select id="adminExamDepartment" required>
+                            <option value="">Select department</option>
+                            <option>CSE</option>
+                            <option>ECE</option>
+                            <option>Mechanical</option>
+                            <option>Civil</option>
+                            <option>Management</option>
+                        </select>
                     </label>
 
-
                     <label>
-
-                        Faculty
-
-                        <input
-                            id="adminExamFaculty"
-                            type="text"
-                            required
-                        >
-
+                        Year
+                        <select id="adminExamYear" required>
+                            <option value="">Select year</option>
+                            <option>1st Year</option>
+                            <option>2nd Year</option>
+                            <option>3rd Year</option>
+                            <option>4th Year</option>
+                        </select>
                     </label>
 
+                    <label>
+                        Exam Name
+                        <input id="adminExamName" type="text" placeholder="e.g. Internal Assessment" required>
+                    </label>
 
                     <div class="two-column">
-
-
                         <label>
-
-                            Department
-
-                            <select
-                                id="adminExamDepartment"
-                                required
-                            >
-
-                                <option value="">
-                                    Select department
-                                </option>
-
-                                <option value="CSE">
-                                    CSE
-                                </option>
-
-                                <option value="ECE">
-                                    ECE
-                                </option>
-
-                                <option value="Mechanical">
-                                    Mechanical
-                                </option>
-
-                                <option value="Civil">
-                                    Civil
-                                </option>
-
-                                <option value="Management">
-                                    Management
-                                </option>
-
-                            </select>
-
+                            Start Date
+                            <input id="adminExamStart" type="date" required>
                         </label>
-
-
                         <label>
-
-                            Venue / Room
-
-                            <input
-                                id="adminExamVenue"
-                                type="text"
-                                placeholder="e.g. LH-2"
-                                required
-                            >
-
+                            End Date
+                            <input id="adminExamEnd" type="date" required>
                         </label>
-
-
                     </div>
 
-
-                    <div class="two-column">
-
-
-                        <label>
-
-                            Date
-
-                            <input
-                                id="adminExamDate"
-                                type="date"
-                                required
-                            >
-
-                        </label>
-
-
-                        <label>
-
-                            Time
-
-                            <input
-                                id="adminExamTime"
-                                type="time"
-                                required
-                            >
-
-                        </label>
-
-
-                    </div>
-
-
-                    <p
-                        id="adminExamError"
-                        class="modal-error"
-                    ></p>
-
-
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-
-                        Add Exam
-
-                        <span>
-                            →
-                        </span>
-
-                    </button>
-
-
+                    <p id="adminExamError" class="modal-error"></p>
+                    <button type="submit" class="primary-button">Save Examination <span>→</span></button>
                 </form>
-
             </div>
-
         `;
 
+        document.body.appendChild(modal);
 
-        document.body.appendChild(
-            modal
-        );
-
-
-        const openButton =
-            document.getElementById(
-                "addExamBtn"
-            );
-
-
-        const closeButton =
-            document.getElementById(
-                "adminCloseExamModal"
-            );
-
+        const openButton = document.getElementById("addExamBtn");
+        const closeButton = document.getElementById("adminCloseExamModal");
 
         if (openButton) {
-
-            openButton.onclick =
-                function () {
-
-                    document
-                        .getElementById(
-                            "adminExamFaculty"
-                        )
-                        .value =
-                        adminGetCurrentFaculty();
-
-
-                    modal.classList.remove(
-                        "hidden"
-                    );
-
-                };
-
+            openButton.onclick = function () {
+                document.getElementById("adminExamForm").reset();
+                document.getElementById("adminExamError").textContent = "";
+                modal.classList.remove("hidden");
+            };
         }
-
 
         if (closeButton) {
-
-            closeButton.onclick =
-                function () {
-
-                    modal.classList.add(
-                        "hidden"
-                    );
-
-                };
-
+            closeButton.onclick = function () {
+                modal.classList.add("hidden");
+            };
         }
 
+        modal.addEventListener("click", event => {
+            if (event.target === modal) {
+                modal.classList.add("hidden");
+            }
+        });
 
-        document
-            .getElementById(
-                "adminExamForm"
-            )
-            .onsubmit =
-            addAdminExam;
+        document.getElementById("adminExamForm").onsubmit = addAdminExam;
 
     }
-
 
     /* =========================================================
        ADD EXAM
@@ -5164,184 +4870,79 @@ document.addEventListener("DOMContentLoaded", function () {
 
         event.preventDefault();
 
+        const department =
+            document.getElementById("adminExamDepartment").value;
+
+        const year =
+            document.getElementById("adminExamYear").value;
 
         const name =
-            document
-                .getElementById(
-                    "adminExamName"
-                )
-                .value
-                .trim();
+            document.getElementById("adminExamName").value.trim();
 
+        const startDate =
+            document.getElementById("adminExamStart").value;
 
-        const faculty =
-            document
-                .getElementById(
-                    "adminExamFaculty"
-                )
-                .value
-                .trim();
-
-
-        const department =
-            document
-                .getElementById(
-                    "adminExamDepartment"
-                )
-                .value;
-
-
-        const venue =
-            document
-                .getElementById(
-                    "adminExamVenue"
-                )
-                .value
-                .trim();
-
-
-        const date =
-            document
-                .getElementById(
-                    "adminExamDate"
-                )
-                .value;
-
-
-        const time =
-            document
-                .getElementById(
-                    "adminExamTime"
-                )
-                .value;
-
+        const endDate =
+            document.getElementById("adminExamEnd").value;
 
         const error =
-            document.getElementById(
-                "adminExamError"
-            );
-
+            document.getElementById("adminExamError");
 
         error.textContent = "";
 
-
-        if (
-            !name ||
-            !faculty ||
-            !department ||
-            !venue ||
-            !date ||
-            !time
-        ) {
-
-            error.textContent =
-                "Please fill all exam details.";
-
+        if (!department || !year || !name || !startDate || !endDate) {
+            error.textContent = "Please enter all exam details.";
             return;
-
         }
 
+        if (new Date(endDate) < new Date(startDate)) {
+            error.textContent = "End date cannot be before start date.";
+            return;
+        }
 
-        const exams =
-            adminGetExams();
+        const exams = adminGetExams();
 
-
-        exams.push({
-
-            id:
-                "EXAM" +
-                Date.now(),
-
-            name:
-                name,
-
-            title:
-                name,
-
-            subject:
-                name,
-
-            faculty:
-                faculty,
-
-            facultyName:
-                faculty,
-
-            createdByName:
-                faculty,
-
-            department:
-                department,
-
-            venue:
-                venue,
-
-            room:
-                venue,
-
-            date:
-                date,
-
-            examDate:
-                date,
-
-            time:
-                time,
-
-            examTime:
-                time,
-
-            createdAt:
-                new Date()
-                    .toISOString()
-
-        });
-
-
-        adminSaveExams(
-            exams
+        const duplicate = exams.some(
+            exam =>
+                String(exam.name || exam.title || "").toLowerCase() === name.toLowerCase() &&
+                exam.department === department &&
+                exam.year === year &&
+                exam.startDate === startDate
         );
 
+        if (duplicate) {
+            error.textContent = "This exam already exists for that department and year.";
+            return;
+        }
 
-        document
-            .getElementById(
-                "adminExamForm"
-            )
-            .reset();
+        exams.push({
+            id: "EXAM" + Date.now(),
+            name,
+            title: name,
+            subject: name,
+            department,
+            year,
+            startDate,
+            endDate,
+            date: startDate,
+            examDate: startDate,
+            createdByName: "Library Administration",
+            facultyName: "Library Administration",
+            createdAt: new Date().toISOString()
+        });
 
+        adminSaveExams(exams);
 
-        document
-            .getElementById(
-                "adminExamModal"
-            )
-            .classList
-            .add(
-                "hidden"
-            );
-
+        document.getElementById("adminExamForm").reset();
+        document.getElementById("adminExamModal").classList.add("hidden");
 
         adminRenderExams();
 
-
-        if (
-            typeof showMessage ===
-            "function"
-        ) {
-
-            showMessage(
-                "Exam added successfully."
-            );
-
-        } else {
-
-            alert(
-                "Exam added successfully."
-            );
-
+        if (typeof showMessage === "function") {
+            showMessage("Exam added successfully.");
         }
 
     }
-
 
     /* =========================================================
        RENDER EXAMS
