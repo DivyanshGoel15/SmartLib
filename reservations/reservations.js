@@ -170,6 +170,74 @@ function saveResources(
 
 }
 
+/* =========================================================
+   USER RESERVED SEAT
+   ========================================================= */
+
+function getUserReservedSeat() {
+
+    const storedSeats =
+        localStorage.getItem(
+            "smartlib_seats"
+        );
+
+
+    if (!storedSeats) {
+
+        return null;
+
+    }
+
+
+    let seats = [];
+
+
+    try {
+
+        seats =
+            JSON.parse(
+                storedSeats
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Error reading seats:",
+            error
+        );
+
+        return null;
+
+    }
+
+
+    return seats.find(
+        function (seat) {
+
+            return (
+
+                seat.status ===
+                "occupied"
+
+                &&
+
+                String(
+                    seat.occupantId
+                )
+
+                ===
+
+                String(
+                    currentUser.id
+                )
+
+            );
+
+        }
+    ) || null;
+
+}
+
 
 /* =========================================================
    USER INFORMATION
@@ -566,13 +634,93 @@ function renderActiveReservations() {
     const active =
         getActiveReservations();
 
+    const reservedSeat =
+        getUserReservedSeat();
+
 
     activeReservations.innerHTML =
         "";
 
 
     activeCount.textContent =
-        active.length;
+        active.length +
+        (reservedSeat ? 1 : 0);
+
+    /* -----------------------------------------
+   RESERVED SEAT
+   ----------------------------------------- */
+
+if (reservedSeat) {
+
+    const seatCard =
+        document.createElement(
+            "article"
+        );
+
+
+    seatCard.className =
+        "reservation-card";
+
+
+    seatCard.innerHTML = `
+
+        <div class="reservation-type">
+            SEAT RESERVATION
+        </div>
+
+
+        <h3>
+            ${reservedSeat.id}
+        </h3>
+
+
+        <div
+            class="reservation-status status-active"
+        >
+            ACTIVE
+        </div>
+
+
+        <div class="reservation-info">
+
+            <strong>
+                Seat
+            </strong>
+
+            <br>
+
+            ${reservedSeat.id}
+
+            <br><br>
+
+            <strong>
+                Department
+            </strong>
+
+            <br>
+
+            ${reservedSeat.department}
+
+            <br><br>
+
+            <strong>
+                Status
+            </strong>
+
+            <br>
+
+            Occupied
+
+        </div>
+
+    `;
+
+
+    activeReservations.prepend(
+        seatCard
+    );
+
+}
 
 
     if (
@@ -1512,7 +1660,8 @@ window.addEventListener(
             event.key === "libraryResources" ||
             event.key === "libraryReservations" ||
             event.key === "smartlib_queues" ||
-            event.key === "smartlibExams"
+            event.key === "smartlibExams" ||
+            event.key === "smartlib_seats"
         ) {
 
             syncReservationsPage();
