@@ -549,7 +549,7 @@
                         Date
                     </th>
 
-                    <th>
+                    <!-- <th>
                         Time
                     </th>
 
@@ -559,7 +559,7 @@
 
                     <th>
                         Actions
-                    </th>
+                    </th> -->
 
                 </tr>
 
@@ -828,20 +828,6 @@
 
             <label>
 
-                Student ID
-
-                <input
-                    id="studentId"
-                    type="text"
-                    placeholder="e.g. 241099"
-                    required
-                >
-
-            </label>
-
-
-            <label>
-
                 Email
 
                 <input
@@ -869,45 +855,44 @@
                             Select department
                         </option>
 
-                        <option value="CSE">
-                            CSE
-                        </option>
-
-                        <option value="ECE">
-                            ECE
-                        </option>
-
-                        <option value="Mechanical">
-                            Mechanical
-                        </option>
-
-                        <option value="Civil">
-                            Civil
-                        </option>
-
-                        <option value="Management">
-                            Management
-                        </option>
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="Mechanical">Mechanical</option>
+                        <option value="Civil">Civil</option>
+                        <option value="Management">Management</option>
 
                     </select>
 
                 </label>
 
-
                 <label>
 
-                    Password
+                    Year
 
-                    <input
-                        id="studentPassword"
-                        type="password"
-                        placeholder="Set login password"
-                        required
-                    >
+                    <select id="studentYear" required>
+                        <option value="">Select year</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
 
                 </label>
 
             </div>
+
+            <label>
+
+                Temporary Password
+
+                <input
+                    id="studentPassword"
+                    type="password"
+                    placeholder="Set temporary password"
+                    required
+                >
+
+            </label>
 
 
             <p
@@ -962,134 +947,48 @@
         <form id="examForm">
 
             <label>
-
-                Exam / Subject
-
-                <input
-                    id="examName"
-                    type="text"
-                    placeholder="e.g. Data Structures"
-                    required
-                >
-
+                Department
+                <select id="examDepartment" required>
+                    <option value="">Select department</option>
+                    <option>CSE</option>
+                    <option>ECE</option>
+                    <option>Mechanical</option>
+                    <option>Civil</option>
+                    <option>Management</option>
+                </select>
             </label>
-
-
-            <div class="two-column">
-
-                <label>
-
-                    Department
-
-                    <select
-                        id="examDepartment"
-                        required
-                    >
-
-                        <option value="">
-                            Select department
-                        </option>
-
-                        <option value="CSE">
-                            CSE
-                        </option>
-
-                        <option value="ECE">
-                            ECE
-                        </option>
-
-                        <option value="Mechanical">
-                            Mechanical
-                        </option>
-
-                        <option value="Civil">
-                            Civil
-                        </option>
-
-                        <option value="Management">
-                            Management
-                        </option>
-
-                    </select>
-
-                </label>
-
-
-                <label>
-
-                    Venue / Room
-
-                    <input
-                        id="examVenue"
-                        type="text"
-                        placeholder="e.g. LH-2"
-                        required
-                    >
-
-                </label>
-
-            </div>
-
-
-            <div class="two-column">
-
-                <label>
-
-                    Date
-
-                    <input
-                        id="examDate"
-                        type="date"
-                        required
-                    >
-
-                </label>
-
-
-                <label>
-
-                    Time
-
-                    <input
-                        id="examTime"
-                        type="time"
-                        required
-                    >
-
-                </label>
-
-            </div>
-
 
             <label>
-
-                Faculty
-
-                <input
-                    id="examFaculty"
-                    type="text"
-                    placeholder="Faculty name"
-                >
-
-                <small class="form-help">
-                    Filled from the logged-in account when available.
-                </small>
-
+                Year
+                <select id="examYear" required>
+                    <option value="">Select year</option>
+                    <option>1st Year</option>
+                    <option>2nd Year</option>
+                    <option>3rd Year</option>
+                    <option>4th Year</option>
+                </select>
             </label>
 
+            <label>
+                Exam Name
+                <input id="examName" type="text" placeholder="e.g. Internal Assessment" required>
+            </label>
 
-            <p
-                id="examModalError"
-                class="modal-error"
-            ></p>
+            <div class="two-column">
+                <label>
+                    Start Date
+                    <input id="examStart" type="date" required>
+                </label>
+                <label>
+                    End Date
+                    <input id="examEnd" type="date" required>
+                </label>
+            </div>
 
+            <p id="examModalError" class="modal-error"></p>
 
-            <button
-                class="primary-button"
-                type="submit"
-            >
-                Add Exam
-                <span>→</span>
+            <button class="primary-button" type="submit">
+                Save Examination <span>→</span>
             </button>
 
         </form>

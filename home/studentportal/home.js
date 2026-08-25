@@ -238,8 +238,8 @@ function getStudentExams() {
 
 
             const yearMatches =
-                exam.year ===
-                currentUser.year;
+                exam.year === currentUser.year ||
+                exam.year === "All Years";
 
 
             return (
