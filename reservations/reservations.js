@@ -70,10 +70,65 @@ const logoutBtn =
 
 
 /* =========================================================
-   LOCAL STORAGE
+   BACKEND API CONFIGURATION & DATA SYNC
+   ========================================================= */
+
+const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) ||
+    window.SMARTLIB_API_URL ||
+    localStorage.getItem("SMARTLIB_API_URL") ||
+    "http://localhost:5000/api";
+
+let apiReservations = null;
+let apiResources = null;
+
+async function fetchReservationsFromAPI() {
+    if (!currentUser) return;
+    try {
+        const response = await fetch(`${API_BASE_URL}/reservations?userId=${currentUser.id}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && Array.isArray(data.data)) {
+                apiReservations = data.data;
+                saveReservations(apiReservations);
+                renderPage();
+            }
+        } else {
+            const errData = await response.json().catch(() => null);
+            if (errData && errData.message && response.status === 503) {
+                console.warn("[Backend Notice]:", errData.message);
+            }
+        }
+    } catch (err) {
+        console.warn("[SmartLib Reservations] Backend API unavailable, continuing with local storage:", err.message);
+    }
+}
+
+async function fetchResourcesFromAPI() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/resources`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && Array.isArray(data.data)) {
+                apiResources = data.data;
+                saveResources(apiResources);
+                renderPage();
+            }
+        }
+    } catch (err) {
+        console.warn("[SmartLib Reservations] Backend API resources unavailable:", err.message);
+    }
+}
+
+
+/* =========================================================
+   LOCAL STORAGE & CACHED DATA
    ========================================================= */
 
 function getReservations() {
+
+    if (apiReservations && apiReservations.length > 0) {
+        return apiReservations;
+    }
 
     const storedReservations =
         localStorage.getItem(
@@ -112,6 +167,8 @@ function saveReservations(
     reservations
 ) {
 
+    apiReservations = reservations;
+
     localStorage.setItem(
         "libraryReservations",
         JSON.stringify(
@@ -123,6 +180,10 @@ function saveReservations(
 
 
 function getResources() {
+
+    if (apiResources && apiResources.length > 0) {
+        return apiResources;
+    }
 
     const storedResources =
         localStorage.getItem(
@@ -160,6 +221,8 @@ function getResources() {
 function saveResources(
     resources
 ) {
+
+    apiResources = resources;
 
     localStorage.setItem(
         "libraryResources",
@@ -404,7 +467,7 @@ function getReservationHistory() {
    RETURN RESOURCE
    ========================================================= */
 
-function returnResource(
+async function returnResource(
     reservationId
 ) {
 
@@ -483,6 +546,72 @@ function returnResource(
     }
 
 
+    /* Attempt API return */
+    try {
+
+        const response = await fetch(`${API_BASE_URL}/reservations/${reservationId}/return`, {
+            method: "POST"
+        });
+
+        const result = await response.json().catch(() => null);
+
+        if (response.ok && result && result.success) {
+
+            const resources = getResources();
+            const resource = resources.find(function (item) {
+                return (
+                    String(item.id) === String(reservation.resourceId) ||
+                    String(item.customId) === String(reservation.resourceId)
+                );
+            });
+
+            let promotedStudent = null;
+            if (resource && typeof handoffResource === "function") {
+                const updatedReservations = getReservations();
+                const handoffRes = handoffResource(resource.id, resources, updatedReservations);
+                if (handoffRes) {
+                    promotedStudent = handoffRes.student;
+                }
+            }
+
+            await fetchReservationsFromAPI();
+            await fetchResourcesFromAPI();
+            renderPage();
+
+            if (promotedStudent) {
+                showMessage(
+                    reservation.resourceName +
+                    " returned. The next priority student has been assigned the resource.",
+                    "success"
+                );
+            } else {
+                showMessage(
+                    reservation.resourceName +
+                    " returned successfully.",
+                    "success"
+                );
+            }
+
+            return;
+
+        } else if (result && result.message) {
+
+            showMessage(result.message, "error");
+            return;
+
+        }
+
+    } catch (apiErr) {
+
+        console.warn(
+            "[SmartLib Reservations] Backend return API unavailable, falling back to local storage:",
+            apiErr.message
+        );
+
+    }
+
+
+    /* Local storage fallback */
     const resources =
         getResources();
 
@@ -517,10 +646,6 @@ function returnResource(
         new Date().toISOString();
 
 
-    /*
-     * Return resource.
-     */
-
     if (resource) {
 
         if (
@@ -551,10 +676,6 @@ function returnResource(
         resources
     );
 
-
-    /*
-     * AUTOMATIC PRIORITY HANDOFF
-     */
 
     let promotedStudent =
         null;
@@ -1635,6 +1756,10 @@ if (
 
 
 renderPage();
+
+// Fetch live data from backend API
+fetchReservationsFromAPI();
+fetchResourcesFromAPI();
 
 
 /* =========================================================

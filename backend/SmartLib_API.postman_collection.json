@@ -1,0 +1,469 @@
+{
+  "info": {
+    "_postman_id": "a9c2d1b5-8840-4f51-b8ea-93b5847e112a",
+    "name": "SmartLib API - Reservations & Resources",
+    "description": "Postman API testing collection for SmartLib backend (Reservations and Resources modules). Includes health checks, CRUD operations, and negative test cases.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "resourceId",
+      "value": "RES001",
+      "type": "string"
+    },
+    {
+      "key": "reservationId",
+      "value": "RSV001",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Verifies backend uptime and database connection status."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 Resources",
+      "item": [
+        {
+          "name": "Get All Resources",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/resources",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources"]
+            },
+            "description": "Retrieves the full list of library resources."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Resources by Type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/resources?type=Book",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "Book"
+                }
+              ]
+            },
+            "description": "Filters resources by type (Book or Equipment)."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Resources by Department",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/resources?department=CSE",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources"],
+              "query": [
+                {
+                  "key": "department",
+                  "value": "CSE"
+                }
+              ]
+            },
+            "description": "Filters resources by department."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Resource - Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customId\": \"RES101\",\n  \"name\": \"Clean Code\",\n  \"type\": \"Book\",\n  \"department\": \"CSE\",\n  \"totalQuantity\": 5,\n  \"availableQuantity\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/resources",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources"]
+            },
+            "description": "Creates a new Book resource."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Resource - Equipment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customId\": \"RES102\",\n  \"name\": \"Raspberry Pi 4 Starter Kit\",\n  \"type\": \"Equipment\",\n  \"department\": \"ECE\",\n  \"totalQuantity\": 3,\n  \"availableQuantity\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/resources",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources"]
+            },
+            "description": "Creates a new Equipment resource."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Resource by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/resources/{{resourceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources", "{{resourceId}}"]
+            },
+            "description": "Retrieves a single resource by its customId or MongoDB ObjectId."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Resource",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Clean Code: A Handbook of Agile Software Craftsmanship\",\n  \"totalQuantity\": 6,\n  \"availableQuantity\": 6\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/resources/{{resourceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources", "{{resourceId}}"]
+            },
+            "description": "Updates resource quantity or title."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Resource",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/resources/{{resourceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources", "{{resourceId}}"]
+            },
+            "description": "Deletes a resource."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Create Resource - Missing Name",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Book\",\n  \"department\": \"CSE\",\n  \"totalQuantity\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/resources",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources"]
+            },
+            "description": "Expects 400 Bad Request due to missing name."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Create Resource - Negative Quantity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Resource\",\n  \"type\": \"Book\",\n  \"department\": \"CSE\",\n  \"totalQuantity\": -5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/resources",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources"]
+            },
+            "description": "Expects 400 Bad Request due to negative total quantity."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Get Resource - Nonexistent ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/resources/nonexistent_id_999",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources", "nonexistent_id_999"]
+            },
+            "description": "Expects 404 Not Found."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 Reservations",
+      "item": [
+        {
+          "name": "Get All Reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations"]
+            },
+            "description": "Retrieves all reservations."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Reservations by User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reservations?userId=1729001",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "1729001"
+                }
+              ]
+            },
+            "description": "Filters reservations belonging to a specific student."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Reservations by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reservations?status=active",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                }
+              ]
+            },
+            "description": "Filters reservations with active status."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Reservation - Valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceId\": \"RES001\",\n  \"resourceName\": \"Data Structures & Algorithms\",\n  \"userId\": \"1729001\",\n  \"userName\": \"Divyansh Goel\",\n  \"userEmail\": \"divyansh@smartlib.edu\",\n  \"department\": \"CSE\",\n  \"year\": \"3\",\n  \"userRole\": \"student\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations"]
+            },
+            "description": "Creates a new reservation for an available resource."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reservation by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reservations/{{reservationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations", "{{reservationId}}"]
+            },
+            "description": "Retrieves single reservation details."
+          },
+          "response": []
+        },
+        {
+          "name": "Return Reservation (/return)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reservations/{{reservationId}}/return",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations", "{{reservationId}}", "return"]
+            },
+            "description": "Marks a reservation as returned and increments resource available quantity."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Reservation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"returned\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservations/{{reservationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations", "{{reservationId}}"]
+            },
+            "description": "Updates a reservation record."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Reservation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reservations/{{reservationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations", "{{reservationId}}"]
+            },
+            "description": "Deletes a reservation record."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Create Reservation - Missing User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceId\": \"RES001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations"]
+            },
+            "description": "Expects 400 Bad Request due to missing userId and userName."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Create Reservation - Nonexistent Resource",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceId\": \"nonexistent_resource_999\",\n  \"resourceName\": \"Ghost Book\",\n  \"userId\": \"1729001\",\n  \"userName\": \"Divyansh Goel\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations"]
+            },
+            "description": "Expects 404 Not Found since resource does not exist."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Get Reservation - Nonexistent ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reservations/nonexistent_rsv_999",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations", "nonexistent_rsv_999"]
+            },
+            "description": "Expects 404 Not Found."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

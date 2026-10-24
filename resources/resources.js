@@ -204,10 +204,65 @@ function initializeResources() {
 
 
 /* =========================================================
+   6.1 BACKEND API CONFIGURATION & DATA SYNC
+   ========================================================= */
+
+const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) ||
+    window.SMARTLIB_API_URL ||
+    localStorage.getItem("SMARTLIB_API_URL") ||
+    "http://localhost:5000/api";
+
+let apiResources = null;
+let apiReservations = null;
+
+async function fetchResourcesFromAPI() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/resources`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && Array.isArray(data.data)) {
+                apiResources = data.data;
+                saveResources(apiResources);
+                renderResources();
+            }
+        } else {
+            const errData = await response.json().catch(() => null);
+            if (errData && errData.message && response.status === 503) {
+                console.warn("[Backend Notice]:", errData.message);
+            }
+        }
+    } catch (err) {
+        console.warn("[SmartLib Resources] Backend API unavailable, continuing with local storage:", err.message);
+    }
+}
+
+async function fetchReservationsFromAPI() {
+    if (!currentUser) return;
+    try {
+        const response = await fetch(`${API_BASE_URL}/reservations?userId=${currentUser.id}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && Array.isArray(data.data)) {
+                apiReservations = data.data;
+                saveReservations(apiReservations);
+                renderResources();
+            }
+        }
+    } catch (err) {
+        console.warn("[SmartLib Resources] Backend API reservations fetch unavailable:", err.message);
+    }
+}
+
+
+/* =========================================================
    7. GET RESOURCES
    ========================================================= */
 
 function getResources() {
+
+    if (apiResources && apiResources.length > 0) {
+        return apiResources;
+    }
 
     const resources =
         localStorage.getItem(
@@ -248,6 +303,8 @@ function getResources() {
 
 function saveResources(resources) {
 
+    apiResources = resources;
+
     localStorage.setItem(
         "libraryResources",
         JSON.stringify(resources)
@@ -261,6 +318,10 @@ function saveResources(resources) {
    ========================================================= */
 
 function getReservations() {
+
+    if (apiReservations && apiReservations.length > 0) {
+        return apiReservations;
+    }
 
     const reservations =
         localStorage.getItem(
@@ -300,6 +361,8 @@ function getReservations() {
    ========================================================= */
 
 function saveReservations(reservations) {
+
+    apiReservations = reservations;
 
     localStorage.setItem(
         "libraryReservations",
@@ -493,7 +556,7 @@ function hasActiveReservation(
    17. RESERVE RESOURCE
    ========================================================= */
 
-function reserveResource(resourceId) {
+async function reserveResource(resourceId) {
 
     const resources =
         getResources();
@@ -504,8 +567,9 @@ function reserveResource(resourceId) {
             function (item) {
 
                 return (
-                    String(item.id) ===
-                    String(resourceId)
+                    String(item.id) === String(resourceId) ||
+                    String(item.customId) === String(resourceId) ||
+                    String(item._id) === String(resourceId)
                 );
 
             }
@@ -576,6 +640,73 @@ function reserveResource(resourceId) {
         ) > 0
     ) {
 
+        /* Try reserving via backend API */
+        try {
+
+            const response = await fetch(`${API_BASE_URL}/reservations`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    resourceId: resource.customId || resource.id || resource._id,
+                    resourceName: resource.name,
+                    userId: String(currentUser.id),
+                    userName: currentUser.name,
+                    userEmail: currentUser.email || "",
+                    department: currentUser.department || "",
+                    year: currentUser.year || "",
+                    userRole: currentUser.role || "student"
+                })
+            });
+
+            const result = await response.json().catch(() => null);
+
+            if (response.ok && result && result.success) {
+
+                if (
+                    typeof removeFromAllQueues ===
+                    "function"
+                ) {
+
+                    removeFromAllQueues(
+                        currentUser.id
+                    );
+
+                }
+
+                showMessage(
+                    resource.name +
+                    " reserved successfully.",
+                    "success"
+                );
+
+                await fetchResourcesFromAPI();
+                await fetchReservationsFromAPI();
+
+                return;
+
+            } else if (result && result.message) {
+
+                showMessage(
+                    result.message,
+                    "error"
+                );
+
+                return;
+
+            }
+
+        } catch (apiErr) {
+
+            console.warn(
+                "[SmartLib Resources] Backend API unavailable, falling back to local storage:",
+                apiErr.message
+            );
+
+        }
+
+        /* Local storage fallback */
         const reservations =
             getReservations();
 
@@ -586,7 +717,7 @@ function reserveResource(resourceId) {
                 generateId("RSV"),
 
             resourceId:
-                resource.id,
+                resource.id || resource.customId,
 
             resourceName:
                 resource.name,
@@ -648,11 +779,6 @@ function reserveResource(resourceId) {
             resources
         );
 
-
-        /*
-         * If the user had been waiting elsewhere,
-         * remove their queue entries.
-         */
 
         if (
             typeof removeFromAllQueues ===
@@ -1342,3 +1468,7 @@ initializeResources();
 displayUser();
 
 renderResources();
+
+// Fetch live data from backend API
+fetchResourcesFromAPI();
+fetchReservationsFromAPI();

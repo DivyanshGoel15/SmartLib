@@ -1,0 +1,28 @@
+{
+  "name": "smartlib-backend",
+  "version": "1.0.0",
+  "description": "SmartLib Backend API for Reservations and Resources",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "smartlib",
+    "library",
+    "reservations",
+    "resources",
+    "express",
+    "mongoose",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.4.0"
+  }
+}
