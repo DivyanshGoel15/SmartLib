@@ -14,6 +14,8 @@ const currentUser =
         "null"
     );
 
+const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "http://localhost:5000/api";
+
 
 /* =========================================================
    LOGIN CHECK
@@ -200,6 +202,20 @@ function countReservations() {
 
 reservationCount.textContent =
     countReservations();
+
+// Fetch accurate reservation count from backend API
+if (currentUser && currentUser.id) {
+    fetch(`${API_BASE_URL}/reservations?userId=${encodeURIComponent(currentUser.id)}&status=active`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && typeof data.count === 'number') {
+                reservationCount.textContent = data.count;
+            } else if (data && Array.isArray(data.data)) {
+                reservationCount.textContent = data.data.length;
+            }
+        })
+        .catch(() => {});
+}
 
 
 /* =========================================================
@@ -1003,7 +1019,6 @@ renderExamStatus();
 renderStudentExtras();
 
 // Sync exams with backend if available
-const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "http://localhost:5000/api";
 if (currentUser && currentUser.department) {
     fetch(`${API_BASE_URL}/exams/department/${encodeURIComponent(currentUser.department)}`)
         .then(res => res.json())

@@ -24,7 +24,7 @@ const corsOptions = {
     ? true
     : process.env.CLIENT_ORIGIN.split(',').map(o => o.trim()),
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-secret'],
   credentials: true
 };
 

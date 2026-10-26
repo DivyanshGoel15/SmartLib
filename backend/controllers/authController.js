@@ -56,12 +56,12 @@ const register = async (req, res, next) => {
     const isAdminRole = normalizedRole === 'library_admin' || normalizedRole === 'admin';
     if (isAdminRole) {
       const configuredSecret = process.env.ADMIN_SECRET;
-      const providedSecret = req.headers['x-admin-secret'];
+      const providedSecret = req.headers['x-admin-secret'] || (req.body && req.body.adminSecret);
 
       if (!configuredSecret || !providedSecret || providedSecret.trim() !== configuredSecret.trim()) {
         return res.status(403).json({
           success: false,
-          message: 'Public registration as an administrator is not permitted. Please contact library administration.'
+          message: 'Public registration as an administrator is not permitted without a valid administrator passkey. Please contact library administration.'
         });
       }
     }

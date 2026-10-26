@@ -5,22 +5,17 @@
  */
 require('dotenv').config();
 const mongoose = require('mongoose');
+const { connectDB } = require('../config/db');
 const User = require('../models/User');
 
 const seedInitialAdmin = async () => {
-  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
-  if (!uri) {
-    console.error('[Admin Provisioning] Error: MONGO_URI is missing from environment.');
-    process.exit(1);
-  }
-
   const adminEmail = (process.env.INITIAL_ADMIN_EMAIL || 'admin@smartlib.edu').trim().toLowerCase();
   const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'AdminSecurePass2026!';
   const adminName = process.env.INITIAL_ADMIN_NAME || 'SmartLib Administrator';
 
   try {
-    await mongoose.connect(uri, { dbName: 'smartlib', serverSelectionTimeoutMS: 5000 });
-    console.log('[Admin Provisioning] Connected to MongoDB.');
+    await connectDB();
+    console.log('[Admin Provisioning] Connected to database.');
 
     const existingAdmin = await User.findOne({
       $or: [

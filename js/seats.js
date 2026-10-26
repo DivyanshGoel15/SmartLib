@@ -2,6 +2,25 @@
 let seats = [];
 let selectedSeatId = null;
 
+const defaultSeats = (function () {
+    const depts = ["CSE", "ECE", "Mechanical", "Civil", "Management"];
+    const list = [];
+    depts.forEach(dept => {
+        for (let i = 1; i <= 10; i++) {
+            const code = `${dept}-S${String(i).padStart(2, "0")}`;
+            list.push({
+                seatCode: code,
+                id: code,
+                department: dept,
+                status: "available",
+                currentOccupant: {},
+                waitingQueue: []
+            });
+        }
+    });
+    return list;
+})();
+
 function mapSeatFromAPI(seat) {
     return {
         ...seat,
@@ -54,19 +73,12 @@ async function loadSeats() {
             }
         }
     } catch (error) {
-        console.error("Unable to load seats:", error);
-        alert("Unable to load seats from the server. Please try again.");
+        console.warn("Unable to load seats from server, falling back to local catalog:", error);
+        if (!seats || seats.length === 0) {
+            seats = defaultSeats;
+            displaySeats();
+        }
     }
-}
-
-
-
-if (!seats) {
-
-    seats = defaultSeats;
-
-    saveSeats(seats);
-
 }
 
 
@@ -313,7 +325,7 @@ async function releaseSeat() {
             displayQueue(previouslySelectedSeatId);
         }
 
-        alert(`Seat ${seat.id} reserved successfully.`);
+        alert(`Seat ${seat.id} released successfully.`);
     } catch (error) {
         console.error("Seat release failed:", error);
         alert(error.message || "Unable to release seat.");

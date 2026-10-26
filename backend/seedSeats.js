@@ -2,7 +2,7 @@
 require("dotenv").config();
 
 const mongoose = require("mongoose");
-const connectDB = require("./config/db");
+const { connectDB } = require("./config/db");
 const Seat = require("./models/Seat");
 
 const departments = [

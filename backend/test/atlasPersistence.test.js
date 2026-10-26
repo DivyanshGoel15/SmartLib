@@ -8,29 +8,17 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
+const { connectDB } = require('../config/db');
+
 async function verifyAtlasPersistence() {
-  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
-
-  if (!uri) {
-    console.error('FAILED: No MONGODB_URI or MONGO_URI defined in backend/.env.');
-    process.exit(1);
-  }
-
-  console.log('[1/4] Attempting connection to MongoDB Atlas...');
+  console.log('[1/4] Attempting connection to MongoDB database...');
   try {
-    await mongoose.connect(uri, {
-      dbName: 'smartlib',
-      serverSelectionTimeoutMS: 5000
-    });
+    await connectDB();
     console.log(`[1/4] CONNECTED: Successfully reached host ${mongoose.connection.host}`);
   } catch (connErr) {
-    console.error('\n[ATLAS CONNECTION FAILED]');
+    console.error('\n[DATABASE CONNECTION FAILED]');
     console.error(`Error: ${connErr.name} - ${connErr.message}`);
-    console.error('Diagnosis: The remote cluster terminated the connection before authentication.');
-    console.error('Possible Causes:');
-    console.error(' - Workstation IP is not in Atlas Network Access allowlist.');
-    console.error(' - Local campus/corporate firewall is blocking port 27017 or intercepting TLS.');
-    console.error(' - Network middlebox or VPN interference.\n');
+    console.error('Diagnosis: Could not establish connection to Atlas or local MongoDB.');
     process.exit(1);
   }
 

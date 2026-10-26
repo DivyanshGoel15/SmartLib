@@ -3,6 +3,7 @@ const roleSelect = document.getElementById("role");
 const yearField = document.getElementById("yearField");
 const departmentField = document.getElementById("departmentField");
 const academicFields = document.getElementById("academicFields");
+const adminSecretField = document.getElementById("adminSecretField");
 const message = document.getElementById("message");
 const passwordInput = document.getElementById("password");
 const passwordStrengthBar = document.getElementById("passwordStrengthBar");
@@ -30,6 +31,9 @@ function toggleAcademicFields() {
     departmentField.style.display = isAdmin ? "none" : "block";
     yearField.style.display = isStudent ? "block" : "none";
     academicFields.style.display = isAdmin ? "block" : "grid";
+    if (adminSecretField) {
+        adminSecretField.style.display = isAdmin ? "block" : "none";
+    }
 
     document.getElementById("department").required = !isAdmin;
     document.getElementById("year").required = isStudent;
@@ -37,6 +41,9 @@ function toggleAcademicFields() {
     if (isAdmin) {
         document.getElementById("department").value = "";
         document.getElementById("year").value = "";
+    } else {
+        const adminSecretInput = document.getElementById("adminSecret");
+        if (adminSecretInput) adminSecretInput.value = "";
     }
 }
 
@@ -92,6 +99,8 @@ signupForm.addEventListener("submit", async function (event) {
     const role = roleSelect.value;
     const password = passwordInput.value;
     const confirmPassword = document.getElementById("confirmPassword").value;
+    const adminSecretInput = document.getElementById("adminSecret");
+    const adminSecret = adminSecretInput ? adminSecretInput.value.trim() : "";
 
     let valid = true;
 
@@ -99,6 +108,10 @@ signupForm.addEventListener("submit", async function (event) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("emailError", "Enter a valid email address."); valid = false; }
     if (role !== "library_admin" && !department) { setError("departmentError", "Select a department."); valid = false; }
     if (role === "student" && !year) { setError("yearError", "Select your year."); valid = false; }
+    if (role === "library_admin" && !adminSecret) {
+        setError("adminSecretError", "Administrator authorization passkey is required.");
+        valid = false;
+    }
     if (!isStrongPassword(password)) {
         setError("passwordError", "Use 8+ characters with uppercase, lowercase, number and special character.");
         valid = false;
@@ -112,19 +125,25 @@ signupForm.addEventListener("submit", async function (event) {
     submitButton.innerHTML = "Creating account...";
 
     try {
+        const payload = {
+            name,
+            email,
+            department: role === "library_admin" ? "Library Administration" : department,
+            year: role === "student" ? year : "Staff",
+            role,
+            password
+        };
+
+        if (role === "library_admin" && adminSecret) {
+            payload.adminSecret = adminSecret;
+        }
+
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                name,
-                email,
-                department: role === "library_admin" ? "" : department,
-                year: role === "student" ? year : "Staff",
-                role,
-                password
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json().catch(() => null);

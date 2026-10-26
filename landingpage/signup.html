@@ -80,9 +80,15 @@
                         <select id="role">
                             <option value="student">Student</option>
                             <option value="faculty">Faculty</option>
-                                <option value="library_admin">Library Administration</option>
+                            <option value="library_admin">Library Administration</option>
                         </select>
                         <small class="role-note">Faculty and Library Administration accounts have separate workspaces based on their role.</small>
+                    </div>
+
+                    <div class="field" id="adminSecretField" style="display: none;">
+                        <label for="adminSecret">Administrator Passkey</label>
+                        <input type="password" id="adminSecret" placeholder="Enter administrator authorization key" autocomplete="off">
+                        <small class="field-error" id="adminSecretError"></small>
                     </div>
 
                     <div class="two-column">
