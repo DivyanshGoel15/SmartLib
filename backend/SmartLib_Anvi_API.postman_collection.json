@@ -1,0 +1,508 @@
+{
+  "info": {
+    "_postman_id": "b7e193fc-4821-4fa3-9382-774d6cbe8a01",
+    "name": "SmartLib API - Anvi's Modules (Auth, Exams & Student Admin)",
+    "description": "Postman API testing collection for Anvi's assigned modules: Authentication, Faculty Portal / Examinations, and Admin Student Management. Includes positive and negative test cases with role-based security headers.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "examId",
+      "value": "EXAM001",
+      "type": "string"
+    },
+    {
+      "key": "studentId",
+      "value": "STU1001",
+      "type": "string"
+    },
+    {
+      "key": "adminSecret",
+      "value": "",
+      "type": "string",
+      "description": "Set your private local ADMIN_SECRET here if invoking admin bypass"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT authentication token returned upon successful login/registration"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Verifies backend uptime and MongoDB connection."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 Authentication",
+      "item": [
+        {
+          "name": "Register Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aarav Sharma\",\n  \"email\": \"aarav.sharma@university.edu\",\n  \"password\": \"SecurePass123!\",\n  \"role\": \"student\",\n  \"department\": \"CSE\",\n  \"year\": \"3rd Year\",\n  \"studentId\": \"241099\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registers a new student account with hashed password."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Faculty",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. Meera Iyer\",\n  \"email\": \"meera.iyer@university.edu\",\n  \"password\": \"FacultyPass456!\",\n  \"role\": \"faculty\",\n  \"department\": \"CSE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registers a faculty account."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Register Admin Without Secret (Expect 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthorized Admin\",\n  \"email\": \"intruder@university.edu\",\n  \"password\": \"HackerPass123!\",\n  \"role\": \"library_admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Expects 403 Forbidden to prevent unauthorized public administrator registration."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Register Duplicate Email (Expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Duplicate User\",\n  \"email\": \"aarav.sharma@university.edu\",\n  \"password\": \"AnotherPass123!\",\n  \"role\": \"student\",\n  \"department\": \"CSE\",\n  \"year\": \"3rd Year\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Expects 409 Conflict for existing email."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Register Invalid Data (Expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"not-an-email\",\n  \"password\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Expects 400 Bad Request for invalid/missing fields."
+          },
+          "response": []
+        },
+        {
+          "name": "Login Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aarav.sharma@university.edu\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Verifies password hash and returns safe user profile without password."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Login Incorrect Password (Expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"aarav.sharma@university.edu\",\n  \"password\": \"WrongPassword!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Expects 401 Unauthorized."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Login Unknown Email (Expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nonexistent.user@university.edu\",\n  \"password\": \"SomePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Expects 401 Unauthorized."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me?email=aarav.sharma@university.edu",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "aarav.sharma@university.edu"
+                }
+              ]
+            },
+            "description": "Retrieves safe user profile."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 Examinations",
+      "item": [
+        {
+          "name": "Get Department Exams",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exams/department/CSE",
+              "host": ["{{baseUrl}}"],
+              "path": ["exams", "department", "CSE"]
+            },
+            "description": "Retrieves exams strictly scheduled for CSE department, sorted by start date."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Exams (Admin / Student View)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exams",
+              "host": ["{{baseUrl}}"],
+              "path": ["exams"]
+            },
+            "description": "Retrieves all examinations across departments."
+          },
+          "response": []
+        },
+        {
+          "name": "Schedule New Exam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mid-Term Data Structures\",\n  \"department\": \"CSE\",\n  \"year\": \"3rd Year\",\n  \"startDate\": \"2026-11-10\",\n  \"endDate\": \"2026-11-15\",\n  \"time\": \"10:00\",\n  \"venue\": \"LH-101\",\n  \"facultyName\": \"Dr. Meera Iyer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exams",
+              "host": ["{{baseUrl}}"],
+              "path": ["exams"]
+            },
+            "description": "Saves a new examination in MongoDB (authorized with x-admin-secret or faculty x-user-id)."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Schedule Exam Without Authorization (Expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthenticated Exam\",\n  \"department\": \"CSE\",\n  \"year\": \"1st Year\",\n  \"startDate\": \"2026-11-10\",\n  \"endDate\": \"2026-11-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exams",
+              "host": ["{{baseUrl}}"],
+              "path": ["exams"]
+            },
+            "description": "Expects 401 Unauthorized when credentials are not supplied."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Create Exam - Invalid Date Range (Expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Exam Dates\",\n  \"department\": \"CSE\",\n  \"year\": \"2nd Year\",\n  \"startDate\": \"2026-11-20\",\n  \"endDate\": \"2026-11-10\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/exams",
+              "host": ["{{baseUrl}}"],
+              "path": ["exams"]
+            },
+            "description": "Expects 400 Bad Request because end date is before start date."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Exam",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/exams/{{examId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["exams", "{{examId}}"]
+            },
+            "description": "Deletes an examination by ID (authorized)."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Delete Exam Without Auth (Expect 401)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exams/{{examId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["exams", "{{examId}}"]
+            },
+            "description": "Expects 401 Unauthorized."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 Student Administration",
+      "item": [
+        {
+          "name": "Get All Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/students",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "students"]
+            },
+            "description": "Retrieves registered students for the admin portal."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Get All Students - Unauthorized (Expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/students",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "students"]
+            },
+            "description": "Expects 401 Unauthorized when no admin credentials provided."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Add Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rohan Mehta\",\n  \"studentId\": \"241102\",\n  \"email\": \"rohan.mehta@university.edu\",\n  \"department\": \"ECE\",\n  \"year\": \"2nd Year\",\n  \"password\": \"RohanPass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/students",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "students"]
+            },
+            "description": "Admin creates a student account."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Delete Student",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{studentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{studentId}}"]
+            },
+            "description": "Deletes a student account."
+          },
+          "response": []
+        },
+        {
+          "name": "[Negative] Delete Student Without Auth (Expect 401)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{studentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{studentId}}"]
+            },
+            "description": "Expects 401 Unauthorized."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
