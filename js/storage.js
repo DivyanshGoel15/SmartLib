@@ -1,28 +1,26 @@
-const SEATS_KEY = "smartlib_seats";
 
+const SEATS_API = "http://localhost:5000/api/seats";
 
-function saveSeats(seats) {
+// Fetch seats from MongoDB through the backend API.
+async function getStoredSeats(department) {
+    const url = department
+        ? `${SEATS_API}/${encodeURIComponent(department)}`
+        : SEATS_API;
 
-    localStorage.setItem(
-        SEATS_KEY,
-        JSON.stringify(seats)
-    );
+    const response = await fetch(url);
 
-}
-
-
-function getStoredSeats() {
-
-    const storedSeats =
-        localStorage.getItem(SEATS_KEY);
-
-
-    if (storedSeats) {
-
-        return JSON.parse(storedSeats);
-
+    if (!response.ok) {
+        throw new Error(`Failed to load seats: HTTP ${response.status}`);
     }
 
+    return await response.json();
+}
 
-    return null;
+// Update an individual seat through the backend API.
+async function saveSeats(seats) {
+    console.warn(
+        "saveSeats() is no longer supported for bulk updates. " +
+        "Use the appropriate seat API endpoint instead.",
+        seats
+    );
 }

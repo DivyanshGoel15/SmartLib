@@ -10,6 +10,7 @@ const { connectDB, getDBStatus } = require('./config/db');
 const resourceRoutes = require('./routes/resourceRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
+const seatRoutes = require('./routes/seatRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -72,6 +73,7 @@ const requireDB = (req, res, next) => {
 // API Routes
 app.use('/api/resources', requireDB, resourceRoutes);
 app.use('/api/reservations', requireDB, reservationRoutes);
+app.use('/api/seats', requireDB, seatRoutes);
 
 // Error Handling Middleware
 app.use(notFound);

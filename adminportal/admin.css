@@ -1075,3 +1075,57 @@ td small {
         padding: 15px;
     }
 }
+
+/* ================= SEAT MANAGEMENT ================= */
+
+.seat-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.seat-summary-card {
+    padding: 18px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.seat-summary-card span {
+    color: var(--brown);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.seat-summary-card strong {
+    font: 400 30px var(--serif);
+}
+
+#adminSeatMessage {
+    margin: 12px 0;
+}
+
+#adminSeatTableBody td {
+    vertical-align: top;
+}
+
+.seat-queue-entry {
+    display: block;
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.seat-queue-entry:last-child {
+    margin-bottom: 0;
+}
+
+@media (max-width: 700px) {
+    .seat-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

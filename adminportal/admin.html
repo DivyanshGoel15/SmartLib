@@ -150,8 +150,95 @@
         </strong>
 
     </article>
-
 </section>
+
+<!-- SEAT MANAGEMENT -->
+<section class="panel" id="adminSeatPanel">
+    <div class="panel-heading">
+        <div>
+            <p class="eyebrow">SEAT MONITORING</p>
+            <h2>Seat Management</h2>
+            <p class="inline-message">
+                Monitor seat occupancy and waiting queues across departments.
+            </p>
+        </div>
+
+        <button
+            id="refreshSeatsBtn"
+            class="primary-button small-button"
+            type="button"
+        >
+            Refresh Seats
+        </button>
+    </div>
+
+    <div class="seat-summary">
+        <div class="seat-summary-card">
+            <span>Total Seats</span>
+            <strong id="adminTotalSeats">0</strong>
+        </div>
+        <div class="seat-summary-card">
+            <span>Available</span>
+            <strong id="adminAvailableSeats">0</strong>
+        </div>
+        <div class="seat-summary-card">
+            <span>Occupied</span>
+            <strong id="adminOccupiedSeats">0</strong>
+        </div>
+        <div class="seat-summary-card">
+            <span>Students Waiting</span>
+            <strong id="adminWaitingStudents">0</strong>
+        </div>
+    </div>
+
+    <div class="directory-tools">
+        <input
+            id="adminSeatSearch"
+            type="search"
+            placeholder="Search seat or occupant..."
+        >
+
+        <select id="adminSeatDepartmentFilter">
+            <option value="">All departments</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="Mechanical">Mechanical</option>
+            <option value="Civil">Civil</option>
+            <option value="Management">Management</option>
+        </select>
+
+        <select id="adminSeatStatusFilter">
+            <option value="">All statuses</option>
+            <option value="available">Available</option>
+            <option value="occupied">Occupied</option>
+            <option value="reserved">Reserved</option>
+        </select>
+    </div>
+
+    <p id="adminSeatMessage" class="inline-message" role="status"></p>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Seat</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Current Occupant</th>
+                    <th>Waiting Queue</th>
+                </tr>
+            </thead>
+            <tbody id="adminSeatTableBody">
+                <tr>
+                    <td colspan="5" class="empty-table">
+                        Loading seats...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
 
 
 <!-- =========================================================
@@ -271,7 +358,6 @@
         </table>
 
     </div>
-
 </section>
 
 

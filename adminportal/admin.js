@@ -5302,3 +5302,208 @@ document.addEventListener("DOMContentLoaded", function () {
     adminRenderExams();
 
 });
+
+/* ============================================================
+   SEAT MANAGEMENT - LIBRARIAN DASHBOARD
+   ============================================================ */
+
+(function initializeAdminSeatManagement() {
+    const SEATS_API = "http://localhost:5000/api/seats";
+
+    const tableBody = document.getElementById("adminSeatTableBody");
+    const searchInput = document.getElementById("adminSeatSearch");
+    const departmentFilter = document.getElementById(
+        "adminSeatDepartmentFilter"
+    );
+    const statusFilter = document.getElementById(
+        "adminSeatStatusFilter"
+    );
+    const refreshButton = document.getElementById("refreshSeatsBtn");
+    const messageElement = document.getElementById("adminSeatMessage");
+
+    // Avoid running if the seat panel has not been added to the HTML.
+    if (
+        !tableBody ||
+        !searchInput ||
+        !departmentFilter ||
+        !statusFilter ||
+        !refreshButton ||
+        !messageElement
+    ) {
+        return;
+    }
+
+    let adminSeats = [];
+
+    function showSeatMessage(message, isError = false) {
+        messageElement.textContent = message;
+        messageElement.style.color = isError
+            ? "var(--danger)"
+            : "var(--muted)";
+    }
+
+    function renderSeatStats() {
+        const available = adminSeats.filter(
+            seat => seat.status === "available"
+        ).length;
+
+        const occupied = adminSeats.filter(
+            seat => seat.status === "occupied"
+        ).length;
+
+        const waiting = adminSeats.reduce(
+            (total, seat) => total + (seat.waitingQueue?.length || 0),
+            0
+        );
+
+        document.getElementById("adminTotalSeats").textContent =
+            adminSeats.length;
+
+        document.getElementById("adminAvailableSeats").textContent =
+            available;
+
+        document.getElementById("adminOccupiedSeats").textContent =
+            occupied;
+
+        document.getElementById("adminWaitingStudents").textContent =
+            waiting;
+    }
+
+    function renderSeatTable() {
+        const search = searchInput.value.trim().toLowerCase();
+        const department = departmentFilter.value;
+        const status = statusFilter.value;
+
+        const filteredSeats = adminSeats.filter(seat => {
+            const occupant = seat.currentOccupant || {};
+
+            const searchableText = [
+                seat.seatCode,
+                seat.department,
+                occupant.studentName,
+                occupant.studentId
+            ].filter(Boolean).join(" ").toLowerCase();
+
+            return (
+                searchableText.includes(search) &&
+                (!department || seat.department === department) &&
+                (!status || seat.status === status)
+            );
+        });
+
+        tableBody.innerHTML = "";
+
+        if (filteredSeats.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="empty-table">
+                        No seats match your search.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        filteredSeats.forEach(seat => {
+            const occupant = seat.currentOccupant || {};
+            const queue = [...(seat.waitingQueue || [])].sort(
+                (a, b) =>
+                    (Number(b.priorityScore) || 0) -
+                        (Number(a.priorityScore) || 0) ||
+                    new Date(a.joinedAt || 0) -
+                        new Date(b.joinedAt || 0)
+            );
+
+            const statusClass = {
+                available: "available",
+                occupied: "warning",
+                reserved: "unavailable"
+            }[seat.status] || "cancelled";
+
+            const occupantHTML = occupant.studentId
+                ? `
+                    <strong>${escapeHTML(occupant.studentName || "Unknown")}</strong>
+                    <small>ID: ${escapeHTML(occupant.studentId)}</small>
+                    <small>
+                        Since: ${
+                            occupant.startTime &&
+                            !Number.isNaN(new Date(occupant.startTime).getTime())
+                                ? escapeHTML(
+                                    new Date(occupant.startTime).toLocaleString()
+                                )
+                                : "—"
+                        }
+                    </small>
+                `
+                : "—";
+
+            const queueHTML = queue.length
+                ? queue.map((student, index) => `
+                    <span class="seat-queue-entry">
+                        <strong>#${index + 1} ${escapeHTML(student.studentName)}</strong>
+                        <small>ID: ${escapeHTML(student.studentId)}</small>
+                        <small>
+                            Priority: ${Number(student.priorityScore) || 0}
+                            ${student.hasExamSoon ? " · Exam priority" : ""}
+                        </small>
+                    </span>
+                `).join("")
+                : "No students waiting";
+
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td><strong>${escapeHTML(seat.seatCode)}</strong></td>
+                <td>${escapeHTML(seat.department)}</td>
+                <td>
+                    <span class="status-badge ${statusClass}">
+                        ${escapeHTML(seat.status)}
+                    </span>
+                </td>
+                <td>${occupantHTML}</td>
+                <td>${queueHTML}</td>
+            `;
+
+            tableBody.appendChild(row);
+        });
+    }
+
+    async function loadAdminSeats() {
+        refreshButton.disabled = true;
+        showSeatMessage("Loading seat information...");
+
+        try {
+            const response = await fetch(SEATS_API);
+
+            if (!response.ok) {
+                throw new Error(`Unable to load seats (HTTP ${response.status}).`);
+            }
+
+            const data = await response.json();
+
+            if (!Array.isArray(data)) {
+                throw new Error("The server returned an invalid seat list.");
+            }
+
+            adminSeats = data;
+            renderSeatStats();
+            renderSeatTable();
+            showSeatMessage(`Loaded ${adminSeats.length} seats.`);
+        } catch (error) {
+            console.error("Admin seat loading failed:", error);
+            showSeatMessage(
+                `${error.message} Check that the backend is running.`,
+                true
+            );
+        } finally {
+            refreshButton.disabled = false;
+        }
+    }
+
+    searchInput.addEventListener("input", renderSeatTable);
+    departmentFilter.addEventListener("change", renderSeatTable);
+    statusFilter.addEventListener("change", renderSeatTable);
+    refreshButton.addEventListener("click", loadAdminSeats);
+
+    loadAdminSeats();
+})();

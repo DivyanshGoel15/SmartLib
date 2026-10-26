@@ -1,75 +1,64 @@
-const departments = [
-    "CSE",
-    "ECE",
-    "Mechanical",
-    "Civil",
-    "Management"
-];
-const seatNumbers = [
-    3, 7, 12, 16, 21,
-    26, 31, 37, 43, 48,
 
-    1, 6, 11, 18, 23,
-    28, 34, 39, 45, 50,
+let seats = [];
+let selectedSeatId = null;
 
-    2, 9, 14, 19, 25,
-    30, 35, 41, 46, 49,
-
-    4, 8, 13, 20, 24,
-    29, 36, 40, 44, 47,
-
-    5, 10, 15, 17, 22,
-    27, 32, 33, 38, 42
-];
-const testOccupants = {
-    CSE: [9001, 9002, 9003],
-    ECE: [9011, 9012, 9013],
-    Mechanical: [9021, 9022, 9023],
-    Civil: [9031, 9032, 9033],
-    Management: [9041, 9042, 9043]
-};
+function mapSeatFromAPI(seat) {
+    return {
+        ...seat,
+        id: seat.seatCode,
+        occupantId: seat.currentOccupant?.studentId ?? null,
+        occupantName: seat.currentOccupant?.studentName ?? null
+    };
+}
 
 
-const defaultSeats = [];
+async function loadSeats() {
+    try {
+        const data = await getStoredSeats();
 
-departments.forEach(function (department, departmentIndex) {
+        seats = data.map(mapSeatFromAPI);
 
-    const start = departmentIndex * 10;
+        // Find a seat where the logged-in student is waiting.
+        const myQueuedSeat = seats.find(seat =>
+            (seat.waitingQueue || []).some(
+                student =>
+                    String(student.studentId) ===
+                    String(currentUser.id)
+            )
+        );
 
-    const departmentSeats =
-        seatNumbers.slice(start, start + 10);
+        // Automatically select that seat after login or refresh.
+        if (myQueuedSeat && !selectedSeatId) {
+            selectedSeatId = myQueuedSeat.id;
 
-    departmentSeats.forEach(function (number, index) {
+            const selectedSeatLabel =
+                document.getElementById("selectedSeat");
 
-        const isOccupied = index < 3;
+            if (selectedSeatLabel) {
+                selectedSeatLabel.textContent =
+                    `Selected Seat: ${selectedSeatId}`;
+            }
+        }
+        displaySeats();
 
-        defaultSeats.push({
+        // Refresh the queue display after seats are reloaded.
+        if (selectedSeatId) {
+            displayQueue(selectedSeatId);
+        } else {
+            const queueContainer =
+                document.getElementById("queueContainer");
 
-            id:
-                `${department}-S${String(number).padStart(2, "0")}`,
+            if (queueContainer) {
+                queueContainer.innerHTML =
+                    "<p>No students are waiting.</p>";
+            }
+        }
+    } catch (error) {
+        console.error("Unable to load seats:", error);
+        alert("Unable to load seats from the server. Please try again.");
+    }
+}
 
-            department:
-                department,
-
-            status:
-                isOccupied
-                    ? "occupied"
-                    : "available",
-
-            occupantId:
-                isOccupied
-                    ? testOccupants[department][index]
-                    : null
-
-        });
-
-    });
-
-});
-
-
-
-let seats = getStoredSeats();
 
 
 if (!seats) {
@@ -81,7 +70,6 @@ if (!seats) {
 }
 
 
-let selectedSeatId = null;
 
 
 /* TEMPORARY CURRENT USER */
@@ -158,12 +146,20 @@ function displaySeats() {
             seatCard.classList.add("selected");
 
         }
-
-
         seatCard.innerHTML = `
-            <h3>${seat.id}</h3>
-            <p>${seat.status}</p>
+           <h3>${seat.id}</h3>
         `;
+        if (currentUser.role === "library_admin" && seat.status === "occupied") {
+            const occupantInfo = document.createElement("p");
+            occupantInfo.className = "seat-occupant";
+
+            occupantInfo.textContent = seat.occupantName
+                ? `Occupied by: ${seat.occupantName} (ID: ${seat.occupantId})`
+                : "Occupant details unavailable";
+
+        seatCard.appendChild(occupantInfo);
+        }
+
         if (accessible) {
 
           seatCard.addEventListener(
@@ -196,193 +192,134 @@ function displaySeats() {
 /* SELECT SEAT */
 
 function selectSeat(seatId) {
-
     selectedSeatId = seatId;
 
     document.getElementById("selectedSeat").textContent =
         `Selected Seat: ${seatId}`;
 
     displaySeats();
+    displayQueue(seatId);
 }
 
 
 /* RESERVE SEAT */
 
-function reserveSeat() {
 
-    if (selectedSeatId === null) {
+async function reserveSeat() {
+    if (!selectedSeatId) {
         alert("Please select a seat first.");
         return;
     }
 
-    const seat = seats.find(function (seat) {
-        return seat.id === selectedSeatId;
-    });
+    const seat = seats.find(s => s.id === selectedSeatId);
 
     if (!seat) {
         alert("Seat not found.");
         return;
     }
 
-    // Students can only reserve one seat
-    const alreadyReserved = seats.some(function (existingSeat) {
-
-        return (
-            existingSeat.status === "occupied" &&
-            String(existingSeat.occupantId) === String(currentUser.id)
-        );
-
-    });
-
-    if (alreadyReserved) {
-        alert(
-            "You already have a reserved seat. Release it before reserving another seat."
-        );
-        return;
-    }
-
-    // Department access
     if (
         currentUser.role !== "library_admin" &&
         seat.department !== currentUser.department
     ) {
-
-        alert(
-            `You can only reserve seats in the ${currentUser.department} library.`
-        );
-
+        alert(`You can only reserve seats in the ${currentUser.department} library.`);
         return;
     }
 
-    // Seat already occupied
-    if (seat.status === "occupied") {
-        alert("This seat is already occupied.");
+    if (seat.status !== "available") {
+        alert("This seat is not available.");
         return;
     }
 
-    // Reserve
-    seat.status = "occupied";
-    seat.occupantId = currentUser.id;
-
-    // Remove user from EVERY queue after getting a seat.
-    // This also returns how many queue entries were removed.
-    const removedCount = removeFromAllQueues(currentUser.id);
-
-    // Save seat data
-    saveSeats(seats);
-
-    // Clear selection
-    selectedSeatId = null;
-
-    document.getElementById("selectedSeat").textContent =
-        "No seat selected";
-
-    // Refresh everything
-    displaySeats();
-
-    // Clear queue display
-    const queueContainer =
-        document.getElementById("queueContainer");
-
-    if (queueContainer) {
-        queueContainer.innerHTML =
-            "<p>No students are waiting.</p>";
+    if (hasReservedSeat()) {
+        alert("You already have a seat. Release it before reserving another.");
+        return;
     }
 
-   if (removedCount > 0) {
-        alert(
-           `Seat ${seat.id} reserved successfully. You have been removed from all queues.`
+    try {
+        const response = await fetch(
+            `${SEATS_API}/${encodeURIComponent(seat.id)}/occupy`,
+            {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    studentId: String(currentUser.id),
+                    studentName: currentUser.name
+                })
+            }
         );
-    } else {
-        alert(
-           `Seat ${seat.id} reserved successfully.`
-        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to reserve seat.");
+        }
+
+        selectedSeatId = null;
+        document.getElementById("selectedSeat").textContent =
+            "No seat selected";
+
+        await loadSeats();
+        alert(`Seat ${seat.id} reserved successfully.`);
+    } catch (error) {
+        console.error("Seat reservation failed:", error);
+        alert(error.message || "Unable to reserve seat.");
     }
 }
 
 /* RELEASE SEAT */
 /* RELEASE SEAT */
 
-function releaseSeat() {
 
-    if (selectedSeatId === null) {
-
+async function releaseSeat() {
+    if (!selectedSeatId) {
         alert("Please select your seat first.");
-
         return;
-
     }
 
-
-    const seat = seats.find(function (seat) {
-
-        return seat.id === selectedSeatId;
-
-    });
-
+    const seat = seats.find(s => s.id === selectedSeatId);
 
     if (!seat) {
-
         alert("Seat not found.");
-
         return;
-
     }
-
 
     if (String(seat.occupantId) !== String(currentUser.id)) {
-
         alert("You can only release your own seat.");
-
         return;
-
     }
 
-
-    // Release the current seat
-
-    seat.status = "available";
-
-    seat.occupantId = null;
-
-
-    // Automatically hand the seat to the
-    // highest-priority student in the queue
-
-    const handedOffStudent =
-        handoffSeat(seat.id, seats);
-
-
-    saveSeats(seats);
-
-
-    // Show what happened
-
-    if (handedOffStudent) {
-
-        alert(
-            `Seat ${seat.id} was automatically handed to ${handedOffStudent.name}.`
+    try {
+        const response = await fetch(
+            `${SEATS_API}/${encodeURIComponent(seat.id)}/release`,
+            { method: "PUT" }
         );
 
-    } else {
+        const data = await response.json();
 
-        alert(
-            `Seat ${seat.id} released successfully.`
-        );
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to release seat.");
+        }
 
+        const previouslySelectedSeatId = selectedSeatId;
+
+        selectedSeatId = null;
+        document.getElementById("selectedSeat").textContent =
+           "No seat selected";
+
+        await loadSeats();
+
+        if (previouslySelectedSeatId) {
+            displayQueue(previouslySelectedSeatId);
+        }
+
+        alert(`Seat ${seat.id} reserved successfully.`);
+    } catch (error) {
+        console.error("Seat release failed:", error);
+        alert(error.message || "Unable to release seat.");
     }
-
-
-    selectedSeatId = null;
-
-
-    document.getElementById("selectedSeat").textContent =
-        "No seat selected";
-
-
-    displaySeats();
-
 }
+
 function hasReservedSeat() {
 
     return seats.some(function (seat) {
@@ -409,6 +346,7 @@ function updateButtons() {
 
     const leaveQueueButton =
         document.getElementById("leaveQueueButton");
+    const examCheckbox = document.getElementById("hasExamSoon");
 
 
     // Disable everything initially
@@ -416,6 +354,16 @@ function updateButtons() {
     releaseButton.disabled = true;
     queueButton.disabled = true;
     leaveQueueButton.disabled = true;
+    const examLock = document.getElementById("examLock");
+    if (examCheckbox) {
+        examCheckbox.disabled = hasReservedSeat();
+        if (examCheckbox.disabled) {
+           examCheckbox.checked = false;
+        }
+    }
+    if (examLock) {
+       examLock.hidden = !hasReservedSeat();
+    }
 
 
     // Nothing selected
@@ -437,17 +385,12 @@ function updateButtons() {
     }
 
 
-    const queue =
-        getQueue(selectedSeatId);
+    const queue = seat.waitingQueue || [];
 
-
-    const isInQueue =
-        queue.some(function (student) {
-
-            return String(student.userId) ===
-                   String(currentUser.id);
-
-        });
+    const isInQueue = queue.some(
+        student =>
+          String(student.studentId) === String(currentUser.id)
+    );
 
 
     const alreadyHasSeat =
@@ -555,62 +498,36 @@ function updateSeatStats() {
     document.getElementById("occupiedCount").textContent =
         occupiedSeats.length;
 }
+
 function displayQueue(seatId) {
+    const queueContainer = document.getElementById("queueContainer");
+    const seat = seats.find(s => s.id === seatId);
+    const queue = seat?.waitingQueue || [];
 
-    const queueContainer =
-        document.getElementById("queueContainer");
-
-
-    const queue = getQueue(seatId);
-
-
-    if (queue.length === 0) {
-
-        queueContainer.innerHTML =
-            "<p>No students are waiting.</p>";
-
+    if (!queue.length) {
+        queueContainer.innerHTML = "<p>No students are waiting.</p>";
         return;
-
     }
-
 
     queueContainer.innerHTML = "";
 
+    queue.forEach((student, index) => {
+        const card = document.createElement("div");
+        card.className = "queue-student";
 
-    queue.forEach(function (student, index) {
+        const examText = student.hasExamSoon
+            ? "Exam Priority"
+            : "Regular";
 
-        const studentCard =
-            document.createElement("div");
+        card.textContent =
+            `#${index + 1} | ${student.studentName} | ` +
+            `Year ${student.year} | ${examText} | ` +
+            `Priority: ${student.priorityScore}`;
 
-
-        const examText =
-            isExamActive(student)
-               ? "Exam Priority"
-               : "Regular";
-
-        const priority =
-            calculatePriority(student);
-
-
-        studentCard.innerHTML = `
-            <p>
-                <strong>#${index + 1}</strong>
-                |
-                ${student.name}
-                |
-                Year ${student.year}
-                |
-                ${examText}
-                |
-                Priority: ${priority}
-            </p>
-        `;
-
-
-        queueContainer.appendChild(studentCard);
-
+        queueContainer.appendChild(card);
     });
 }
+
 function canAccessSeat(seat) {
 
     if (currentUser.role === "library_admin") {
@@ -637,126 +554,88 @@ document
 document
     .getElementById("releaseButton")
     .addEventListener("click", releaseSeat);
-document
-    .getElementById("queueButton")
-    .addEventListener("click", function () {
-        if (hasReservedSeat()) {
 
-            alert(
-              "You already have a reserved seat. Release it before joining a queue."
-            );
+document.getElementById("queueButton").addEventListener("click", async function () {
+    if (selectedSeatId === null) {
+        alert("Please select a seat first.");
+        return;
+    }
 
-            return;
-}
+    if (hasReservedSeat()) {
+        alert("Release your current seat before joining a queue.");
+        return;
+    }
 
-        if (selectedSeatId === null) {
-            return;
+    const seat = seats.find(s => s.id === selectedSeatId);
+
+    if (!seat || seat.status !== "occupied") {
+        alert("You can only join the queue for an occupied seat.");
+        return;
+    }
+
+    if (String(seat.occupantId) === String(currentUser.id)) {
+        alert("You cannot join the queue for your own seat.");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${SEATS_API}/${encodeURIComponent(seat.id)}/queue`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    studentId: String(currentUser.id),
+                    studentName: currentUser.name,
+                    year: String(currentUser.year || "1"),
+                    hasExamSoon: document.getElementById("hasExamSoon").checked
+                })
+            }
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to join queue.");
         }
 
-
-        const seat = seats.find(function (seat) {
-
-            return seat.id === selectedSeatId;
-
-        });
-
-
-        if (!seat) {
-            return;
-        }
-
-        if (seat.status !== "occupied") {
-            alert("You can only join the queue for an occupied seat.");
-            return;
-        }
-
-        if (
-            String(seat.occupantId) ===
-            String(currentUser.id)
-        ) {
-            alert("This is your seat. You cannot join its queue.");
-            return;
-        }
+        await loadSeats();
+        displayQueue(seat.id);
+        alert(`You joined the queue for ${seat.id}.`);
+    } catch (error) {
+        console.error("Join queue failed:", error);
+        alert(error.message || "Unable to join queue.");
+    }
+});
 
 
-        const student = {
+document.getElementById("leaveQueueButton").addEventListener("click", async function () {
+    if (!selectedSeatId) {
+        alert("Please select a seat first.");
+        return;
+    }
 
-            id: currentUser.id,
-            name: currentUser.name,
-            department: currentUser.department,
-            year: currentUser.year,
-
-            // Temporary until Anvi's exam system
-            // is connected.
-            examStatus: currentUser.examStatus
-
-        };
-
-
-        const added =
-            addToQueue(selectedSeatId, student);
-
-
-        if (added) {
-
-            alert(
-                `You joined the queue for ${selectedSeatId}.`
-            );
-
-            displayQueue(selectedSeatId);
-
-        } else {
-
-            alert(
-                "You are already in this queue."
-            );
-
-        }
-
-    });
-document
-    .getElementById("leaveQueueButton")
-    .addEventListener("click", function () {
-
-        if (selectedSeatId === null) {
-
-            return;
-
-        }
-
-
-        const removed =
-            removeFromQueue(
-                selectedSeatId,
-                currentUser.id
-            );
-
-
-        if (removed) {
-
-            alert(
-                `You left the queue for ${selectedSeatId}.`
-            );
-
-        } else {
-
-            alert(
-                "You are not in this queue."
-            );
-
-        }
-
-
-        displayQueue(
-            selectedSeatId
+    try {
+        const response = await fetch(
+            `${SEATS_API}/${encodeURIComponent(selectedSeatId)}/queue/${encodeURIComponent(currentUser.id)}`,
+            { method: "DELETE" }
         );
 
+        const data = await response.json();
 
-        updateButtons();
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to leave queue.");
+        }
 
-    });
+        await loadSeats();
+        displayQueue(selectedSeatId);
+        alert("You left the queue successfully.");
+    } catch (error) {
+        console.error("Leave queue failed:", error);
+        alert(error.message || "Unable to leave queue.");
+    }
+});
 
 
 /* INITIAL DISPLAY */
 
-displaySeats();
+loadSeats();

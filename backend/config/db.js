@@ -13,7 +13,7 @@ const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(uri, {
-      dbName: 'smartlib',
+      dbName: 'test',
       serverSelectionTimeoutMS: 5000 // 5 seconds timeout for quick feedback
     });
 
