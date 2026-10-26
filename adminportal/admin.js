@@ -1450,6 +1450,10 @@ document
         function () {
 
             sessionStorage.removeItem(
+                "smartlibToken"
+            );
+
+            sessionStorage.removeItem(
                 "currentUser"
             );
 
@@ -3972,82 +3976,94 @@ refreshDashboard();
 
 document.addEventListener("DOMContentLoaded", function () {
 
+    const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "http://localhost:5000/api";
+    const currentAdminUser = JSON.parse(sessionStorage.getItem("smartlibCurrentUser") || sessionStorage.getItem("currentUser") || "null");
+    let adminCachedStudents = [];
+    let adminCachedExams = [];
+
+    function getAdminHeaders(includeJson = false) {
+        const headers = {};
+        if (includeJson) {
+            headers["Content-Type"] = "application/json";
+        }
+        const token = sessionStorage.getItem("smartlibToken");
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+        return headers;
+    }
+
+    async function adminFetchStudents() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/students`, {
+                headers: getAdminHeaders()
+            });
+            const data = await response.json().catch(() => null);
+            if (response.ok && data && Array.isArray(data.data)) {
+                adminCachedStudents = data.data;
+                localStorage.setItem("smartlibUsers", JSON.stringify(data.data));
+                return data.data;
+            }
+        } catch (e) {
+            console.warn("[Admin] Could not load students from API, using fallback:", e);
+        }
+        return null;
+    }
+
+    async function adminFetchExams() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/exams`);
+            const data = await response.json().catch(() => null);
+            if (response.ok && data && Array.isArray(data.data)) {
+                adminCachedExams = data.data;
+                localStorage.setItem("smartlibExams", JSON.stringify(data.data));
+                return data.data;
+            }
+        } catch (e) {
+            console.warn("[Admin] Could not load exams from API, using fallback:", e);
+        }
+        return null;
+    }
+
     /* =========================================================
        STUDENT STORAGE
        ========================================================= */
 
     function adminGetStudents() {
-
-        try {
-
-            const users =
-                JSON.parse(
-                    localStorage.getItem("smartlibUsers") || "[]"
-                );
-
-            return users.filter(
-                user =>
-                    user &&
-                    user.role === "student"
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Unable to load students:",
-                error
-            );
-
-            return [];
-
+        if (adminCachedStudents && adminCachedStudents.length > 0) {
+            return adminCachedStudents;
         }
-
+        try {
+            const users = JSON.parse(localStorage.getItem("smartlibUsers") || "[]");
+            return users.filter(user => user && user.role === "student");
+        } catch (error) {
+            console.error("Unable to load students:", error);
+            return [];
+        }
     }
-
 
     function adminSaveUsers(users) {
-
-        localStorage.setItem(
-            "smartlibUsers",
-            JSON.stringify(users)
-        );
-
+        localStorage.setItem("smartlibUsers", JSON.stringify(users));
     }
-
 
     /* =========================================================
        EXAM STORAGE
        ========================================================= */
 
     function adminGetExams() {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem("smartlibExams") ||   localStorage.getItem("libraryExams") || "[]"
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Unable to load exams:",
-                error
-            );
-
-            return [];
-
+        if (adminCachedExams && adminCachedExams.length > 0) {
+            return adminCachedExams;
         }
-
+        try {
+            return JSON.parse(localStorage.getItem("smartlibExams") || localStorage.getItem("libraryExams") || "[]");
+        } catch (error) {
+            console.error("Unable to load exams:", error);
+            return [];
+        }
     }
 
-
     function adminSaveExams(exams) {
-
-        localStorage.setItem(
-            "smartlibExams",
-            JSON.stringify(exams)
-        );
-
+        localStorage.setItem("smartlibExams", JSON.stringify(exams));
     }
 
 
@@ -4351,7 +4367,7 @@ document.addEventListener("DOMContentLoaded", function () {
        ADD STUDENT
        ========================================================= */
 
-    function addAdminStudent(event) {
+    async function addAdminStudent(event) {
 
         event.preventDefault();
 
@@ -4380,44 +4396,38 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const users = JSON.parse(
-            localStorage.getItem("smartlibUsers") || "[]"
-        );
+        const studentId = "STU" + Date.now().toString().slice(-6);
 
-        const exists = users.some(
-            user =>
-                String(user.email || "").toLowerCase() === email
-        );
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/students`, {
+                method: "POST",
+                headers: getAdminHeaders(true),
+                body: JSON.stringify({ name, studentId, email, department, year, password })
+            });
 
-        if (exists) {
-            error.textContent = "An account with this email already exists.";
-            return;
-        }
+            const data = await response.json().catch(() => null);
 
-        users.push({
-            id: Date.now(),
-            name,
-            email,
-            department,
-            year,
-            role: "student",
-            password,
-            createdAt: new Date().toISOString()
-        });
+            if (!response.ok || !data || !data.success) {
+                error.textContent = (data && data.message) || "Failed to add student.";
+                return;
+            }
 
-        adminSaveUsers(users);
+            document.getElementById("adminStudentForm").reset();
+            document.getElementById("adminStudentModal").classList.add("hidden");
 
-        document.getElementById("adminStudentForm").reset();
-        document.getElementById("adminStudentModal").classList.add("hidden");
+            await adminFetchStudents();
+            adminRenderStudents();
 
-        adminRenderStudents();
+            if (typeof renderStats === "function") {
+                renderStats();
+            }
 
-        if (typeof renderStats === "function") {
-            renderStats();
-        }
-
-        if (typeof showMessage === "function") {
-            showMessage("Student added successfully.");
+            if (typeof showMessage === "function") {
+                showMessage("Student added successfully.");
+            }
+        } catch (err) {
+            console.error("[Admin Add Student Error]", err);
+            error.textContent = "Unable to connect to backend server.";
         }
 
     }
@@ -4682,86 +4692,54 @@ document.addEventListener("DOMContentLoaded", function () {
        ========================================================= */
 
     window.adminDeleteStudent =
-        function(studentId) {
+        async function(studentId) {
 
-
-            const users =
-                JSON.parse(
-                    localStorage.getItem(
-                        "smartlibUsers"
-                    ) || "[]"
-                );
-
-
+            const students = adminGetStudents();
             const student =
-                users.find(
+                students.find(
                     user =>
-                        String(
-                            user.id
-                        ) ===
-                        String(
-                            studentId
-                        )
+                        String(user.id) === String(studentId) ||
+                        String(user.studentId) === String(studentId)
                 );
-
 
             if (!student) {
-
                 return;
-
             }
-
 
             if (
                 !confirm(
                     `Delete student "${student.name}"?`
                 )
             ) {
-
                 return;
-
             }
 
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${encodeURIComponent(student.id || studentId)}`, {
+                    method: "DELETE",
+                    headers: getAdminHeaders()
+                });
 
-            const updated =
-                users.filter(
-                    user =>
-                        String(
-                            user.id
-                        ) !==
-                        String(
-                            studentId
-                        )
-                );
+                const data = await response.json().catch(() => null);
 
+                if (!response.ok || !data || !data.success) {
+                    alert((data && data.message) || "Failed to delete student.");
+                    return;
+                }
 
-            adminSaveUsers(
-                updated
-            );
+                await adminFetchStudents();
+                adminRenderStudents();
 
+                if (typeof renderStats === "function") {
+                    renderStats();
+                }
 
-            adminRenderStudents();
-
-
-            if (
-                typeof renderStats ===
-                "function"
-            ) {
-
-                renderStats();
-
-            }
-
-
-            if (
-                typeof showMessage ===
-                "function"
-            ) {
-
-                showMessage(
-                    "Student deleted."
-                );
-
+                if (typeof showMessage === "function") {
+                    showMessage("Student deleted.");
+                }
+            } catch (err) {
+                console.error("[Admin Delete Student Error]", err);
+                alert("Could not reach backend server to delete student.");
             }
 
         };
@@ -4866,7 +4844,7 @@ document.addEventListener("DOMContentLoaded", function () {
        ADD EXAM
        ========================================================= */
 
-    function addAdminExam(event) {
+    async function addAdminExam(event) {
 
         event.preventDefault();
 
@@ -4900,46 +4878,41 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const exams = adminGetExams();
+        try {
+            const response = await fetch(`${API_BASE_URL}/exams`, {
+                method: "POST",
+                headers: getAdminHeaders(true),
+                body: JSON.stringify({
+                    name,
+                    department,
+                    year,
+                    startDate,
+                    endDate,
+                    facultyName: "Library Administration",
+                    createdByFaculty: "Library Administration",
+                    createdByRole: "library_admin"
+                })
+            });
 
-        const duplicate = exams.some(
-            exam =>
-                String(exam.name || exam.title || "").toLowerCase() === name.toLowerCase() &&
-                exam.department === department &&
-                exam.year === year &&
-                exam.startDate === startDate
-        );
+            const data = await response.json().catch(() => null);
 
-        if (duplicate) {
-            error.textContent = "This exam already exists for that department and year.";
-            return;
-        }
+            if (!response.ok || !data || !data.success) {
+                error.textContent = (data && data.message) || "Failed to add exam.";
+                return;
+            }
 
-        exams.push({
-            id: "EXAM" + Date.now(),
-            name,
-            title: name,
-            subject: name,
-            department,
-            year,
-            startDate,
-            endDate,
-            date: startDate,
-            examDate: startDate,
-            createdByName: "Library Administration",
-            facultyName: "Library Administration",
-            createdAt: new Date().toISOString()
-        });
+            document.getElementById("adminExamForm").reset();
+            document.getElementById("adminExamModal").classList.add("hidden");
 
-        adminSaveExams(exams);
+            await adminFetchExams();
+            adminRenderExams();
 
-        document.getElementById("adminExamForm").reset();
-        document.getElementById("adminExamModal").classList.add("hidden");
-
-        adminRenderExams();
-
-        if (typeof showMessage === "function") {
-            showMessage("Exam added successfully.");
+            if (typeof showMessage === "function") {
+                showMessage("Exam added successfully.");
+            }
+        } catch (err) {
+            console.error("[Admin Add Exam Error]", err);
+            error.textContent = "Unable to connect to backend server.";
         }
 
     }
@@ -5176,70 +5149,53 @@ document.addEventListener("DOMContentLoaded", function () {
        ========================================================= */
 
     window.adminDeleteExam =
-        function(examId) {
+        async function(examId) {
 
-
-            const exams =
-                adminGetExams();
-
-
+            const exams = adminGetExams();
             const exam =
                 exams.find(
                     item =>
-                        String(
-                            item.id
-                        ) ===
-                        String(
-                            examId
-                        )
+                        String(item.id) === String(examId) ||
+                        String(item._id) === String(examId) ||
+                        String(item.customId) === String(examId)
                 );
 
-
             if (!exam) {
-
                 return;
-
             }
 
+            const examName = exam.name || exam.title || exam.subject || "this exam";
 
             if (
                 !confirm(
-                    `Delete "${exam.name || exam.title || exam.subject}"?`
+                    `Delete "${examName}"?`
                 )
             ) {
-
                 return;
-
             }
 
+            try {
+                const response = await fetch(`${API_BASE_URL}/exams/${encodeURIComponent(exam.id || examId)}`, {
+                    method: "DELETE",
+                    headers: getAdminHeaders()
+                });
 
-            adminSaveExams(
+                const data = await response.json().catch(() => null);
 
-                exams.filter(
-                    item =>
-                        String(
-                            item.id
-                        ) !==
-                        String(
-                            examId
-                        )
-                )
+                if (!response.ok || !data || !data.success) {
+                    alert((data && data.message) || "Failed to delete exam.");
+                    return;
+                }
 
-            );
+                await adminFetchExams();
+                adminRenderExams();
 
-
-            adminRenderExams();
-
-
-            if (
-                typeof showMessage ===
-                "function"
-            ) {
-
-                showMessage(
-                    "Exam deleted."
-                );
-
+                if (typeof showMessage === "function") {
+                    showMessage("Exam deleted.");
+                }
+            } catch (err) {
+                console.error("[Admin Delete Exam Error]", err);
+                alert("Could not reach backend server to delete exam.");
             }
 
         };
@@ -5300,7 +5256,7 @@ document.addEventListener("DOMContentLoaded", function () {
     adminRenderStudents();
 
     adminRenderExams();
-
+    
 });
 
 /* ============================================================
@@ -5312,16 +5268,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const tableBody = document.getElementById("adminSeatTableBody");
     const searchInput = document.getElementById("adminSeatSearch");
-    const departmentFilter = document.getElementById(
-        "adminSeatDepartmentFilter"
-    );
-    const statusFilter = document.getElementById(
-        "adminSeatStatusFilter"
-    );
+    const departmentFilter = document.getElementById("adminSeatDepartmentFilter");
+    const statusFilter = document.getElementById("adminSeatStatusFilter");
     const refreshButton = document.getElementById("refreshSeatsBtn");
     const messageElement = document.getElementById("adminSeatMessage");
 
-    // Avoid running if the seat panel has not been added to the HTML.
     if (
         !tableBody ||
         !searchInput ||
@@ -5343,30 +5294,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderSeatStats() {
-        const available = adminSeats.filter(
-            seat => seat.status === "available"
-        ).length;
-
-        const occupied = adminSeats.filter(
-            seat => seat.status === "occupied"
-        ).length;
-
+        const available = adminSeats.filter(seat => seat.status === "available").length;
+        const occupied = adminSeats.filter(seat => seat.status === "occupied").length;
         const waiting = adminSeats.reduce(
             (total, seat) => total + (seat.waitingQueue?.length || 0),
             0
         );
 
-        document.getElementById("adminTotalSeats").textContent =
-            adminSeats.length;
-
-        document.getElementById("adminAvailableSeats").textContent =
-            available;
-
-        document.getElementById("adminOccupiedSeats").textContent =
-            occupied;
-
-        document.getElementById("adminWaitingStudents").textContent =
-            waiting;
+        document.getElementById("adminTotalSeats").textContent = adminSeats.length;
+        document.getElementById("adminAvailableSeats").textContent = available;
+        document.getElementById("adminOccupiedSeats").textContent = occupied;
+        document.getElementById("adminWaitingStudents").textContent = waiting;
     }
 
     function renderSeatTable() {
@@ -5376,7 +5314,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const filteredSeats = adminSeats.filter(seat => {
             const occupant = seat.currentOccupant || {};
-
             const searchableText = [
                 seat.seatCode,
                 seat.department,
@@ -5396,9 +5333,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (filteredSeats.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="empty-table">
-                        No seats match your search.
-                    </td>
+                    <td colspan="5" class="empty-table">No seats match your search.</td>
                 </tr>
             `;
             return;
@@ -5410,8 +5345,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 (a, b) =>
                     (Number(b.priorityScore) || 0) -
                         (Number(a.priorityScore) || 0) ||
-                    new Date(a.joinedAt || 0) -
-                        new Date(b.joinedAt || 0)
+                    new Date(a.joinedAt || 0) - new Date(b.joinedAt || 0)
             );
 
             const statusClass = {
@@ -5428,9 +5362,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         Since: ${
                             occupant.startTime &&
                             !Number.isNaN(new Date(occupant.startTime).getTime())
-                                ? escapeHTML(
-                                    new Date(occupant.startTime).toLocaleString()
-                                )
+                                ? escapeHTML(new Date(occupant.startTime).toLocaleString())
                                 : "—"
                         }
                     </small>
@@ -5451,7 +5383,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 : "No students waiting";
 
             const row = document.createElement("tr");
-
             row.innerHTML = `
                 <td><strong>${escapeHTML(seat.seatCode)}</strong></td>
                 <td>${escapeHTML(seat.department)}</td>
@@ -5491,10 +5422,7 @@ document.addEventListener("DOMContentLoaded", function () {
             showSeatMessage(`Loaded ${adminSeats.length} seats.`);
         } catch (error) {
             console.error("Admin seat loading failed:", error);
-            showSeatMessage(
-                `${error.message} Check that the backend is running.`,
-                true
-            );
+            showSeatMessage(`${error.message} Check that the backend is running.`, true);
         } finally {
             refreshButton.disabled = false;
         }
@@ -5507,3 +5435,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     loadAdminSeats();
 })();
+
+// Fetch from backend API and update student/exam tables and counts
+Promise.all([adminFetchStudents(), adminFetchExams()]).then(() => {
+    adminRenderStudents();
+    adminRenderExams();
+
+    if (typeof renderStats === "function") {
+        renderStats();
+    }
+});
+
+
+

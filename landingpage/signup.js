@@ -7,12 +7,13 @@ const message = document.getElementById("message");
 const passwordInput = document.getElementById("password");
 const passwordStrengthBar = document.getElementById("passwordStrengthBar");
 const passwordHint = document.getElementById("passwordHint");
+const submitButton = signupForm.querySelector("button[type='submit']");
 
-const getUsers = () => JSON.parse(localStorage.getItem("smartlibUsers")) || [];
-const saveUsers = users => localStorage.setItem("smartlibUsers", JSON.stringify(users));
+const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "http://localhost:5000/api";
 
 function setError(id, text) {
-    document.getElementById(id).textContent = text;
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
 }
 
 function clearErrors() {
@@ -80,7 +81,7 @@ passwordInput.addEventListener("input", updatePasswordStrength);
 toggleAcademicFields();
 updatePasswordStrength();
 
-signupForm.addEventListener("submit", function (event) {
+signupForm.addEventListener("submit", async function (event) {
     event.preventDefault();
     clearErrors();
 
@@ -104,36 +105,58 @@ signupForm.addEventListener("submit", function (event) {
     }
     if (password !== confirmPassword) { setError("confirmPasswordError", "Passwords do not match."); valid = false; }
 
-    const users = getUsers();
-    if (users.some(user => user.email === email)) {
-        setError("emailError", "An account with this email already exists.");
-        valid = false;
-    }
-
     if (!valid) return;
 
-    const newUser = {
-        id: Date.now(),
-        name,
-        email,
-        department: role === "library_admin" ? "" : department,
-        year: role === "student" ? year : "Staff",
-        role,
-        password,
-        createdAt: new Date().toISOString()
-    };
+    const originalBtnText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = "Creating account...";
 
-    users.push(newUser);
-    saveUsers(users);
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                department: role === "library_admin" ? "" : department,
+                year: role === "student" ? year : "Staff",
+                role,
+                password
+            })
+        });
 
-    message.className = "message success";
-    message.textContent = "Account created successfully. Redirecting you to login...";
+        const data = await response.json().catch(() => null);
 
-    signupForm.reset();
-    toggleAcademicFields();
-    updatePasswordStrength();
+        if (!response.ok || !data || !data.success) {
+            const errorMsg = (data && data.message) || "Failed to create account. Please try again.";
+            message.className = "message error";
+            message.textContent = errorMsg;
 
-    setTimeout(() => {
-        window.location.href = "login.html";
-    }, 900);
+            if (response.status === 409 || errorMsg.toLowerCase().includes("email")) {
+                setError("emailError", errorMsg);
+            }
+            return;
+        }
+
+        message.className = "message success";
+        message.textContent = "Account created successfully. Redirecting you to login...";
+
+        signupForm.reset();
+        toggleAcademicFields();
+        updatePasswordStrength();
+
+        setTimeout(() => {
+            window.location.href = "login.html";
+        }, 900);
+
+    } catch (networkError) {
+        console.error("[Signup Error]", networkError);
+        message.className = "message error";
+        message.textContent = "Unable to connect to the SmartLib backend server. Please verify the server is running on " + API_BASE_URL + ".";
+    } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalBtnText;
+    }
 });

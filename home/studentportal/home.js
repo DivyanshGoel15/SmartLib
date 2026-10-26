@@ -31,7 +31,7 @@ if (
 ) {
 
     window.location.href =
-        "/landingpage/login.html";
+        "../../landingpage/login.html";
 
 }
 
@@ -48,7 +48,7 @@ const users =
     );
 
 
-const exams =
+let exams =
     JSON.parse(
         localStorage.getItem(
             "smartlibExams"
@@ -986,7 +986,7 @@ if (logoutButton) {
 
 
             window.location.href =
-                "/landingpage/login.html";
+                "../../landingpage/login.html";
 
         }
     );
@@ -1001,3 +1001,19 @@ if (logoutButton) {
 renderExamStatus();
 
 renderStudentExtras();
+
+// Sync exams with backend if available
+const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "http://localhost:5000/api";
+if (currentUser && currentUser.department) {
+    fetch(`${API_BASE_URL}/exams/department/${encodeURIComponent(currentUser.department)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && Array.isArray(data.data)) {
+                exams = data.data;
+                localStorage.setItem("smartlibExams", JSON.stringify(data.data));
+                renderExamStatus();
+                renderStudentExtras();
+            }
+        })
+        .catch(() => {});
+}

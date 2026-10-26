@@ -25,7 +25,7 @@ const connectDB = async () => {
     if (error.name === 'MongooseServerSelectionError') {
       console.error('[Database Error] MongoDB Atlas Server Selection Error:');
       console.error(' -> Could not reach Atlas cluster servers. Most likely your current IP address is not whitelisted.');
-      console.error(' -> Fix: Go to MongoDB Atlas (https://cloud.mongodb.com/) -> Network Access -> Add IP Address -> Select "Allow Access from Anywhere" (0.0.0.0/0).');
+      console.error(' -> Fix: Go to MongoDB Atlas (https://cloud.mongodb.com/) -> Network Access -> Add IP Address -> Select "Add Current IP Address".');
     } else {
       console.error('[Database Error] Failed to connect to MongoDB Atlas:', error.message);
     }

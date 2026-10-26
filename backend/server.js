@@ -7,6 +7,9 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const { connectDB, getDBStatus } = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
+const examRoutes = require('./routes/examRoutes');
+const userRoutes = require('./routes/userRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
@@ -36,6 +39,9 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       health: '/api/health',
+      auth: '/api/auth',
+      exams: '/api/exams',
+      users: '/api/users',
       resources: '/api/resources',
       reservations: '/api/reservations'
     }
@@ -53,7 +59,7 @@ app.get('/api/health', (req, res) => {
     database: {
       ...dbStatus,
       ...(dbStatus.connected ? { host: mongoose.connection.host } : {
-        note: 'If disconnected, verify IP whitelist in MongoDB Atlas Network Access (add 0.0.0.0/0).'
+        note: 'If disconnected, verify your current public IP is added to the MongoDB Atlas Network Access allowlist.'
       })
     }
   });
@@ -64,13 +70,16 @@ const requireDB = (req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
     return res.status(503).json({
       success: false,
-      message: 'Database connection is currently unavailable. Please verify that your current IP address is whitelisted in MongoDB Atlas Network Access (0.0.0.0/0).'
+      message: 'Database connection is currently unavailable. Please verify that your current client IP address is whitelisted in MongoDB Atlas Network Access.'
     });
   }
   next();
 };
 
 // API Routes
+app.use('/api/auth', requireDB, authRoutes);
+app.use('/api/exams', requireDB, examRoutes);
+app.use('/api/users', requireDB, userRoutes);
 app.use('/api/resources', requireDB, resourceRoutes);
 app.use('/api/reservations', requireDB, reservationRoutes);
 app.use('/api/seats', requireDB, seatRoutes);
@@ -108,6 +117,9 @@ const startServer = async () => {
   const server = app.listen(PORT, () => {
     console.log(`[Server] SmartLib Backend running on port ${PORT}`);
     console.log(`[Server] Health check available at http://localhost:${PORT}/api/health`);
+    console.log(`[Server] Auth API at http://localhost:${PORT}/api/auth`);
+    console.log(`[Server] Exams API at http://localhost:${PORT}/api/exams`);
+    console.log(`[Server] Users API at http://localhost:${PORT}/api/users`);
     console.log(`[Server] Resources API at http://localhost:${PORT}/api/resources`);
     console.log(`[Server] Reservations API at http://localhost:${PORT}/api/reservations`);
   });
