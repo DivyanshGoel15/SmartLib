@@ -11,7 +11,7 @@ const authenticate = async (req, res, next) => {
     // 1. Allow server-side administrative access ONLY for administrative management routes.
     // Disallow x-admin-secret from bypassing ordinary user-facing endpoints (e.g. /api/auth/me, /api/exams).
     const isUserFacingRoute = req.baseUrl === '/api/auth' || req.baseUrl === '/api/exams';
-    const configuredSecret = process.env.ADMIN_SECRET;
+    const configuredSecret = process.env.ADMIN_SECRET || process.env.ADMIN_KEY;
     const adminSecret = req.headers['x-admin-secret'];
 
     if (!isUserFacingRoute && configuredSecret && adminSecret && adminSecret.trim() === configuredSecret.trim()) {

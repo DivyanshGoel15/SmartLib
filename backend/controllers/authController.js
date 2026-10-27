@@ -55,7 +55,7 @@ const register = async (req, res, next) => {
     // Enforce permitted signup roles: Prevent unauthorized administrator public signup
     const isAdminRole = normalizedRole === 'library_admin' || normalizedRole === 'admin';
     if (isAdminRole) {
-      const configuredSecret = process.env.ADMIN_SECRET;
+      const configuredSecret = process.env.ADMIN_SECRET || process.env.ADMIN_KEY;
       const providedSecret = req.headers['x-admin-secret'] || (req.body && req.body.adminSecret);
 
       if (!configuredSecret || !providedSecret || providedSecret.trim() !== configuredSecret.trim()) {

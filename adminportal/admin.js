@@ -5263,8 +5263,9 @@ document.addEventListener("DOMContentLoaded", function () {
    SEAT MANAGEMENT - LIBRARIAN DASHBOARD
    ============================================================ */
 
-(function initializeAdminSeatManagement() {
-    const SEATS_API = "http://localhost:5000/api/seats";
+    const SEATS_API = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL)
+        ? `${window.SMARTLIB_CONFIG.API_BASE_URL}/seats`
+        : "https://smartlib-sjya.onrender.com/api/seats";
 
     const tableBody = document.getElementById("adminSeatTableBody");
     const searchInput = document.getElementById("adminSeatSearch");

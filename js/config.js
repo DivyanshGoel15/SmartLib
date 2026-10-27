@@ -6,8 +6,15 @@
     // Priority order:
     // 1. window.SMARTLIB_API_URL (set dynamically or via script injection)
     // 2. localStorage item "SMARTLIB_API_URL"
-    // 3. Fallback to local backend on port 5000
-    const defaultApiUrl = "http://localhost:5000/api";
+    // Live Cloud Backend on Render
+    const RENDER_API_URL = "https://smartlib-sjya.onrender.com/api";
+    const LOCAL_API_URL = "http://localhost:5000/api";
+
+    // Use local backend if explicitly running locally on port 5000 or via ?dev=local query
+    const isExplicitLocalDev = (typeof window !== "undefined" && window.location &&
+        (window.location.port === "5000" || (window.location.search && window.location.search.includes("dev=local"))));
+
+    const defaultApiUrl = isExplicitLocalDev ? LOCAL_API_URL : RENDER_API_URL;
 
     const getBaseUrl = function () {
         return window.SMARTLIB_API_URL ||

@@ -12,11 +12,9 @@ let ephemeralDevSecret = null;
 const getSecret = () => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('FATAL: JWT_SECRET environment variable is missing in production environment. A secure key must be configured.');
-    }
     if (!ephemeralDevSecret) {
       ephemeralDevSecret = crypto.randomBytes(32).toString('hex');
+      console.warn('[Security Warning] JWT_SECRET is not configured in environment. Using generated fallback key.');
     }
     return ephemeralDevSecret;
   }

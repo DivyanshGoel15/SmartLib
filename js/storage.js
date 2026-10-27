@@ -1,7 +1,7 @@
 
 const SEATS_API = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL)
     ? `${window.SMARTLIB_CONFIG.API_BASE_URL}/seats`
-    : "http://localhost:5000/api/seats";
+    : "https://smartlib-sjya.onrender.com/api/seats";
 
 // Fetch seats from MongoDB through the backend API.
 async function getStoredSeats(department) {
