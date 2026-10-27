@@ -25,64 +25,18 @@
 
     <!-- ================= NAVBAR ================= -->
 
-    <header class="navbar">
-
-
-        <a
-            href="../home/studentportal/home.html"
-            class="logo"
-        >
-
-            <div class="logo-symbol">
-                S
-            </div>
-
-            <div class="logo-text">
-                SMARTLIB
-            </div>
-
-        </a>
-
-
-        <nav class="nav-links">
-
-            <a href="../home/studentportal/home.html">
-                Home
-            </a>
-
-            <a href="../resources/resources.html">
-                Resources
-            </a>
-
-            <a
-                href="reservations.html"
-                class="active"
-            >
-                Reservations
-            </a>
-
+    <header class="topbar">
+        <a class="brand" id="brandLink" href="../home/studentportal/home.html">SMARTLIB</a>
+        <nav>
+            <a id="navHome" href="../home/studentportal/home.html">Home</a>
+            <a href="../seats.html">Study Seats</a>
+            <a href="reservations.html" class="active">Reservations</a>
+            <a href="../resources/resources.html">Resources</a>
         </nav>
-
-
-        <div class="nav-buttons">
-
-            <span
-                class="user-name"
-                id="userInfo"
-            >
-                Loading...
-            </span>
-
-            <button
-                type="button"
-                class="logout-btn"
-                id="logoutBtn"
-            >
-                Logout
-            </button>
-
+        <div class="user-area">
+            <span id="userInfo">User</span>
+            <button type="button" id="logoutBtn" class="logout">Logout</button>
         </div>
-
     </header>
 
 

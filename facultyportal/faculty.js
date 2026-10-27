@@ -49,6 +49,7 @@ async function loadDepartmentExams() {
 
         if (response.ok && data && Array.isArray(data.data)) {
             exams = data.data;
+            localStorage.setItem("smartlibExams", JSON.stringify(data.data));
         } else {
             // Fallback to local storage if API is temporarily unavailable
             exams = JSON.parse(localStorage.getItem("smartlibExams") || "[]")
@@ -145,7 +146,6 @@ document.getElementById("facultyExamForm").addEventListener("submit", async even
     event.preventDefault();
     const start = document.getElementById("facultyExamStart").value;
     const end = document.getElementById("facultyExamEnd").value;
-    const time = document.getElementById("facultyExamTime").value;
     const year = document.getElementById("facultyExamYear").value;
     const name = document.getElementById("facultyExamName").value.trim();
     const error = document.getElementById("facultyModalError");
@@ -166,7 +166,6 @@ document.getElementById("facultyExamForm").addEventListener("submit", async even
         year,
         startDate: start,
         endDate: end,
-        time,
         facultyName: currentUser.name,
         createdByFaculty: currentUser.name,
         createdBy: currentUser.id || currentUser._id,
@@ -206,6 +205,10 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 
     window.location.href = "../landingpage/landingpage.html";
 });
+
+// Re-fetch when page regains focus or navigates back
+window.addEventListener("focus", loadDepartmentExams);
+window.addEventListener("pageshow", loadDepartmentExams);
 
 // Initial load
 loadDepartmentExams();

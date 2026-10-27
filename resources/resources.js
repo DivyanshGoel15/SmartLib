@@ -440,22 +440,18 @@ function displayUser() {
 
 
     userInfo.textContent =
-        currentUser.name +
-        " | " +
-        (
-            currentUser.department ||
-            currentUser.role ||
-            "User"
-        );
+        currentUser.name || "User";
 
+    const homeUrl = currentUser.role === "faculty"
+        ? "../facultyportal/faculty.html"
+        : (currentUser.role === "library_admin" || currentUser.role === "admin"
+            ? "../adminportal/admin.html"
+            : "../home/studentportal/home.html");
 
-    /*
-       IMPORTANT:
-
-       Resources are now institution-wide.
-
-       They are NOT restricted by department.
-    */
+    const brandLink = document.getElementById("brandLink");
+    const navHome = document.getElementById("navHome");
+    if (brandLink) brandLink.href = homeUrl;
+    if (navHome) navHome.href = homeUrl;
 
     departmentText.textContent =
         "Browse resources available across the library.";

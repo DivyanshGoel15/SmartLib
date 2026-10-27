@@ -10,18 +10,19 @@
 
 <body>
 
-    <nav class="navbar">
-        <div class="logo">SmartLib</div>
-
-        <div class="nav-right">
-            <span class="user-info" id="userInfo">Loading...</span>
-            <a href="../reservations/reservations.html">My Reservations</a>
-
-            <button class="logout-btn" id="logoutBtn">
-                Logout
-            </button>
+    <header class="topbar">
+        <a class="brand" id="brandLink" href="../home/studentportal/home.html">SMARTLIB</a>
+        <nav>
+            <a id="navHome" href="../home/studentportal/home.html">Home</a>
+            <a href="../seats.html">Study Seats</a>
+            <a href="../reservations/reservations.html">Reservations</a>
+            <a href="resources.html" class="active">Resources</a>
+        </nav>
+        <div class="user-area">
+            <span id="userInfo">User</span>
+            <button id="logoutBtn" class="logout">Logout</button>
         </div>
-    </nav>
+    </header>
 
     <main class="container">
 

@@ -12,17 +12,18 @@
 
 <body>
 
-   <header class="navbar">
-      <a href="landingpage/landingpage.html" class="logo">
-          <span class="logo-text">SMARTLIB</span>
-      </a>
-
-      <nav class="nav-links">
-        <a href="home/studentportal/home.html">Home</a>
+   <header class="topbar">
+      <a href="home/studentportal/home.html" id="brandLink" class="brand">SMARTLIB</a>
+      <nav>
+        <a href="home/studentportal/home.html" id="navHome">Home</a>
+        <a href="seats.html" class="active">Study Seats</a>
         <a href="reservations/reservations.html">Reservations</a>
         <a href="resources/resources.html">Resources</a>
       </nav>
-
+      <div class="user-area">
+        <span id="userName">User</span>
+        <button id="logoutBtn" class="logout">Logout</button>
+      </div>
    </header>
 
 

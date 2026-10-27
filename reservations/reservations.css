@@ -56,149 +56,109 @@ select {
 
 /* ================= NAVBAR ================= */
 
+.topbar,
 .navbar {
     position: fixed;
     top: 0;
     left: 0;
-
     width: 100%;
     height: 78px;
-
     padding: 0 6vw;
-
     display: flex;
     align-items: center;
-
+    gap: 35px;
     background: var(--charcoal);
     color: var(--cream);
-
-    border-bottom:
-        1px solid
-        rgba(243,239,231,.15);
-
+    border-bottom: 1px solid rgba(243,239,231,.15);
     z-index: 100;
 }
 
-
-/* ================= BRAND ================= */
-
-/*
-   Logo symbol intentionally removed.
-   Home page uses a simple SMARTLIB wordmark.
-*/
-
+.brand,
 .logo {
-    display: flex;
-    align-items: center;
+    color: var(--cream);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 3.5px;
+    white-space: nowrap;
 }
 
 .logo-symbol {
     display: none;
 }
 
-.logo-text {
-    color: var(--cream);
-
-    font-family: var(--sans);
-    font-size: 14px;
-    font-weight: 600;
-
-    letter-spacing: 3.5px;
-}
-
-
-/* ================= NAV LINKS ================= */
-
+.topbar nav,
 .nav-links {
     display: flex;
     align-items: center;
-
-    gap: 28px;
-
+    gap: 26px;
     margin-left: auto;
-    margin-right: 32px;
 }
 
+.topbar nav a,
 .nav-links a {
-    position: relative;
-
-    color:
-        rgba(243,239,231,.62);
-
+    color: rgba(243,239,231,.62);
     font-size: 10px;
-    font-weight: 400;
-
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
     transition: color .2s;
 }
 
-.nav-links a::after {
-    content: "";
-
-    position: absolute;
-
-    left: 0;
-    bottom: -8px;
-
-    width: 0;
-    height: 1px;
-
-    background: var(--gold);
-
-    transition: width .2s;
-}
-
+.topbar nav a:hover,
+.topbar nav a.active,
 .nav-links a:hover,
 .nav-links a.active {
-    color: var(--cream);
+    color: var(--gold);
+    font-weight: 600;
 }
 
-.nav-links a:hover::after,
-.nav-links a.active::after {
-    width: 100%;
-}
-
-
-/* ================= NAV BUTTONS ================= */
-
+.user-area,
 .nav-buttons {
     display: flex;
     align-items: center;
-    gap: 12px;
-}
-
-.user-name {
-    padding: 9px 13px;
-
-    border:
-        1px solid
-        rgba(243,239,231,.2);
-
-    color:
-        rgba(243,239,231,.7);
-
+    gap: 16px;
     font-size: 10px;
 }
 
+.user-area span,
+.user-name {
+    color: var(--cream);
+    font-size: 10px;
+}
+
+.logout,
 .logout-btn {
     padding: 9px 14px;
-
-    border:
-        1px solid
-        rgba(243,239,231,.3);
-
+    border: 1px solid rgba(243,239,231,.3);
     background: transparent;
     color: var(--cream);
-
     cursor: pointer;
-
     font: 500 10px var(--sans);
-
     transition: .2s;
 }
 
+.logout:hover,
 .logout-btn:hover {
     border-color: var(--gold);
     color: var(--gold);
+}
+
+@media (max-width: 850px) {
+    .topbar nav,
+    .nav-links {
+        display: none;
+    }
+}
+
+@media (max-width: 520px) {
+    .topbar,
+    .navbar {
+        padding: 0 5vw;
+    }
+    .user-area span,
+    .user-name {
+        display: none;
+    }
 }
 
 
