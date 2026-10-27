@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLib - Resources</title>
+
+    <link rel="stylesheet" href="resources.css">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">SmartLib</div>
+
+        <div class="nav-right">
+            <span class="user-info" id="userInfo">Loading...</span>
+            <a href="../reservations/reservations.html">My Reservations</a>
+
+            <button class="logout-btn" id="logoutBtn">
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="container">
+
+        <div class="page-header">
+            <h1>Library Resources</h1>
+            <p id="departmentText">
+                Loading department...
+            </p>
+        </div>
+
+        <section class="controls">
+
+            <div class="search-box">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search resources..."
+                >
+            </div>
+
+            <div class="filter-buttons">
+
+                <button
+                    class="filter-btn active"
+                    data-type="All"
+                >
+                    All
+                </button>
+
+                <button
+                    class="filter-btn"
+                    data-type="Book"
+                >
+                    Books
+                </button>
+
+                <button
+                    class="filter-btn"
+                    data-type="Equipment"
+                >
+                    Equipment
+                </button>
+
+            </div>
+
+        </section>
+
+        <div class="resource-count" id="resourceCount">
+            Loading resources...
+        </div>
+
+        <section
+            class="resources-grid"
+            id="resourcesGrid"
+        >
+        </section>
+
+    </main>
+
+    <div
+        class="message"
+        id="message"
+    >
+    </div>
+
+
+   <script src="../js/config.js"></script>
+   <script src="../js/priorityQueue.js"></script>
+   <script src="resources.js"></script>
+
+</body>
+</html>

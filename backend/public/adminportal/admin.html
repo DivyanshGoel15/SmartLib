@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartLib | Library Administration</title>
+
+    <link rel="stylesheet" href="admin.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+</head>
+
+<body>
+
+<!-- =========================================================
+     TOPBAR
+========================================================= -->
+
+<header class="topbar">
+
+    <a href="admin.html" class="brand">
+        SMARTLIB
+    </a>
+
+    <div class="portal-title">
+        LIBRARY ADMINISTRATION
+    </div>
+
+    <div class="user-area">
+
+        <span id="adminName">
+            Library Staff
+        </span>
+
+        <button
+            id="logoutBtn"
+            class="logout"
+            type="button"
+        >
+            Logout
+        </button>
+
+    </div>
+
+</header>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main class="admin-shell">
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<section class="admin-header">
+
+    <div>
+
+        <p class="eyebrow">
+            LIBRARY ADMINISTRATION
+        </p>
+
+        <h1>
+            Library overview.
+        </h1>
+
+        <p>
+            Manage library resources, monitor reservations,
+            and track student, faculty and examination activity.
+        </p>
+
+    </div>
+
+    <button
+        id="addResourceBtnTop"
+        class="primary-button"
+        type="button"
+    >
+        + Add Resource
+    </button>
+
+</section>
+
+
+<!-- =========================================================
+     STATS
+========================================================= -->
+
+<section class="stats-grid">
+
+    <article class="stat">
+
+        <span>
+            TOTAL RESOURCES
+        </span>
+
+        <strong id="resourceCount">
+            0
+        </strong>
+
+    </article>
+
+
+    <article class="stat">
+
+        <span>
+            AVAILABLE COPIES
+        </span>
+
+        <strong id="availableCount">
+            0
+        </strong>
+
+    </article>
+
+
+    <article class="stat">
+
+        <span>
+            ACTIVE RESERVATIONS
+        </span>
+
+        <strong id="reservationCount">
+            0
+        </strong>
+
+    </article>
+
+
+    <article class="stat">
+
+        <span>
+            REGISTERED STUDENTS
+        </span>
+
+        <strong id="studentCount">
+            0
+        </strong>
+
+    </article>
+</section>
+
+<!-- SEAT MANAGEMENT -->
+<section class="panel" id="adminSeatPanel">
+    <div class="panel-heading">
+        <div>
+            <p class="eyebrow">SEAT MONITORING</p>
+            <h2>Seat Management</h2>
+            <p class="inline-message">
+                Monitor seat occupancy and waiting queues across departments.
+            </p>
+        </div>
+
+        <button
+            id="refreshSeatsBtn"
+            class="primary-button small-button"
+            type="button"
+        >
+            Refresh Seats
+        </button>
+    </div>
+
+    <div class="seat-summary">
+        <div class="seat-summary-card">
+            <span>Total Seats</span>
+            <strong id="adminTotalSeats">0</strong>
+        </div>
+        <div class="seat-summary-card">
+            <span>Available</span>
+            <strong id="adminAvailableSeats">0</strong>
+        </div>
+        <div class="seat-summary-card">
+            <span>Occupied</span>
+            <strong id="adminOccupiedSeats">0</strong>
+        </div>
+        <div class="seat-summary-card">
+            <span>Students Waiting</span>
+            <strong id="adminWaitingStudents">0</strong>
+        </div>
+    </div>
+
+    <div class="directory-tools">
+        <input
+            id="adminSeatSearch"
+            type="search"
+            placeholder="Search seat or occupant..."
+        >
+
+        <select id="adminSeatDepartmentFilter">
+            <option value="">All departments</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="Mechanical">Mechanical</option>
+            <option value="Civil">Civil</option>
+            <option value="Management">Management</option>
+        </select>
+
+        <select id="adminSeatStatusFilter">
+            <option value="">All statuses</option>
+            <option value="available">Available</option>
+            <option value="occupied">Occupied</option>
+            <option value="reserved">Reserved</option>
+        </select>
+    </div>
+
+    <p id="adminSeatMessage" class="inline-message" role="status"></p>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Seat</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Current Occupant</th>
+                    <th>Waiting Queue</th>
+                </tr>
+            </thead>
+            <tbody id="adminSeatTableBody">
+                <tr>
+                    <td colspan="5" class="empty-table">
+                        Loading seats...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+
+
+<!-- =========================================================
+     RESOURCES
+========================================================= -->
+
+<section class="panel">
+
+    <div class="panel-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                LIBRARY INVENTORY
+            </p>
+
+            <h2>
+                Resources
+            </h2>
+
+        </div>
+
+        <button
+            id="addResourceBtn"
+            class="primary-button small-button"
+            type="button"
+        >
+            + Add Resource
+        </button>
+
+    </div>
+
+
+    <div class="directory-tools">
+
+        <input
+            id="resourceSearch"
+            type="search"
+            placeholder="Search resources..."
+        >
+
+        <select id="resourceTypeFilter">
+
+            <option value="">
+                All types
+            </option>
+
+            <option value="Book">
+                Books
+            </option>
+
+            <option value="Equipment">
+                Equipment
+            </option>
+
+            <option value="Journal">
+                Journals
+            </option>
+
+            <option value="Digital">
+                Digital
+            </option>
+
+        </select>
+
+
+        <select id="resourceDepartmentFilter">
+
+            <option value="">
+                All departments
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Resource
+                    </th>
+
+                    <th>
+                        Type
+                    </th>
+
+                    <th>
+                        Department
+                    </th>
+
+                    <th>
+                        Availability
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                    <th>
+                        Actions
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="resourceTableBody">
+            </tbody>
+
+        </table>
+
+    </div>
+</section>
+
+
+<!-- =========================================================
+     RESERVATIONS
+========================================================= -->
+
+<section class="panel">
+
+    <div class="panel-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                RESERVATION MANAGEMENT
+            </p>
+
+            <h2>
+                All Reservations
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div class="directory-tools">
+
+        <input
+            id="reservationSearch"
+            type="search"
+            placeholder="Search student, faculty or resource..."
+        >
+
+        <select id="reservationStatusFilter">
+
+            <option value="">
+                All statuses
+            </option>
+
+            <option value="active">
+                Active
+            </option>
+
+            <option value="returned">
+                Returned
+            </option>
+
+            <option value="cancelled">
+                Cancelled
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        User
+                    </th>
+
+                    <th>
+                        Resource
+                    </th>
+
+                    <th>
+                        Department
+                    </th>
+
+                    <th>
+                        Reserved
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                    <th>
+                        Actions
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="reservationTableBody">
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     STUDENTS
+
+     The student panel is intentionally present in the HTML.
+     admin.js connects to these IDs and supplies the data.
+========================================================= -->
+
+<section class="panel admin-extension-panel" id="adminStudentsPanel">
+
+    <div class="panel-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                STUDENT MANAGEMENT
+            </p>
+
+            <h2>
+                Students
+            </h2>
+
+        </div>
+
+        <button
+            id="addStudentBtn"
+            class="primary-button small-button"
+            type="button"
+        >
+            + Add Student
+        </button>
+
+    </div>
+
+
+    <div class="directory-tools">
+
+        <input
+            id="studentSearch"
+            type="search"
+            placeholder="Search student, ID, email or department..."
+        >
+
+        <select id="studentDepartmentFilter">
+
+            <option value="">
+                All departments
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Student
+                    </th>
+
+                    <th>
+                        Student ID
+                    </th>
+
+                    <th>
+                        Email
+                    </th>
+
+                    <th>
+                        Department
+                    </th>
+
+                    <th>
+                        Actions
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="studentTableBody">
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     EXAMS
+========================================================= -->
+
+<section class="panel admin-extension-panel" id="adminExamsPanel">
+
+    <div class="panel-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                EXAM MANAGEMENT
+            </p>
+
+            <h2>
+                Exams
+            </h2>
+
+            <p class="inline-message">
+                View examinations
+            </p>
+
+        </div>
+
+        <!-- <button
+            id="addExamBtn"
+            class="primary-button small-button"
+            type="button"
+        >
+            + Add Exam
+        </button> -->
+
+    </div>
+
+
+    <div class="directory-tools">
+
+        <input
+            id="examSearch"
+            type="search"
+            placeholder="Search exam, subject or faculty..."
+        >
+
+        <select id="examDepartmentFilter">
+
+            <option value="">
+                All departments
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+        <table class="exam-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Exam
+                    </th>
+
+                    <th>
+                        Faculty
+                    </th>
+
+                    <th>
+                        Department
+                    </th>
+
+                    <th>
+                        Date
+                    </th>
+
+                    <!-- <th>
+                        Time
+                    </th>
+
+                    <!-- <th>
+                        Venue
+                    </th> -->
+
+                    <th>
+                        Actions
+                    </th> -->
+
+                </tr>
+
+            </thead>
+
+            <tbody id="examTableBody">
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     ACTIVITY
+========================================================= -->
+
+<section class="panel">
+
+    <div class="panel-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                LIBRARY ACTIVITY
+            </p>
+
+            <h2>
+                Recent activity
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="activityFeed"
+        class="activity-feed"
+    >
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     DATA NOTE
+========================================================= -->
+
+<section class="data-note">
+
+    <span>
+        SMARTLIB / DATA STORAGE
+    </span>
+
+    <p>
+        SmartLib stores resources, reservations and user
+        accounts in browser localStorage for this evaluation.
+        Changes made by library staff are reflected across
+        the student, faculty and reservation portals.
+    </p>
+
+</section>
+
+
+</main>
+
+
+<!-- =========================================================
+     ADD RESOURCE MODAL
+========================================================= -->
+
+<div
+    id="resourceModal"
+    class="modal hidden"
+>
+
+    <div class="modal-card">
+
+        <button
+            id="closeResourceModal"
+            class="close"
+            type="button"
+        >
+            ×
+        </button>
+
+        <p class="eyebrow">
+            LIBRARY INVENTORY
+        </p>
+
+        <h2>
+            Add resource.
+        </h2>
+
+
+        <form id="resourceForm">
+
+            <label>
+
+                Resource Name
+
+                <input
+                    id="resourceName"
+                    type="text"
+                    placeholder="e.g. Python Programming"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+
+                Resource Type
+
+                <select
+                    id="resourceType"
+                    required
+                >
+
+                    <option value="">
+                        Select type
+                    </option>
+
+                    <option value="Book">
+                        Book
+                    </option>
+
+                    <option value="Equipment">
+                        Equipment
+                    </option>
+
+                    <option value="Journal">
+                        Journal
+                    </option>
+
+                    <option value="Digital">
+                        Digital
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <label>
+
+                Department
+
+                <select
+                    id="resourceDepartment"
+                    required
+                >
+
+                    <option value="">
+                        Select department
+                    </option>
+
+                    <option value="CSE">
+                        CSE
+                    </option>
+
+                    <option value="ECE">
+                        ECE
+                    </option>
+
+                    <option value="Mechanical">
+                        Mechanical
+                    </option>
+
+                    <option value="Civil">
+                        Civil
+                    </option>
+
+                    <option value="Management">
+                        Management
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <label>
+
+                Quantity
+
+                <input
+                    id="resourceQuantity"
+                    type="number"
+                    min="1"
+                    placeholder="Enter quantity"
+                    required
+                >
+
+            </label>
+
+
+            <p
+                id="resourceModalError"
+                class="modal-error"
+            ></p>
+
+
+            <button
+                class="primary-button"
+                type="submit"
+            >
+                Add Resource
+                <span>→</span>
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     ADD STUDENT MODAL
+========================================================= -->
+
+<div
+    id="studentModal"
+    class="modal hidden"
+>
+
+    <div class="modal-card">
+
+        <button
+            id="closeStudentModal"
+            class="close"
+            type="button"
+        >
+            ×
+        </button>
+
+        <p class="eyebrow">
+            STUDENT MANAGEMENT
+        </p>
+
+        <h2>
+            Add student.
+        </h2>
+
+
+        <form id="studentForm">
+
+            <label>
+
+                Student Name
+
+                <input
+                    id="studentName"
+                    type="text"
+                    placeholder="e.g. Rahul Sharma"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+
+                Email
+
+                <input
+                    id="studentEmail"
+                    type="email"
+                    placeholder="student@example.com"
+                    required
+                >
+
+            </label>
+
+
+            <div class="two-column">
+
+                <label>
+
+                    Department
+
+                    <select
+                        id="studentDepartment"
+                        required
+                    >
+
+                        <option value="">
+                            Select department
+                        </option>
+
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="Mechanical">Mechanical</option>
+                        <option value="Civil">Civil</option>
+                        <option value="Management">Management</option>
+
+                    </select>
+
+                </label>
+
+                <label>
+
+                    Year
+
+                    <select id="studentYear" required>
+                        <option value="">Select year</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
+
+                </label>
+
+            </div>
+
+            <label>
+
+                Temporary Password
+
+                <input
+                    id="studentPassword"
+                    type="password"
+                    placeholder="Set temporary password"
+                    required
+                >
+
+            </label>
+
+
+            <p
+                id="studentModalError"
+                class="modal-error"
+            ></p>
+
+
+            <button
+                class="primary-button"
+                type="submit"
+            >
+                Add Student
+                <span>→</span>
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     ADD EXAM MODAL
+========================================================= -->
+
+<div
+    id="examModal"
+    class="modal hidden"
+>
+
+    <div class="modal-card">
+
+        <button
+            id="closeExamModal"
+            class="close"
+            type="button"
+        >
+            ×
+        </button>
+
+        <p class="eyebrow">
+            EXAM MANAGEMENT
+        </p>
+
+        <h2>
+            Add exam.
+        </h2>
+
+
+        <form id="examForm">
+
+            <label>
+                Department
+                <select id="examDepartment" required>
+                    <option value="">Select department</option>
+                    <option>CSE</option>
+                    <option>ECE</option>
+                    <option>Mechanical</option>
+                    <option>Civil</option>
+                    <option>Management</option>
+                </select>
+            </label>
+
+            <label>
+                Year
+                <select id="examYear" required>
+                    <option value="">Select year</option>
+                    <option>1st Year</option>
+                    <option>2nd Year</option>
+                    <option>3rd Year</option>
+                    <option>4th Year</option>
+                </select>
+            </label>
+
+            <label>
+                Exam Name
+                <input id="examName" type="text" placeholder="e.g. Internal Assessment" required>
+            </label>
+
+            <div class="two-column">
+                <label>
+                    Start Date
+                    <input id="examStart" type="date" required>
+                </label>
+                <label>
+                    End Date
+                    <input id="examEnd" type="date" required>
+                </label>
+            </div>
+
+            <p id="examModalError" class="modal-error"></p>
+
+            <button class="primary-button" type="submit">
+                Save Examination <span>→</span>
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MESSAGE
+========================================================= -->
+
+<div
+    id="message"
+    class="message"
+    role="alert"
+    aria-live="polite"
+></div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script src="../js/config.js"></script>
+<script src="admin.js"></script>
+
+</body>
+</html>

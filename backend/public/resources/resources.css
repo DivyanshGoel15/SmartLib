@@ -1,0 +1,696 @@
+/* =========================================================
+   SMARTLIB — RESOURCES PAGE
+   HOME / ADMIN MATCHING DESIGN
+   ========================================================= */
+
+:root {
+    --cream: #f3efe7;
+    --light: #faf8f3;
+    --white: #fffdf9;
+
+    --charcoal: #171614;
+    --brown: #5a4636;
+    --brown-light: #8c7763;
+    --gold: #b59a68;
+
+    --text: #211f1c;
+    --muted: #746b61;
+
+    --border: rgba(23,22,20,.14);
+
+    --serif: "Playfair Display", Georgia, serif;
+    --sans: "DM Sans", Arial, sans-serif;
+}
+
+
+/* ================= RESET ================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--cream);
+    color: var(--text);
+    font-family: var(--sans);
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button,
+input,
+select {
+    font-family: var(--sans);
+}
+
+
+/* ================= NAVBAR ================= */
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    width: 100%;
+    min-height: 78px;
+
+    padding: 0 6vw;
+
+    display: flex;
+    align-items: center;
+
+    background: var(--charcoal);
+    color: var(--cream);
+
+    border-bottom:
+        1px solid
+        rgba(243,239,231,.15);
+}
+
+
+/* ================= LOGO ================= */
+
+/*
+   Simple wordmark to match HOME.
+   No icon / symbol.
+*/
+
+.logo {
+    color: var(--cream);
+
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+
+    letter-spacing: 3.5px;
+}
+
+
+/* ================= NAV ================= */
+
+.nav-right {
+    display: flex;
+    align-items: center;
+
+    gap: 26px;
+
+    margin-left: auto;
+}
+
+.nav-right a {
+    position: relative;
+
+    color:
+        rgba(243,239,231,.62);
+
+    font-size: 10px;
+
+    transition: color .2s;
+}
+
+.nav-right a::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    bottom: -8px;
+
+    width: 0;
+    height: 1px;
+
+    background: var(--gold);
+
+    transition: width .2s;
+}
+
+.nav-right a:hover,
+.nav-right a.active {
+    color: var(--cream);
+}
+
+.nav-right a:hover::after,
+.nav-right a.active::after {
+    width: 100%;
+}
+
+.user-info {
+    color:
+        rgba(243,239,231,.65);
+
+    font-size: 10px;
+}
+
+
+/* ================= LOGOUT ================= */
+
+.logout-btn {
+    padding: 9px 14px;
+
+    border:
+        1px solid
+        rgba(243,239,231,.3);
+
+    background: transparent;
+    color: var(--cream);
+
+    cursor: pointer;
+
+    font: 500 10px var(--sans);
+
+    transition: .2s;
+}
+
+.logout-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+
+/* ================= PAGE ================= */
+
+.container {
+    width: min(1180px, 86vw);
+
+    margin: 0 auto;
+
+    padding: 75px 0 90px;
+}
+
+
+/* ================= HEADER ================= */
+
+.page-header {
+    margin-bottom: 45px;
+}
+
+.eyebrow {
+    margin-bottom: 16px;
+
+    color: var(--brown);
+
+    font-size: 11px;
+    font-weight: 600;
+
+    letter-spacing: 3px;
+}
+
+.page-header h1 {
+    margin-bottom: 17px;
+
+    font:
+        400 clamp(42px,5vw,68px)/1.05
+        var(--serif);
+
+    letter-spacing: -1px;
+}
+
+.page-header p {
+    max-width: 650px;
+
+    color: var(--muted);
+
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+
+/* ================= CONTROLS ================= */
+
+.controls {
+    display: flex;
+    align-items: center;
+
+    gap: 18px;
+
+    margin-bottom: 20px;
+    padding: 20px;
+
+    background: var(--light);
+
+    border:
+        1px solid
+        var(--border);
+}
+
+.search-box {
+    flex: 1;
+}
+
+.search-box input {
+    width: 100%;
+    height: 44px;
+
+    padding: 0 14px;
+
+    border:
+        1px solid
+        var(--border);
+
+    outline: none;
+
+    background: var(--white);
+    color: var(--text);
+
+    font-size: 12px;
+
+    transition: .2s;
+}
+
+.search-box input::placeholder {
+    color: #9b938a;
+}
+
+.search-box input:focus {
+    border-color: var(--brown-light);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(90,70,54,.06);
+}
+
+
+/* ================= FILTERS ================= */
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 7px;
+}
+
+.filter-btn {
+    padding: 10px 14px;
+
+    border:
+        1px solid
+        var(--border);
+
+    background: var(--white);
+    color: var(--muted);
+
+    cursor: pointer;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    transition: .2s;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    border-color: var(--charcoal);
+
+    background: var(--charcoal);
+    color: var(--cream);
+}
+
+
+/* ================= COUNT ================= */
+
+.resource-count {
+    margin: 18px 0 25px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+    font-weight: 600;
+
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+
+/* ================= RESOURCE GRID ================= */
+
+.resources-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3,minmax(0,1fr));
+
+    gap: 16px;
+}
+
+
+/* ================= RESOURCE CARD ================= */
+
+.resource-card {
+    min-height: 310px;
+
+    padding: 27px;
+
+    display: flex;
+    flex-direction: column;
+
+    background: var(--light);
+
+    border:
+        1px solid
+        var(--border);
+
+    transition:
+        transform .2s,
+        border-color .2s;
+}
+
+.resource-card:hover {
+    transform: translateY(-2px);
+
+    border-color:
+        rgba(90,70,54,.32);
+}
+
+
+/* ================= TYPE ================= */
+
+.resource-type {
+    align-self: flex-start;
+
+    margin-bottom: 18px;
+    padding: 6px 9px;
+
+    background:
+        rgba(181,154,104,.13);
+
+    border:
+        1px solid
+        rgba(181,154,104,.25);
+
+    color: var(--brown);
+
+    font-size: 8px;
+    font-weight: 600;
+
+    letter-spacing: 1.5px;
+}
+
+
+/* ================= RESOURCE NAME ================= */
+
+.resource-card h3 {
+    margin-bottom: 8px;
+
+    color: var(--text);
+
+    font:
+        400 25px/1.2
+        var(--serif);
+}
+
+.resource-card p {
+    color: var(--muted);
+
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+
+/* ================= AVAILABILITY ================= */
+
+.availability {
+    margin-top: auto;
+    padding-top: 25px;
+}
+
+.availability-text {
+    display: flex;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 8px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 5px;
+
+    overflow: hidden;
+
+    background: #e4dfd6;
+}
+
+.progress {
+    height: 100%;
+
+    background: var(--brown);
+
+    transition: width .25s;
+}
+
+.progress.low {
+    background: var(--gold);
+}
+
+.progress.empty {
+    width: 0 !important;
+
+    background: #9a514b;
+}
+
+
+/* ================= STATUS ================= */
+
+.status {
+    margin-top: 14px;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    letter-spacing: .5px;
+}
+
+.status.available {
+    color: #526c58;
+}
+
+.status.unavailable {
+    color: #9a514b;
+}
+
+
+/* ================= RESERVE BUTTON ================= */
+
+.reserve-btn {
+    width: 100%;
+
+    margin-top: 17px;
+    padding: 12px 15px;
+
+    border: 0;
+
+    cursor: pointer;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    transition: .2s;
+}
+
+.reserve-btn.available {
+    background: var(--charcoal);
+    color: var(--cream);
+}
+
+.reserve-btn.available:hover {
+    background: var(--brown);
+
+    transform: translateY(-1px);
+}
+
+.reserve-btn.disabled {
+    background: #e9e5dc;
+
+    color: #99928a;
+
+    cursor: not-allowed;
+}
+
+
+/* ================= EMPTY ================= */
+
+.empty-state {
+    grid-column: 1 / -1;
+
+    padding: 55px 25px;
+
+    background: var(--light);
+
+    border:
+        1px dashed
+        var(--border);
+
+    text-align: center;
+}
+
+.empty-state h3 {
+    margin-bottom: 8px;
+
+    font:
+        400 30px
+        var(--serif);
+}
+
+.empty-state p {
+    color: var(--muted);
+
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+
+/* ================= MESSAGE ================= */
+
+.message {
+    position: fixed;
+
+    right: 25px;
+    bottom: 25px;
+
+    z-index: 1000;
+
+    display: none;
+
+    max-width: 360px;
+
+    padding: 13px 17px;
+
+    background: var(--charcoal);
+    color: var(--cream);
+
+    border-left:
+        3px solid
+        var(--gold);
+
+    font-size: 11px;
+
+    box-shadow:
+        0 10px 30px
+        rgba(23,22,20,.15);
+}
+
+.message.success {
+    border-left-color: #657f5f;
+}
+
+.message.error {
+    border-left-color: #9b4d42;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 950px) {
+
+    .resources-grid {
+        grid-template-columns:
+            repeat(2,minmax(0,1fr));
+    }
+
+    .controls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .navbar {
+        padding: 0 5vw;
+    }
+}
+
+
+@media (max-width: 650px) {
+
+    .navbar {
+        min-height: 72px;
+
+        padding: 15px 5vw;
+
+        flex-wrap: wrap;
+    }
+
+    .nav-right {
+        width: 100%;
+
+        gap: 15px;
+
+        margin-left: 0;
+
+        justify-content: flex-start;
+    }
+
+    .user-info {
+        margin-left: auto;
+    }
+
+    .container {
+        width: 90vw;
+
+        padding-top: 55px;
+    }
+
+    .page-header h1 {
+        font-size: 44px;
+    }
+
+    .resources-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-buttons {
+        width: 100%;
+    }
+
+    .filter-btn {
+        flex: 1;
+    }
+
+    .resource-card {
+        min-height: 290px;
+    }
+
+    .message {
+        left: 20px;
+        right: 20px;
+
+        max-width: none;
+    }
+}
+
+
+@media (max-width: 430px) {
+
+    .logo {
+        font-size: 13px;
+    }
+
+    .nav-right a {
+        font-size: 9px;
+    }
+
+    .logout-btn {
+        padding: 8px 11px;
+    }
+
+    .page-header h1 {
+        font-size: 40px;
+    }
+
+    .controls {
+        padding: 15px;
+    }
+}

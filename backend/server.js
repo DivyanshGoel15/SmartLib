@@ -32,8 +32,28 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const path = require('path');
+const fs = require('fs');
+
+// Path to frontend assets: checks backend/public first, then parent directory ..
+const publicDir = path.join(__dirname, 'public');
+const parentDir = path.join(__dirname, '..');
+const frontendDir = fs.existsSync(path.join(publicDir, 'landingpage')) ? publicDir : parentDir;
+
+if (fs.existsSync(frontendDir)) {
+  app.use(express.static(frontendDir, { index: false }));
+}
+
 // Root welcome endpoint
 app.get('/', (req, res) => {
+  const acceptHeader = req.headers.accept || '';
+  const isBrowserHtmlRequest = acceptHeader.includes('text/html') && !acceptHeader.startsWith('*/*');
+  const landingPagePath = path.join(frontendDir, 'landingpage', 'landingpage.html');
+
+  if (isBrowserHtmlRequest && fs.existsSync(landingPagePath)) {
+    return res.sendFile(landingPagePath);
+  }
+
   res.status(200).json({
     message: 'SmartLib Backend API is running',
     version: '1.0.0',
