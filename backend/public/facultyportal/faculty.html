@@ -15,10 +15,16 @@
   <body>
     <header class="topbar">
       <a class="brand" href="faculty.html">SMARTLIB</a>
-      <div class="portal-title">FACULTY WORKSPACE</div>
+      <nav>
+        <a href="faculty.html" class="active">Overview</a>
+        <a href="#examSection">Exams</a>
+        <a href="../seats.html">Study Seats</a>
+        <a href="../reservations/reservations.html">Reservations</a>
+        <a href="../resources/resources.html">Resources</a>
+      </nav>
       <div class="user-area">
-        <span id="facultyName">Faculty</span
-        ><button id="logoutBtn" class="logout">Logout</button>
+        <span id="facultyName">Faculty</span>
+        <button id="logoutBtn" class="logout">Logout</button>
       </div>
     </header>
 
@@ -54,7 +60,7 @@
       </section>
 
       <section class="content-grid">
-        <article class="panel">
+        <article class="panel" id="examSection">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">ACADEMIC SCHEDULE</p>
@@ -154,11 +160,6 @@
               placeholder="e.g. Internal Assessment"
               required
           /></label>
-          <label>
-            Exam Time
-
-            <input type="time" id="facultyExamTime" required />
-          </label>
           <div class="two-column">
             <label
               >Start Date<input

@@ -113,6 +113,32 @@ const currentUser = {
     role: loggedInUser.role
 
 };
+
+// Update topbar user details and role-based links
+if (currentUser) {
+    const userNameEl = document.getElementById("userName");
+    if (userNameEl) {
+        userNameEl.textContent = currentUser.name || "User";
+    }
+    const homeUrl = currentUser.role === "faculty"
+        ? "facultyportal/faculty.html"
+        : (currentUser.role === "library_admin" || currentUser.role === "admin"
+            ? "adminportal/admin.html"
+            : "home/studentportal/home.html");
+    const brandLink = document.getElementById("brandLink");
+    const navHome = document.getElementById("navHome");
+    if (brandLink) brandLink.href = homeUrl;
+    if (navHome) navHome.href = homeUrl;
+}
+
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+        sessionStorage.clear();
+        window.location.href = "landingpage/landingpage.html";
+    });
+}
+
 /* DISPLAY SEATS */
 
 function displaySeats() {

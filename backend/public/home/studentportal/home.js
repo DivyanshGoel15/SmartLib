@@ -203,19 +203,38 @@ function countReservations() {
 reservationCount.textContent =
     countReservations();
 
-// Fetch accurate reservation count from backend API
-if (currentUser && currentUser.id) {
-    fetch(`${API_BASE_URL}/reservations?userId=${encodeURIComponent(currentUser.id)}&status=active`)
-        .then(res => res.json())
-        .then(data => {
-            if (data && typeof data.count === 'number') {
-                reservationCount.textContent = data.count;
-            } else if (data && Array.isArray(data.data)) {
-                reservationCount.textContent = data.data.length;
+// Fetch accurate reservation count from backend API (resources + seats)
+function updateLiveReservationCount() {
+    if (currentUser && (currentUser.id || currentUser._id)) {
+        const uid = currentUser.id || currentUser._id;
+        Promise.all([
+            fetch(`${API_BASE_URL}/reservations?userId=${encodeURIComponent(uid)}&status=active`).then(res => res.json()).catch(() => null),
+            fetch(`${API_BASE_URL}/seats`).then(res => res.json()).catch(() => null)
+        ]).then(([resData, seatsData]) => {
+            let count = 0;
+            if (resData && typeof resData.count === 'number') {
+                count += resData.count;
+            } else if (resData && Array.isArray(resData.data)) {
+                count += resData.data.length;
             }
-        })
-        .catch(() => {});
+            if (Array.isArray(seatsData)) {
+                const uStr = String(uid);
+                const sId = String(currentUser.studentId || "");
+                const uName = (currentUser.name || "").trim().toLowerCase();
+                const reservedSeats = seatsData.filter(seat => {
+                    if (seat.status !== "occupied" && seat.status !== "reserved") return false;
+                    const occ = seat.currentOccupant || {};
+                    const occId = String(occ.studentId || seat.occupantId || "");
+                    const occName = (occ.studentName || seat.occupantName || "").trim().toLowerCase();
+                    return (uStr && occId === uStr) || (sId && occId === sId) || (uName && occName === uName);
+                });
+                count += reservedSeats.length;
+            }
+            if (reservationCount) reservationCount.textContent = count;
+        }).catch(() => {});
+    }
 }
+updateLiveReservationCount();
 
 
 /* =========================================================
@@ -1011,24 +1030,36 @@ if (logoutButton) {
 
 
 /* =========================================================
-   INITIALIZE
+   INITIALIZE & DATA SYNC
    ========================================================= */
 
-renderExamStatus();
-
-renderStudentExtras();
-
-// Sync exams with backend if available
-if (currentUser && currentUser.department) {
-    fetch(`${API_BASE_URL}/exams/department/${encodeURIComponent(currentUser.department)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data && Array.isArray(data.data)) {
-                exams = data.data;
-                localStorage.setItem("smartlibExams", JSON.stringify(data.data));
-                renderExamStatus();
-                renderStudentExtras();
-            }
-        })
-        .catch(() => {});
+function syncStudentData() {
+    if (currentUser && currentUser.department) {
+        fetch(`${API_BASE_URL}/exams/department/${encodeURIComponent(currentUser.department)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && Array.isArray(data.data)) {
+                    exams = data.data;
+                    localStorage.setItem("smartlibExams", JSON.stringify(data.data));
+                    renderExamStatus();
+                    renderStudentExtras();
+                }
+            })
+            .catch(() => {});
+    }
+    if (typeof updateLiveReservationCount === "function") {
+        updateLiveReservationCount();
+    }
 }
+
+renderExamStatus();
+renderStudentExtras();
+syncStudentData();
+
+window.addEventListener("focus", syncStudentData);
+window.addEventListener("pageshow", syncStudentData);
+window.addEventListener("storage", (e) => {
+    if (e.key === "smartlibExams" || e.key === "smartlib_seats" || e.key === "libraryReservations") {
+        syncStudentData();
+    }
+});

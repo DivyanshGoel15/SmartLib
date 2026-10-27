@@ -46,6 +46,10 @@ const message =
 
 function getResources() {
 
+    if (apiResources && apiResources.length > 0) {
+        return apiResources;
+    }
+
     return JSON.parse(
         localStorage.getItem("libraryResources") || "[]"
     );
@@ -64,6 +68,10 @@ function saveResources(resources) {
 
 
 function getReservations() {
+
+    if (apiReservations && apiReservations.length > 0) {
+        return apiReservations;
+    }
 
     return JSON.parse(
         localStorage.getItem("libraryReservations") || "[]"
@@ -166,81 +174,56 @@ function generateId(prefix) {
 
 function renderStats() {
 
-    const resources =
-        getResources();
+    const resources = getResources();
+    const reservations = getReservations();
+    const users = getUsers();
 
-    const reservations =
-        getReservations();
+    const totalResourceTypes = resources.length;
 
-    const users =
-        getUsers();
+    const totalAvailableCopies = resources.reduce(
+        (total, resource) => total + Number(resource.availableQuantity || 0),
+        0
+    );
 
+    const activeResourceReservations = reservations.filter(
+        reservation => reservation.status === "active"
+    ).length;
 
-    /* =====================================================
-       1. TOTAL RESOURCE TYPES
-       ===================================================== */
+    let activeSeatReservations = 0;
+    const seats = (typeof window.adminSeatsGlobal !== "undefined" && Array.isArray(window.adminSeatsGlobal))
+        ? window.adminSeatsGlobal
+        : JSON.parse(localStorage.getItem("smartlib_seats") || "[]");
 
-    const totalResourceTypes =
-        resources.length;
+    if (Array.isArray(seats)) {
+        activeSeatReservations = seats.filter(s => s.status === "occupied" || s.status === "reserved").length;
+    }
 
+    const totalActiveReservations = activeResourceReservations + activeSeatReservations;
 
-    /* =====================================================
-       2. AVAILABLE COPIES
-       ===================================================== */
+    const registeredStudents = (typeof window.adminCachedStudentsGlobal !== "undefined" && Array.isArray(window.adminCachedStudentsGlobal) && window.adminCachedStudentsGlobal.length > 0)
+        ? window.adminCachedStudentsGlobal.length
+        : users.filter(user => user.role === "student").length;
 
-    const totalAvailableCopies =
-        resources.reduce(
-            (total, resource) => {
+    if (resourceCount) resourceCount.textContent = totalResourceTypes;
+    if (availableCount) availableCount.textContent = totalAvailableCopies;
+    if (reservationCount) reservationCount.textContent = totalActiveReservations;
+    if (studentCount) studentCount.textContent = registeredStudents;
 
-                return (
-                    total +
-                    Number(
-                        resource.availableQuantity || 0
-                    )
-                );
+    if (Array.isArray(seats) && seats.length > 0) {
+        const availableSeats = seats.filter(s => s.status === "available").length;
+        const occupiedSeats = seats.filter(s => s.status === "occupied").length;
+        const waitingStudents = seats.reduce((tot, s) => tot + ((s.waitingQueue && s.waitingQueue.length) || 0), 0);
 
-            },
-            0
-        );
+        const elTotal = document.getElementById("adminTotalSeats");
+        const elAvail = document.getElementById("adminAvailableSeats");
+        const elOcc = document.getElementById("adminOccupiedSeats");
+        const elWait = document.getElementById("adminWaitingStudents");
 
-
-    /* =====================================================
-       3. ACTIVE RESERVATIONS
-       ===================================================== */
-
-    const activeReservations =
-        reservations.filter(
-            reservation =>
-                reservation.status === "active"
-        ).length;
-
-
-    /* =====================================================
-       4. REGISTERED STUDENTS
-       ===================================================== */
-
-    const registeredStudents =
-        users.filter(
-            user =>
-                user.role === "student"
-        ).length;
-
-
-    /* =====================================================
-       UPDATE DASHBOARD
-       ===================================================== */
-
-    resourceCount.textContent =
-        totalResourceTypes;
-
-    availableCount.textContent =
-        totalAvailableCopies;
-
-    reservationCount.textContent =
-        activeReservations;
-
-    studentCount.textContent =
-        registeredStudents;
+        if (elTotal) elTotal.textContent = seats.length;
+        if (elAvail) elAvail.textContent = availableSeats;
+        if (elOcc) elOcc.textContent = occupiedSeats;
+        if (elWait) elWait.textContent = waitingStudents;
+    }
 
 }
 
@@ -522,69 +505,55 @@ function renderResources() {
 ============================================================
 */
 
-function addResource(event) {
+async function addResource(event) {
 
     event.preventDefault();
 
+    const name = document.getElementById("resourceName").value.trim();
+    const type = document.getElementById("resourceType").value;
+    const department = document.getElementById("resourceDepartment").value;
+    const quantity = Number(document.getElementById("resourceQuantity").value);
+    const error = document.getElementById("resourceModalError");
+    error.textContent = "";
 
-    const name =
-        document.getElementById(
-            "resourceName"
-        )
-        .value
-        .trim();
-
-
-    const type =
-        document.getElementById(
-            "resourceType"
-        )
-        .value;
-
-
-    const department =
-        document.getElementById(
-            "resourceDepartment"
-        )
-        .value;
-
-
-    const quantity =
-        Number(
-            document.getElementById(
-                "resourceQuantity"
-            ).value
-        );
-
-
-    const error =
-        document.getElementById(
-            "resourceModalError"
-        );
-
-
-    error.textContent =
-        "";
-
-
-    if (
-        !name ||
-        !type ||
-        !department ||
-        quantity < 1
-    ) {
-
-        error.textContent =
-            "Please enter valid resource details.";
-
+    if (!name || !type || !department || quantity < 1) {
+        error.textContent = "Please enter valid resource details.";
         return;
-
     }
 
+    try {
+        const token = sessionStorage.getItem("smartlibToken");
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    const resources =
-        getResources();
+        const response = await fetch(`${API_BASE_URL}/resources`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+                name,
+                type,
+                department,
+                totalQuantity: quantity,
+                availableQuantity: quantity
+            })
+        });
 
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !data || !data.success) {
+            error.textContent = (data && data.message) || "Failed to add resource.";
+            return;
+        }
+
+        closeResourceModal();
+        document.getElementById("resourceForm").reset();
+        await adminFetchResources();
+        showMessage("Resource added successfully.");
+        return;
+    } catch (err) {
+        console.warn("[Admin] API add resource failed, fallback:", err.message);
+    }
+
+    const resources = getResources();
 
     const duplicate =
         resources.some(
@@ -665,14 +634,32 @@ function addResource(event) {
 ============================================================
 */
 
-function deleteResource(resourceId) {
+async function deleteResource(resourceId) {
 
-    const resources =
-        getResources();
+    const resources = getResources();
+    const resTarget = resources.find(item => String(item.id) === String(resourceId) || String(item._id) === String(resourceId) || String(item.customId) === String(resourceId));
+    if (resTarget) {
+        if (!confirm(`Delete "${resTarget.name}"?`)) return;
 
-    const reservations =
-        getReservations();
+        try {
+            const idToDelete = resTarget.customId || resTarget.id || resTarget._id;
+            const token = sessionStorage.getItem("smartlibToken");
+            const headers = token ? { "Authorization": `Bearer ${token}` } : {};
 
+            const response = await fetch(`${API_BASE_URL}/resources/${encodeURIComponent(idToDelete)}`, {
+                method: "DELETE",
+                headers
+            });
+
+            if (response.ok) {
+                await adminFetchResources();
+                showMessage("Resource deleted.");
+                return;
+            }
+        } catch (err) {
+            console.warn("[Admin] API delete failed, using fallback:", err.message);
+        }
+    }
 
     const resource =
         resources.find(
@@ -1510,6 +1497,10 @@ function refreshDashboard() {
     renderReservations();
 
     renderActivity();
+
+    adminFetchResources();
+
+    adminFetchReservations();
 
 }
 
@@ -5256,12 +5247,27 @@ document.addEventListener("DOMContentLoaded", function () {
     adminRenderStudents();
 
     adminRenderExams();
-    
+
+    Promise.all([adminFetchStudents(), adminFetchExams()]).then(([students, exams]) => {
+        if (students) window.adminCachedStudentsGlobal = students;
+        adminRenderStudents();
+        adminRenderExams();
+        if (typeof renderStats === "function") {
+            renderStats();
+        }
+    });
+
+    window.addEventListener("focus", () => {
+        adminFetchStudents().then(s => { if (s) { window.adminCachedStudentsGlobal = s; adminRenderStudents(); renderStats(); } });
+        adminFetchExams().then(() => adminRenderExams());
+        if (typeof window.adminLoadSeats === "function") window.adminLoadSeats();
+    });
 });
 
 /* ============================================================
    SEAT MANAGEMENT - LIBRARIAN DASHBOARD
    ============================================================ */
+(function () {
 
     const SEATS_API = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL)
         ? `${window.SMARTLIB_CONFIG.API_BASE_URL}/seats`
@@ -5295,6 +5301,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderSeatStats() {
+        window.adminSeatsGlobal = adminSeats;
         const available = adminSeats.filter(seat => seat.status === "available").length;
         const occupied = adminSeats.filter(seat => seat.status === "occupied").length;
         const waiting = adminSeats.reduce(
@@ -5302,10 +5309,19 @@ document.addEventListener("DOMContentLoaded", function () {
             0
         );
 
-        document.getElementById("adminTotalSeats").textContent = adminSeats.length;
-        document.getElementById("adminAvailableSeats").textContent = available;
-        document.getElementById("adminOccupiedSeats").textContent = occupied;
-        document.getElementById("adminWaitingStudents").textContent = waiting;
+        const elTotal = document.getElementById("adminTotalSeats");
+        const elAvail = document.getElementById("adminAvailableSeats");
+        const elOcc = document.getElementById("adminOccupiedSeats");
+        const elWait = document.getElementById("adminWaitingStudents");
+
+        if (elTotal) elTotal.textContent = adminSeats.length;
+        if (elAvail) elAvail.textContent = available;
+        if (elOcc) elOcc.textContent = occupied;
+        if (elWait) elWait.textContent = waiting;
+
+        if (typeof renderStats === "function") {
+            renderStats();
+        }
     }
 
     function renderSeatTable() {
@@ -5418,6 +5434,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             adminSeats = data;
+            window.adminSeatsGlobal = data;
             renderSeatStats();
             renderSeatTable();
             showSeatMessage(`Loaded ${adminSeats.length} seats.`);
@@ -5434,18 +5451,6 @@ document.addEventListener("DOMContentLoaded", function () {
     statusFilter.addEventListener("change", renderSeatTable);
     refreshButton.addEventListener("click", loadAdminSeats);
 
+    window.adminLoadSeats = loadAdminSeats;
     loadAdminSeats();
 })();
-
-// Fetch from backend API and update student/exam tables and counts
-Promise.all([adminFetchStudents(), adminFetchExams()]).then(() => {
-    adminRenderStudents();
-    adminRenderExams();
-
-    if (typeof renderStats === "function") {
-        renderStats();
-    }
-});
-
-
-
