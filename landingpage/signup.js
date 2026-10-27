@@ -10,7 +10,7 @@ const passwordStrengthBar = document.getElementById("passwordStrengthBar");
 const passwordHint = document.getElementById("passwordHint");
 const submitButton = signupForm.querySelector("button[type='submit']");
 
-const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "http://localhost:5000/api";
+const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "https://smartlib-sjya.onrender.com/api";
 
 function setError(id, text) {
     const el = document.getElementById(id);

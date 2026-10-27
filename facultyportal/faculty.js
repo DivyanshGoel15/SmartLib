@@ -1,4 +1,4 @@
-const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "http://localhost:5000/api";
+const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "https://smartlib-sjya.onrender.com/api";
 
 const currentUser = JSON.parse(sessionStorage.getItem("smartlibCurrentUser") || sessionStorage.getItem("currentUser") || "null");
 const currentToken = sessionStorage.getItem("smartlibToken");

@@ -76,7 +76,7 @@ const logoutBtn =
 const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) ||
     window.SMARTLIB_API_URL ||
     localStorage.getItem("SMARTLIB_API_URL") ||
-    "http://localhost:5000/api";
+    "https://smartlib-sjya.onrender.com/api";
 
 let apiReservations = null;
 let apiResources = null;

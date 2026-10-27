@@ -17,9 +17,20 @@
     const defaultApiUrl = isExplicitLocalDev ? LOCAL_API_URL : RENDER_API_URL;
 
     const getBaseUrl = function () {
-        return window.SMARTLIB_API_URL ||
-            localStorage.getItem("SMARTLIB_API_URL") ||
-            defaultApiUrl;
+        if (typeof window !== "undefined" && window.SMARTLIB_API_URL) {
+            return window.SMARTLIB_API_URL;
+        }
+        try {
+            const stored = localStorage.getItem("SMARTLIB_API_URL");
+            if (stored) {
+                if (stored.includes("localhost:5000") && !isExplicitLocalDev) {
+                    localStorage.removeItem("SMARTLIB_API_URL");
+                    return defaultApiUrl;
+                }
+                return stored;
+            }
+        } catch (e) {}
+        return defaultApiUrl;
     };
 
     window.SMARTLIB_CONFIG = {
