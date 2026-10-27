@@ -10,7 +10,17 @@ const passwordStrengthBar = document.getElementById("passwordStrengthBar");
 const passwordHint = document.getElementById("passwordHint");
 const submitButton = signupForm.querySelector("button[type='submit']");
 
-const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "https://smartlib-sjya.onrender.com/api";
+function getApiBaseUrl() {
+    if (typeof window !== "undefined" && window.SMARTLIB_CONFIG) {
+        if (typeof window.SMARTLIB_CONFIG.getBaseUrl === "function") {
+            return window.SMARTLIB_CONFIG.getBaseUrl();
+        }
+        if (window.SMARTLIB_CONFIG.API_BASE_URL) {
+            return window.SMARTLIB_CONFIG.API_BASE_URL;
+        }
+    }
+    return "https://smartlib-sjya.onrender.com/api";
+}
 
 function setError(id, text) {
     const el = document.getElementById(id);
@@ -124,6 +134,8 @@ signupForm.addEventListener("submit", async function (event) {
     submitButton.disabled = true;
     submitButton.innerHTML = "Creating account...";
 
+    const activeApiUrl = getApiBaseUrl();
+
     try {
         const payload = {
             name,
@@ -138,7 +150,7 @@ signupForm.addEventListener("submit", async function (event) {
             payload.adminSecret = adminSecret;
         }
 
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        const response = await fetch(`${activeApiUrl}/auth/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -173,7 +185,7 @@ signupForm.addEventListener("submit", async function (event) {
     } catch (networkError) {
         console.error("[Signup Error]", networkError);
         message.className = "message error";
-        message.textContent = "Unable to connect to the SmartLib backend server. Please verify the server is running on " + API_BASE_URL + ".";
+        message.textContent = "Unable to connect to the SmartLib backend server. Please verify the server is running on " + getApiBaseUrl() + ".";
     } finally {
         submitButton.disabled = false;
         submitButton.innerHTML = originalBtnText;

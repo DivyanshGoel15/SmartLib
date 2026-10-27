@@ -2,7 +2,17 @@ const loginForm = document.getElementById("loginForm");
 const message = document.getElementById("message");
 const submitButton = loginForm.querySelector("button[type='submit']");
 
-const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "https://smartlib-sjya.onrender.com/api";
+function getApiBaseUrl() {
+    if (typeof window !== "undefined" && window.SMARTLIB_CONFIG) {
+        if (typeof window.SMARTLIB_CONFIG.getBaseUrl === "function") {
+            return window.SMARTLIB_CONFIG.getBaseUrl();
+        }
+        if (window.SMARTLIB_CONFIG.API_BASE_URL) {
+            return window.SMARTLIB_CONFIG.API_BASE_URL;
+        }
+    }
+    return "https://smartlib-sjya.onrender.com/api";
+}
 
 function setError(id, text) {
     const el = document.getElementById(id);
@@ -41,8 +51,10 @@ loginForm.addEventListener("submit", async function (event) {
     submitButton.disabled = true;
     submitButton.innerHTML = "Signing in...";
 
+    const activeApiUrl = getApiBaseUrl();
+
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const response = await fetch(`${activeApiUrl}/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -86,7 +98,7 @@ loginForm.addEventListener("submit", async function (event) {
     } catch (networkError) {
         console.error("[Login Error]", networkError);
         message.className = "message error";
-        message.textContent = "Unable to connect to the SmartLib backend server. Please verify the server is running on " + API_BASE_URL + ".";
+        message.textContent = "Unable to connect to the SmartLib backend server. Please verify the server is running on " + getApiBaseUrl() + ".";
     } finally {
         submitButton.disabled = false;
         submitButton.innerHTML = originalBtnText;
