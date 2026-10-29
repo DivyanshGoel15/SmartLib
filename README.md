@@ -1,4 +1,5 @@
 SmartLib — Library Seat Reservation System
+
 SmartLib is a web-based library management application focused on seat reservations and library resource management. It combines a browser-based interface with a Node.js/Express backend and MongoDB storage.
 
 The backend is organized into routes, controllers, models, middleware, configuration, and utility modules. It is designed to validate requests, enforce access rules for protected actions, and preserve reservation and resource consistency.
