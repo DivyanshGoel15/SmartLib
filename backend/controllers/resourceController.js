@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Resource = require('../models/Resource');
+const Reservation = require('../models/Reservation');
+const { escapeRegex } = require('../utils/regex');
 
 // Initial resources template for seeding
 const defaultResources = [
@@ -24,6 +26,11 @@ const findResourceByIdOrCustomId = async (id) => {
   return await Resource.findOne({ customId: id });
 };
 
+const parseQuantity = value => {
+  const quantity = Number(value);
+  return Number.isSafeInteger(quantity) && quantity >= 0 ? quantity : null;
+};
+
 // @desc    Get all resources
 // @route   GET /api/resources
 // @access  Public
@@ -38,6 +45,13 @@ const getResources = async (req, res, next) => {
     const { type, department, search } = req.query;
     const filter = {};
 
+    if ([type, department, search].some(value => value !== undefined && typeof value !== 'string')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Filters must be strings.'
+      });
+    }
+
     if (type && type !== 'All') {
       filter.type = type;
     }
@@ -47,7 +61,7 @@ const getResources = async (req, res, next) => {
     }
 
     if (search) {
-      const searchRegex = new RegExp(search.trim(), 'i');
+      const searchRegex = new RegExp(escapeRegex(search.trim()), 'i');
       filter.$or = [
         { name: searchRegex },
         { department: searchRegex },
@@ -107,22 +121,22 @@ const createResource = async (req, res, next) => {
       });
     }
 
-    const parsedTotal = Number(totalQuantity);
-    if (isNaN(parsedTotal) || parsedTotal < 0) {
+    const parsedTotal = parseQuantity(totalQuantity);
+    if (parsedTotal === null) {
       return res.status(400).json({
         success: false,
-        message: 'totalQuantity must be a positive number or zero'
+        message: 'totalQuantity must be a non-negative whole number.'
       });
     }
 
     const parsedAvailable = availableQuantity !== undefined
-      ? Number(availableQuantity)
+      ? parseQuantity(availableQuantity)
       : parsedTotal;
 
-    if (isNaN(parsedAvailable) || parsedAvailable < 0) {
+    if (parsedAvailable === null) {
       return res.status(400).json({
         success: false,
-        message: 'availableQuantity must be a positive number or zero'
+        message: 'availableQuantity must be a non-negative whole number.'
       });
     }
 
@@ -175,35 +189,74 @@ const updateResource = async (req, res, next) => {
     if (type !== undefined) resource.type = type;
     if (department !== undefined) resource.department = department.trim();
 
-    if (totalQuantity !== undefined) {
-      const parsedTotal = Number(totalQuantity);
-      if (isNaN(parsedTotal) || parsedTotal < 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'totalQuantity must be a positive number or zero'
-        });
-      }
-      resource.totalQuantity = parsedTotal;
+    const activeCount = await Reservation.countDocuments({
+      status: 'active',
+      $or: [
+        { resource: resource._id },
+        { resourceId: String(resource.customId || resource._id) }
+      ]
+    });
+    const nextTotal = totalQuantity === undefined
+      ? resource.totalQuantity
+      : parseQuantity(totalQuantity);
+    if (nextTotal === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'totalQuantity must be a non-negative whole number.'
+      });
+    }
+    if (nextTotal < activeCount) {
+      return res.status(409).json({
+        success: false,
+        message: 'totalQuantity cannot be lower than the number of active reservations.'
+      });
     }
 
-    if (availableQuantity !== undefined) {
-      const parsedAvailable = Number(availableQuantity);
-      if (isNaN(parsedAvailable) || parsedAvailable < 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'availableQuantity must be a positive number or zero'
-        });
-      }
-      if (parsedAvailable > resource.totalQuantity) {
-        return res.status(400).json({
-          success: false,
-          message: 'availableQuantity cannot exceed totalQuantity'
-        });
-      }
-      resource.availableQuantity = parsedAvailable;
+    const nextAvailable = availableQuantity === undefined
+      ? resource.availableQuantity + (nextTotal - resource.totalQuantity)
+      : parseQuantity(availableQuantity);
+    if (nextAvailable === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'availableQuantity must be a non-negative whole number.'
+      });
+    }
+    if (nextAvailable > nextTotal - activeCount) {
+      return res.status(400).json({
+        success: false,
+        message: 'availableQuantity cannot exceed quantity remaining after active reservations.'
+      });
+    }
+    if (nextAvailable > nextTotal) {
+      return res.status(400).json({
+        success: false,
+        message: 'availableQuantity cannot exceed totalQuantity.'
+      });
     }
 
-    const updatedResource = await resource.save();
+    const changes = {
+      totalQuantity: nextTotal,
+      availableQuantity: nextAvailable
+    };
+    if (name !== undefined) changes.name = name.trim();
+    if (type !== undefined) changes.type = type;
+    if (department !== undefined) changes.department = department.trim();
+
+    const updatedResource = await Resource.findOneAndUpdate(
+      {
+        _id: resource._id,
+        totalQuantity: resource.totalQuantity,
+        availableQuantity: resource.availableQuantity
+      },
+      { $set: changes },
+      { new: true, runValidators: true }
+    );
+    if (!updatedResource) {
+      return res.status(409).json({
+        success: false,
+        message: 'Resource inventory changed. Refresh and try again.'
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -227,6 +280,20 @@ const deleteResource = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: `Resource with ID '${id}' not found`
+      });
+    }
+
+    const activeReservation = await Reservation.exists({
+      status: 'active',
+      $or: [
+        { resource: resource._id },
+        { resourceId: String(resource.customId || resource._id) }
+      ]
+    });
+    if (activeReservation) {
+      return res.status(409).json({
+        success: false,
+        message: 'Resources with active reservations cannot be deleted.'
       });
     }
 

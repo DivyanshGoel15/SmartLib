@@ -1,5 +1,6 @@
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert/strict');
+const mongoose = require('mongoose');
 const app = require('../server');
 
 let server;
@@ -42,7 +43,12 @@ describe('E. Live HTTP Server Integration Tests', () => {
     assert.ok(data.database);
   });
 
-  test('3. requireDB middleware protects /api/auth when DB is disconnected', async () => {
+  test('3. requireDB middleware protects /api/auth when DB is disconnected', async t => {
+    if (mongoose.connection.readyState === 1) {
+      t.skip('Avoids running API integration requests against a connected database.');
+      return;
+    }
+
     // When MongoDB Atlas IP is not yet whitelisted, requireDB returns 503
     const res = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
@@ -82,28 +88,23 @@ describe('E. Live HTTP Server Integration Tests', () => {
     }
   });
 
-  test('6. GET /api/resources returns 200 OK with resource catalog', async () => {
-    const res = await fetch(`${baseUrl}/api/resources`);
-    if (require('mongoose').connection.readyState !== 1) {
-      assert.equal(res.status, 503);
-    } else {
-      assert.equal(res.status, 200);
-      const data = await res.json();
-      assert.equal(data.success, true);
-      assert.ok(Array.isArray(data.data));
+  test('6. GET /api/resources returns unavailable while disconnected (never triggers resource auto-seeding)', async t => {
+    if (mongoose.connection.readyState === 1) {
+      t.skip('The resource GET may seed default resources when the database is empty.');
+      return;
     }
+
+    const res = await fetch(`${baseUrl}/api/resources`);
+    assert.equal(res.status, 503);
   });
 
-  test('7. GET /api/reservations returns 200 OK with reservations array', async () => {
-    const res = await fetch(`${baseUrl}/api/reservations`);
-    if (require('mongoose').connection.readyState !== 1) {
-      assert.equal(res.status, 503);
-    } else {
-      assert.equal(res.status, 200);
-      const data = await res.json();
-      assert.equal(data.success, true);
-      assert.ok(Array.isArray(data.data));
+  test('7. GET /api/reservations is not queried against a connected database', async t => {
+    if (mongoose.connection.readyState === 1) {
+      t.skip('Avoids reading private reservation data from a connected database.');
+      return;
     }
+
+    const res = await fetch(`${baseUrl}/api/reservations`);
+    assert.equal(res.status, 503);
   });
 });
-

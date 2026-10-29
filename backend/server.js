@@ -14,21 +14,14 @@ const resourceRoutes = require('./routes/resourceRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const seatRoutes = require('./routes/seatRoutes');
+const { assertAuthConfiguration } = require('./utils/authTokens');
+const { resolveCorsOptions } = require('./utils/corsConfig');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS configuration - support localhost, deployed frontend, or any origin
-const corsOptions = {
-  origin: process.env.CLIENT_ORIGIN === '*' || !process.env.CLIENT_ORIGIN
-    ? true
-    : process.env.CLIENT_ORIGIN.split(',').map(o => o.trim()),
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-secret'],
-  credentials: true
-};
-
-app.use(cors(corsOptions));
+app.disable('x-powered-by');
+app.use(cors(resolveCorsOptions()));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -133,6 +126,8 @@ const initDatabase = async () => {
 
 // Start Server
 const startServer = async () => {
+  assertAuthConfiguration();
+
   // Start express server
   const server = app.listen(PORT, () => {
     console.log(`[Server] SmartLib Backend running on port ${PORT}`);
@@ -152,7 +147,7 @@ const startServer = async () => {
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.error('[Unhandled Rejection]', err.message);
+  console.error('[Unhandled Rejection]', err.name || 'Error');
 });
 
 // Only start when run directly

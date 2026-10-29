@@ -8,6 +8,9 @@ const {
   returnReservation,
   deleteReservation
 } = require('../controllers/reservationController');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 // /api/reservations
 router.route('/')

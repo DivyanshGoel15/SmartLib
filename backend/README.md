@@ -38,8 +38,12 @@ Create a `.env` file in the `backend/` directory (already configured locally and
 | `PORT` | Port the Express server listens on | `5000` |
 | `MONGODB_URI` | MongoDB Atlas connection string | `mongodb+srv://<user>:<password>@cluster.mongodb.net/?appName=SmartLib` |
 | `JWT_SECRET` | Secret key for signing RFC 7519 HMAC-SHA256 session tokens | `<your_secure_jwt_secret>` |
-| `ADMIN_SECRET` | Server-side key for administrative bootstrap & automated ops | `<your_secure_admin_secret>` |
-| `CLIENT_ORIGIN` | Allowed CORS origins (comma-separated or `*`) | `*` or `https://smartlib-frontend.onrender.com` |
+| `ADMIN_SECRET` | Server-side key for the existing administrator bootstrap script | `<your_secure_admin_secret>` |
+| `FACULTY_REGISTRATION_SECRET` | Separate faculty onboarding code; required for public faculty registration | `<your_faculty_onboarding_secret>` |
+| `INITIAL_ADMIN_EMAIL` | Explicit email for controlled initial administrator provisioning | `<initial_admin_email>` |
+| `INITIAL_ADMIN_PASSWORD` | Unique initial administrator password (at least 12 characters) | `<unique_password_at_least_12_characters>` |
+| `TEST_MONGODB_URI` | Dedicated database-writing test connection; database path must be `smartlib_test` | `mongodb://127.0.0.1:27017/smartlib_test` |
+| `CLIENT_ORIGIN` | Allowed CORS origins (comma-separated); production requires explicit exact origins | `https://smartlib-frontend-nhu7.onrender.com` |
 
 > **Security Note:** Never commit `.env` or credentials to GitHub. A template is provided in `.env.example`.
 
@@ -66,17 +70,20 @@ cd backend
 # Install dependencies
 npm install
 
-# Run automated unit and security tests (29 tests)
+# Run database-free unit, security, and regression tests
 npm test
 
-# Run live server HTTP integration tests (5 tests)
+# Run HTTP integration tests (does not connect to MongoDB)
 npm run test:integration
 
-# Verify MongoDB Atlas live persistence (safe write, read, cleanup)
+# Only after verifying TEST_MONGODB_URI points to a dedicated smartlib_test database:
+# $env:NODE_ENV = "test"
+# $env:TEST_MONGODB_URI = "mongodb://127.0.0.1:27017/smartlib_test"
 npm run test:atlas
 
-# Provision initial administrator account safely (reads from .env)
-npm run seed:admin
+# Provision an administrator only after configuring INITIAL_ADMIN_EMAIL and
+# INITIAL_ADMIN_PASSWORD in .env; explicit confirmation is required.
+npm run seed:admin -- --confirm-smartlib-write
 
 # Start server in production mode
 npm start
@@ -174,7 +181,7 @@ const defaultApiUrl = "https://your-backend.onrender.com/api";
 5. Under **Environment Variables**, add:
    - `PORT`: `5000` (or leave default assigned by Render)
    - `MONGODB_URI`: `mongodb+srv://<username>:<password>@smartlibcluster.vnniqic.mongodb.net/smartlib?retryWrites=true&w=majority`
-   - `CLIENT_ORIGIN`: `*` (or your frontend deployment domain)
+   - `CLIENT_ORIGIN`: your exact frontend deployment origin, such as `https://smartlib-frontend-nhu7.onrender.com`
 6. Click **Deploy Web Service**.
 7. Once deployed, test the live health check at `https://smartlib-backend.onrender.com/api/health`.
 

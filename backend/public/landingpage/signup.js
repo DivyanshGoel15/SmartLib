@@ -3,7 +3,7 @@ const roleSelect = document.getElementById("role");
 const yearField = document.getElementById("yearField");
 const departmentField = document.getElementById("departmentField");
 const academicFields = document.getElementById("academicFields");
-const adminSecretField = document.getElementById("adminSecretField");
+const facultySecretField = document.getElementById("facultySecretField");
 const message = document.getElementById("message");
 const passwordInput = document.getElementById("password");
 const passwordStrengthBar = document.getElementById("passwordStrengthBar");
@@ -36,24 +36,19 @@ function clearErrors() {
 function toggleAcademicFields() {
     const role = roleSelect.value;
     const isStudent = role === "student";
-    const isAdmin = role === "library_admin";
+    const isFaculty = role === "faculty";
 
-    departmentField.style.display = isAdmin ? "none" : "block";
+    departmentField.style.display = "block";
     yearField.style.display = isStudent ? "block" : "none";
-    academicFields.style.display = isAdmin ? "block" : "grid";
-    if (adminSecretField) {
-        adminSecretField.style.display = isAdmin ? "block" : "none";
-    }
+    academicFields.style.display = "grid";
+    if (facultySecretField) facultySecretField.style.display = isFaculty ? "block" : "none";
 
-    document.getElementById("department").required = !isAdmin;
+    document.getElementById("department").required = true;
     document.getElementById("year").required = isStudent;
 
-    if (isAdmin) {
-        document.getElementById("department").value = "";
-        document.getElementById("year").value = "";
-    } else {
-        const adminSecretInput = document.getElementById("adminSecret");
-        if (adminSecretInput) adminSecretInput.value = "";
+    if (!isFaculty) {
+        const facultySecretInput = document.getElementById("facultySecret");
+        if (facultySecretInput) facultySecretInput.value = "";
     }
 }
 
@@ -109,17 +104,17 @@ signupForm.addEventListener("submit", async function (event) {
     const role = roleSelect.value;
     const password = passwordInput.value;
     const confirmPassword = document.getElementById("confirmPassword").value;
-    const adminSecretInput = document.getElementById("adminSecret");
-    const adminSecret = adminSecretInput ? adminSecretInput.value.trim() : "";
+    const facultySecretInput = document.getElementById("facultySecret");
+    const facultySecret = facultySecretInput ? facultySecretInput.value.trim() : "";
 
     let valid = true;
 
     if (name.length < 2) { setError("fullNameError", "Please enter your full name."); valid = false; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("emailError", "Enter a valid email address."); valid = false; }
-    if (role !== "library_admin" && !department) { setError("departmentError", "Select a department."); valid = false; }
+    if (!department) { setError("departmentError", "Select a department."); valid = false; }
     if (role === "student" && !year) { setError("yearError", "Select your year."); valid = false; }
-    if (role === "library_admin" && !adminSecret) {
-        setError("adminSecretError", "Administrator authorization passkey is required.");
+    if (role === "faculty" && !facultySecret) {
+        setError("facultySecretError", "Faculty onboarding code is required.");
         valid = false;
     }
     if (!isStrongPassword(password)) {
@@ -140,14 +135,14 @@ signupForm.addEventListener("submit", async function (event) {
         const payload = {
             name,
             email,
-            department: role === "library_admin" ? "Library Administration" : department,
+            department,
             year: role === "student" ? year : "Staff",
             role,
             password
         };
 
-        if (role === "library_admin" && adminSecret) {
-            payload.adminSecret = adminSecret;
+        if (role === "faculty") {
+            payload.facultySecret = facultySecret;
         }
 
         const response = await fetch(`${activeApiUrl}/auth/register`, {

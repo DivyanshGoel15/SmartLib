@@ -2,6 +2,15 @@ const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_
 
 const currentUser = JSON.parse(sessionStorage.getItem("smartlibCurrentUser") || sessionStorage.getItem("currentUser") || "null");
 const currentToken = sessionStorage.getItem("smartlibToken");
+function escapeHTML(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 if (!currentUser || currentUser.role !== "faculty" || sessionStorage.getItem("smartlibLoggedIn") !== "true") {
     window.location.href = "../landingpage/login.html";
 }
@@ -85,15 +94,18 @@ function render() {
         const status = getStatus(exam);
         const examId = exam.id || exam._id || exam.customId || "";
         return `<tr>
-            <td><strong>${exam.year || "All Years"}</strong></td>
-            <td>${exam.name}</td>
-            <td><small>${formatDate(exam.startDate)} — ${formatDate(exam.endDate)}</small></td>
+            <td><strong>${escapeHTML(exam.year || "All Years")}</strong></td>
+            <td>${escapeHTML(exam.name)}</td>
+            <td><small>${escapeHTML(formatDate(exam.startDate))} — ${escapeHTML(formatDate(exam.endDate))}</small></td>
             <td><span class="status ${status.toLowerCase()}">${status.toUpperCase()}</span></td>
             <td>
-                <button type="button" class="logout" style="padding: 5px 10px; font-size: 11px; color: #8d3d32; border-color: #8d3d32;" onclick="deleteFacultyExam('${examId}')">Delete</button>
+                <button type="button" class="logout" style="padding: 5px 10px; font-size: 11px; color: #8d3d32; border-color: #8d3d32;" data-exam-id="${escapeHTML(examId)}">Delete</button>
             </td>
         </tr>`;
     }).join("");
+    body.querySelectorAll("[data-exam-id]").forEach(button => {
+        button.addEventListener("click", () => window.deleteFacultyExam(button.dataset.examId));
+    });
 }
 
 window.deleteFacultyExam = async function(examId) {

@@ -80,15 +80,14 @@
                         <select id="role">
                             <option value="student">Student</option>
                             <option value="faculty">Faculty</option>
-                            <option value="library_admin">Library Administration</option>
                         </select>
-                        <small class="role-note">Faculty and Library Administration accounts have separate workspaces based on their role.</small>
+                        <small class="role-note">Faculty registration requires an onboarding code from library administration.</small>
                     </div>
 
-                    <div class="field" id="adminSecretField" style="display: none;">
-                        <label for="adminSecret">Administrator Passkey</label>
-                        <input type="password" id="adminSecret" placeholder="Enter administrator authorization key" autocomplete="off">
-                        <small class="field-error" id="adminSecretError"></small>
+                    <div class="field" id="facultySecretField" style="display: none;">
+                        <label for="facultySecret">Faculty Onboarding Code</label>
+                        <input type="password" id="facultySecret" placeholder="Enter the code provided by library administration" autocomplete="off">
+                        <small class="field-error" id="facultySecretError"></small>
                     </div>
 
                     <div class="two-column">
@@ -113,6 +112,6 @@
         </section>
     </main>
     <script src="../js/config.js?v=2.0"></script>
-    <script src="signup.js?v=2.0"></script>
+    <script src="signup.js?v=2.1"></script>
 </body>
 </html>

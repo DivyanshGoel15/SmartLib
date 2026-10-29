@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test test/anviModules.test.js test/apiUrlSelection.test.js test/crossPortalRegression.test.js",
+    "test": "node --test test/anviModules.test.js test/apiUrlSelection.test.js test/crossPortalRegression.test.js test/securityHardening.test.js test/migrationSafety.test.js",
     "test:url": "node --test test/apiUrlSelection.test.js",
     "test:integration": "node --test test/apiIntegration.test.js",
     "test:atlas": "node test/atlasPersistence.test.js",

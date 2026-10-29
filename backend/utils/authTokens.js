@@ -3,6 +3,18 @@ const crypto = require('crypto');
 // Cache for development ephemeral key when JWT_SECRET is not explicitly provided in environment
 let ephemeralDevSecret = null;
 
+const assertAuthConfiguration = () => {
+  if (process.env.NODE_ENV === 'production') {
+    const secret = process.env.JWT_SECRET?.trim();
+    if (!secret) {
+      throw new Error('JWT_SECRET must be configured in production.');
+    }
+    if (Buffer.byteLength(secret, 'utf8') < 32) {
+      throw new Error('JWT_SECRET must contain at least 32 bytes in production.');
+    }
+  }
+};
+
 /**
  * Returns the secret key used for signing session tokens.
  * In production, process.env.JWT_SECRET is strictly required.
@@ -10,8 +22,9 @@ let ephemeralDevSecret = null;
  * is generated in-memory per runtime instance rather than using a predictable hardcoded string.
  */
 const getSecret = () => {
-  const secret = process.env.JWT_SECRET;
+  const secret = process.env.JWT_SECRET?.trim();
   if (!secret) {
+    assertAuthConfiguration();
     if (!ephemeralDevSecret) {
       ephemeralDevSecret = crypto.randomBytes(32).toString('hex');
       console.warn('[Security Warning] JWT_SECRET is not configured in environment. Using generated fallback key.');
@@ -116,7 +129,7 @@ function verifyToken(token) {
   const now = Math.floor(Date.now() / 1000);
 
   // 4. Expiration check
-  if (typeof payload.exp !== 'number' || payload.exp < now) {
+  if (typeof payload.exp !== 'number' || payload.exp <= now) {
     return null; // Expired or missing exp claim
   }
 
@@ -130,5 +143,6 @@ function verifyToken(token) {
 
 module.exports = {
   signToken,
-  verifyToken
+  verifyToken,
+  assertAuthConfiguration
 };
