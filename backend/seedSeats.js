@@ -13,8 +13,15 @@ const departments = [
     "Management"
 ];
 
-async function seedSeats() {
+const assertWriteConfirmation = (args = process.argv.slice(2)) => {
+    if (!args.includes("--confirm-smartlib-write")) {
+        throw new Error("Refusing to seed smartlib without --confirm-smartlib-write.");
+    }
+};
+
+async function seedSeats(args = process.argv.slice(2)) {
     try {
+        assertWriteConfirmation(args);
         await connectDB();
 
         const operations = [];
@@ -50,11 +57,16 @@ async function seedSeats() {
         console.log(`Total seats processed: ${operations.length}`);
 
     } catch (error) {
-        console.error("Seat seeding failed:", error.message);
+        console.error("Seat seeding failed. Check database configuration and availability.");
         process.exitCode = 1;
     } finally {
         await mongoose.disconnect();
     }
 }
 
-seedSeats();
+if (require.main === module) {
+    seedSeats();
+}
+
+module.exports = seedSeats;
+module.exports.assertWriteConfirmation = assertWriteConfirmation;

@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Reservation = require('../models/Reservation');
+const { isAcademicYear } = require('../utils/academicYears');
+const { escapeRegex } = require('../utils/regex');
 
 /**
  * @desc    Get all users or students (supports filters)
@@ -13,6 +15,13 @@ const getUsers = async (req, res, next) => {
     const { role, department, search } = req.query;
     const query = {};
 
+    if ([role, department, search].some(value => value !== undefined && typeof value !== 'string')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Filters must be strings.'
+      });
+    }
+
     // Filter by role (default to student if route is /students)
     if (req.path.includes('/students') || role === 'student') {
       query.role = 'student';
@@ -21,11 +30,11 @@ const getUsers = async (req, res, next) => {
     }
 
     if (department && department.trim() && department !== 'All departments') {
-      query.department = new RegExp(`^${department.trim()}$`, 'i');
+      query.department = new RegExp(`^${escapeRegex(department.trim())}$`, 'i');
     }
 
     if (search && search.trim()) {
-      const searchRegex = new RegExp(search.trim(), 'i');
+      const searchRegex = new RegExp(escapeRegex(search.trim()), 'i');
       query.$or = [
         { name: searchRegex },
         { email: searchRegex },
@@ -55,35 +64,42 @@ const createStudent = async (req, res, next) => {
   try {
     const { name, studentId, email, department, year = '1st Year', password } = req.body;
 
-    if (!name || !name.trim()) {
+    if (typeof name !== 'string' || !name.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Student name is required.'
       });
     }
 
-    if (!studentId || !studentId.trim()) {
+    if (typeof studentId !== 'string' || !studentId.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Student ID is required.'
       });
     }
 
-    if (!email || !email.trim()) {
+    if (typeof email !== 'string' || !email.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Email address is required.'
       });
     }
 
-    if (!department || !department.trim()) {
+    if (typeof department !== 'string' || !department.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Department is required.'
       });
     }
 
-    if (!password || password.length < 6) {
+    if (typeof year !== 'string' || !isAcademicYear(year.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Academic year must be one of 1st Year, 2nd Year, 3rd Year, or 4th Year.'
+      });
+    }
+
+    if (typeof password !== 'string' || password.length < 6) {
       return res.status(400).json({
         success: false,
         message: 'Password must be at least 6 characters long.'
@@ -206,4 +222,3 @@ module.exports = {
   createStudent,
   deleteUser
 };
-

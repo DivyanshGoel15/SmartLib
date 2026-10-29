@@ -5,6 +5,11 @@ SmartLib API Testing Report
 This document records the API tests performed against the deployed
 SmartLib backend using Postman.
 
+The Postman results below are a historical baseline for the deployed
+version at the time of that test. They do not verify the local
+security-hardening changes described at the end of this document. Do
+not repeat the write/delete scenarios against production.
+
 - Frontend: https://smartlib-frontend-nhu7.onrender.com
 
 - Backend: https://smartlib-sjya.onrender.com
@@ -241,29 +246,62 @@ The supplied seatRoutes.js showed no authentication middleware on seat
 occupancy, release, or queue operations. These operations can change
 seat assignments and should be protected with authentication and
 authorization before production use.
-10. Known Issues and Recommended Follow-up
-1. Add authentication and role-based authorization. Review
-   reservation, resource write, and seat mutation endpoints.
-2. Review public registration roles. The registration controller
-   appears to allow faculty registration without an additional approval
-   step. Confirm whether this is intentional and prevent unauthorized
-   privilege escalation.
-3. Run frontend end-to-end tests. API tests alone do not prove that
-   the deployed website's forms, session handling, portals, and UI
-   actions work correctly.
-4. Confirm cleanup. Check the live database for test records before
-   presenting the system or running tests again.
-5. Add automated tests. Consider repeatable integration tests for
-   success cases, validation errors, authorization, and not-found
-   cases.
-6. Protect secrets. Keep .env, JWT secrets, admin secrets,
-   passwords, and bearer tokens out of source control and
-   documentation.
+10. Current Branch Status and Follow-up
+The security protections described in section 11 are local code changes
+on the `security-hardening-2026-10-28` branch. They have not been
+deployed, and the historical production results above do not verify
+them.
 
-   
-11. Overall Result
+- Faculty self-registration now requires a separately configured
+  `FACULTY_REGISTRATION_SECRET`. Configure and distribute it only
+  through the approved faculty onboarding process before enabling new
+  faculty registration.
+- Public administrator registration is disabled. Existing administrator
+  accounts remain usable; provision new administrator accounts through
+  the existing controlled seed/administrator process.
+- Faculty cannot delete legacy exams whose creator identity is missing
+  or does not match their authenticated account. An administrator must
+  review such records.
+- Legacy reservations are visible to a user only when their stored
+  `userId` matches that authenticated account. Ownership is not
+  reassigned automatically.
+- Browser end-to-end tests and database-writing integration tests have
+  not been run against production.
+
+11. Local Security-Hardening Verification
+The local changes protect reservation endpoints by authenticated owner,
+restrict resource mutations to library administrators, protect seat
+mutations and queue handoff, bind exam creator identity to the
+authenticated account, require a production JWT secret, and remove
+database fallback to a local `smartlib` database. Protected browser
+requests now send the existing session token.
+
+Database-writing tests require an explicitly configured
+`TEST_MONGODB_URI` targeting a separate database named `smartlib_test`.
+The code checks the database name but cannot establish that the database
+is isolated from unrelated data; verify the target environment before
+running `npm run test:atlas`.
+
+The unit/regression test suite is database-free. Run it from the
+`backend` directory with:
+
+```powershell
+npm test
+npm run test:integration
+```
+
+Verification on this branch: `npm test` passed 73 tests, and
+`npm run test:integration` passed 7 tests. The database-writing Atlas
+test was not run.
+
+Do not run `npm run test:atlas` until a dedicated test database has been
+configured and verified. No production data was modified and no
+deployment was performed for this branch.
+
+12. Historical Overall Result
 The API operations listed in this report were tested manually in Postman
 and reported as successful, except where the document explicitly labels
 a result as expected from code inspection rather than a confirmed
 request. The next recommended stage is end-to-end testing of the
-deployed SmartLib frontend and a security review of the API routes.
+deployed SmartLib frontend after the security branch has been reviewed
+and deployed separately.

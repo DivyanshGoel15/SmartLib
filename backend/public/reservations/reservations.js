@@ -78,6 +78,11 @@ const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_
     localStorage.getItem("SMARTLIB_API_URL") ||
     "https://smartlib-sjya.onrender.com/api";
 
+function getAuthHeaders() {
+    const token = sessionStorage.getItem("smartlibToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 let apiReservations = null;
 let apiResources = null;
 let apiSeats = null;
@@ -85,7 +90,9 @@ let apiSeats = null;
 async function fetchReservationsFromAPI() {
     if (!currentUser) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/reservations?userId=${currentUser.id}`);
+        const response = await fetch(`${API_BASE_URL}/reservations?userId=${currentUser.id}`, {
+            headers: getAuthHeaders()
+        });
         if (response.ok) {
             const data = await response.json();
             if (data && Array.isArray(data.data)) {
@@ -122,7 +129,9 @@ async function fetchResourcesFromAPI() {
 
 async function fetchSeatsFromAPI() {
     try {
-        const response = await fetch(`${API_BASE_URL}/seats`);
+        const response = await fetch(`${API_BASE_URL}/seats`, {
+            headers: getAuthHeaders()
+        });
         if (response.ok) {
             const data = await response.json();
             if (Array.isArray(data)) {
@@ -314,7 +323,8 @@ window.releaseSeatFromReservations = async function(seatCode) {
     if (!confirm(`Are you sure you want to release seat ${seatCode}?`)) return;
     try {
         const response = await fetch(`${API_BASE_URL}/seats/${encodeURIComponent(seatCode)}/release`, {
-            method: "PUT"
+            method: "PUT",
+            headers: getAuthHeaders()
         });
         const data = await response.json().catch(() => null);
         if (response.ok) {
@@ -334,7 +344,8 @@ window.leaveSeatQueueFromReservations = async function(seatCode) {
     try {
         const studentId = currentUser.id || currentUser._id || currentUser.studentId;
         const response = await fetch(`${API_BASE_URL}/seats/${encodeURIComponent(seatCode)}/queue/${encodeURIComponent(studentId)}`, {
-            method: "DELETE"
+            method: "DELETE",
+            headers: getAuthHeaders()
         });
         const data = await response.json().catch(() => null);
         if (response.ok) {
@@ -612,7 +623,8 @@ async function returnResource(
     try {
 
         const response = await fetch(`${API_BASE_URL}/reservations/${reservationId}/return`, {
-            method: "POST"
+            method: "POST",
+            headers: getAuthHeaders()
         });
 
         const result = await response.json().catch(() => null);

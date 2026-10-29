@@ -30,18 +30,28 @@ const resourceSchema = new mongoose.Schema(
     totalQuantity: {
       type: Number,
       required: [true, 'Total quantity is required'],
-      min: [0, 'Total quantity cannot be negative']
+      min: [0, 'Total quantity cannot be negative'],
+      validate: {
+        validator: Number.isSafeInteger,
+        message: 'Total quantity must be a whole number'
+      }
     },
     availableQuantity: {
       type: Number,
       required: [true, 'Available quantity is required'],
       min: [0, 'Available quantity cannot be negative'],
-      validate: {
-        validator: function (val) {
-          return val <= this.totalQuantity;
+      validate: [
+        {
+          validator: Number.isSafeInteger,
+          message: 'Available quantity must be a whole number'
         },
-        message: 'Available quantity cannot exceed total quantity'
-      }
+        {
+          validator: function (val) {
+            return val <= this.totalQuantity;
+          },
+          message: 'Available quantity cannot exceed total quantity'
+        }
+      ]
     }
   },
   {

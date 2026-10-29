@@ -5421,7 +5421,10 @@ document.addEventListener("DOMContentLoaded", function () {
         showSeatMessage("Loading seat information...");
 
         try {
-            const response = await fetch(SEATS_API);
+            const token = sessionStorage.getItem("smartlibToken");
+            const headers = {};
+            if (token) headers.Authorization = ["Bearer", token].join(" ");
+            const response = await fetch(SEATS_API, { headers });
 
             if (!response.ok) {
                 throw new Error(`Unable to load seats (HTTP ${response.status}).`);

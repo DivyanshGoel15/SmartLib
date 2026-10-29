@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Exam = require('../models/Exam');
+const { escapeRegex } = require('../utils/regex');
 
 /**
  * @desc    Get exams by department
@@ -19,7 +20,7 @@ const getExamsByDepartment = async (req, res, next) => {
 
     // Case-insensitive department match
     const query = {
-      department: new RegExp(`^${dept.trim()}$`, 'i')
+      department: new RegExp(`^${escapeRegex(dept.trim())}$`, 'i')
     };
 
     // Optional year filter if passed via query params
@@ -53,8 +54,15 @@ const getAllExams = async (req, res, next) => {
     const { department, year, search } = req.query;
     const query = {};
 
+    if ([department, year, search].some(value => value !== undefined && typeof value !== 'string')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Filters must be strings.'
+      });
+    }
+
     if (department && department.trim() && department !== 'All departments') {
-      query.department = new RegExp(`^${department.trim()}$`, 'i');
+      query.department = new RegExp(`^${escapeRegex(department.trim())}$`, 'i');
     }
 
     if (year && year.trim() && year !== 'All Years') {
@@ -62,7 +70,7 @@ const getAllExams = async (req, res, next) => {
     }
 
     if (search && search.trim()) {
-      const searchRegex = new RegExp(search.trim(), 'i');
+      const searchRegex = new RegExp(escapeRegex(search.trim()), 'i');
       query.$or = [
         { name: searchRegex },
         { facultyName: searchRegex },
@@ -124,6 +132,15 @@ const getExamById = async (req, res, next) => {
  */
 const createExam = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Authentication required.' });
+    }
+
+    const role = String(req.user.role || '').toLowerCase();
+    if (!['faculty', 'library_admin', 'admin'].includes(role)) {
+      return res.status(403).json({ success: false, message: 'You are not allowed to schedule examinations.' });
+    }
+
     const {
       name,
       department,
@@ -132,10 +149,7 @@ const createExam = async (req, res, next) => {
       endDate,
       time,
       venue,
-      facultyName,
-      createdByFaculty,
-      createdBy,
-      createdByRole = 'faculty'
+      facultyName
     } = req.body;
 
     // Field validations
@@ -154,10 +168,10 @@ const createExam = async (req, res, next) => {
     }
 
     // Departmental check: Faculty may only schedule exams for their own department
-    if (req.user && req.user.role === 'faculty') {
+    if (role === 'faculty') {
       const userDept = (req.user.department || '').trim().toLowerCase();
       const targetDept = department.trim().toLowerCase();
-      if (userDept && targetDept && userDept !== targetDept) {
+      if (!userDept || userDept !== targetDept) {
         return res.status(403).json({
           success: false,
           message: 'Forbidden: Faculty members may only schedule examinations for their own department.'
@@ -205,7 +219,9 @@ const createExam = async (req, res, next) => {
       });
     }
 
-    const assignedFaculty = facultyName || createdByFaculty || 'Faculty';
+    const assignedFaculty = role === 'faculty'
+      ? req.user.name
+      : (facultyName || 'Faculty');
 
     const exam = await Exam.create({
       name: name.trim(),
@@ -217,8 +233,8 @@ const createExam = async (req, res, next) => {
       venue: venue ? venue.trim() : '',
       facultyName: assignedFaculty,
       createdByFaculty: assignedFaculty,
-      createdBy: createdBy || '',
-      createdByRole: createdByRole || 'faculty'
+      createdBy: String(req.user._id),
+      createdByRole: role
     });
 
     res.status(201).json({
@@ -238,6 +254,15 @@ const createExam = async (req, res, next) => {
  */
 const deleteExam = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Authentication required.' });
+    }
+
+    const role = String(req.user.role || '').toLowerCase();
+    if (!['faculty', 'library_admin', 'admin'].includes(role)) {
+      return res.status(403).json({ success: false, message: 'You are not allowed to delete examinations.' });
+    }
+
     const { id } = req.params;
     let exam;
 
@@ -256,10 +281,17 @@ const deleteExam = async (req, res, next) => {
     }
 
     // Departmental check: Faculty may only delete exams within their own department
-    if (req.user && req.user.role === 'faculty') {
+    if (role === 'faculty') {
+      if (String(exam.createdBy || '') !== String(req.user._id)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Faculty members may only delete examinations they created.'
+        });
+      }
+
       const userDept = (req.user.department || '').trim().toLowerCase();
       const examDept = (exam.department || '').trim().toLowerCase();
-      if (userDept && examDept && userDept !== examDept) {
+      if (!userDept || userDept !== examDept) {
         return res.status(403).json({
           success: false,
           message: 'Forbidden: Faculty members may only delete examinations within their own department.'
@@ -286,4 +318,3 @@ module.exports = {
   createExam,
   deleteExam
 };
-

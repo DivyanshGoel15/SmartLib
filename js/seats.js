@@ -111,8 +111,12 @@ const currentUser = {
     year: loggedInUser.year,
 
     role: loggedInUser.role
-
 };
+
+function getAuthHeaders() {
+    const token = sessionStorage.getItem("smartlibToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 // Update topbar user details and role-based links
 if (currentUser) {
@@ -279,7 +283,10 @@ async function reserveSeat() {
             `${SEATS_API}/${encodeURIComponent(seat.id)}/occupy`,
             {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    ...getAuthHeaders(),
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify({
                     studentId: String(currentUser.id),
                     studentName: currentUser.name
@@ -330,7 +337,7 @@ async function releaseSeat() {
     try {
         const response = await fetch(
             `${SEATS_API}/${encodeURIComponent(seat.id)}/release`,
-            { method: "PUT" }
+            { method: "PUT", headers: getAuthHeaders() }
         );
 
         const data = await response.json();
@@ -621,7 +628,10 @@ document.getElementById("queueButton").addEventListener("click", async function 
             `${SEATS_API}/${encodeURIComponent(seat.id)}/queue`,
             {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    ...getAuthHeaders(),
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify({
                     studentId: String(currentUser.id),
                     studentName: currentUser.name,
@@ -655,7 +665,7 @@ document.getElementById("leaveQueueButton").addEventListener("click", async func
     try {
         const response = await fetch(
             `${SEATS_API}/${encodeURIComponent(selectedSeatId)}/queue/${encodeURIComponent(currentUser.id)}`,
-            { method: "DELETE" }
+            { method: "DELETE", headers: getAuthHeaders() }
         );
 
         const data = await response.json();

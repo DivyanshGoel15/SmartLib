@@ -2,6 +2,8 @@ const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
 const bcrypt = require('bcryptjs');
 
+process.env.NODE_ENV = 'test';
+
 const User = require('../models/User');
 const Exam = require('../models/Exam');
 const { register, login, getMe } = require('../controllers/authController');
@@ -98,7 +100,7 @@ describe('A. User Model & Authentication Tests', () => {
 
     assert.equal(statusCode, 403, 'Unauthorized admin registration should return 403 Forbidden');
     assert.equal(responseData.success, false);
-    assert.match(responseData.message, /not permitted/i);
+    assert.match(responseData.message, /provisioned/i);
   });
 
   test('6. Rejects login request with missing credentials (Expects 400)', async () => {
@@ -162,6 +164,12 @@ describe('B. Exam Model & Scheduling Tests', () => {
 
   test('9. Controller rejects invalid exam date range payload with HTTP 400', async () => {
     const req = {
+      user: {
+        _id: '507f1f77bcf86cd799439011',
+        role: 'faculty',
+        department: 'CSE',
+        name: 'Test Faculty'
+      },
       body: {
         name: 'Compiler Design',
         department: 'CSE',
@@ -194,6 +202,12 @@ describe('B. Exam Model & Scheduling Tests', () => {
 
   test('10. Controller rejects exam creation missing required name or department with HTTP 400', async () => {
     const req = {
+      user: {
+        _id: '507f1f77bcf86cd799439011',
+        role: 'faculty',
+        department: 'CSE',
+        name: 'Test Faculty'
+      },
       body: {
         name: '',
         department: '',
@@ -442,7 +456,8 @@ describe('D. Server-Side Authentication & Authorization Middleware Tests', () =>
     assert.equal(nextCalled, false);
   });
 
-  test('17. Authenticate authorizes valid x-admin-secret header as library_admin', async () => {
+  test('17. Authenticate rejects the legacy x-admin-secret bypass', async () => {
+    const previousSecret = process.env.ADMIN_SECRET;
     const mockSecret = 'test_secret_' + Date.now();
     process.env.ADMIN_SECRET = mockSecret;
 
@@ -452,12 +467,20 @@ describe('D. Server-Side Authentication & Authorization Middleware Tests', () =>
       query: {}
     };
 
-    const res = {};
+    let statusCode = 200;
+    const res = {
+      status(code) { statusCode = code; return this; },
+      json() { return this; }
+    };
     let nextCalled = false;
-    await authenticate(req, res, () => { nextCalled = true; });
-
-    assert.equal(nextCalled, true);
-    assert.equal(req.user.role, 'library_admin');
+    try {
+      await authenticate(req, res, () => { nextCalled = true; });
+      assert.equal(statusCode, 401);
+      assert.equal(nextCalled, false);
+    } finally {
+      if (previousSecret === undefined) delete process.env.ADMIN_SECRET;
+      else process.env.ADMIN_SECRET = previousSecret;
+    }
   });
 
   test('18. requireRole blocks student role from faculty/admin endpoint (Expects 403)', () => {
@@ -533,13 +556,18 @@ describe('D. Server-Side Authentication & Authorization Middleware Tests', () =>
       body: {},
       query: {}
     };
-    const res = {};
+    let statusCode = 200;
+    let responseData = null;
+    const res = {
+      status(code) { statusCode = code; return this; },
+      json(data) { responseData = data; return this; }
+    };
     let nextCalled = false;
     await authenticate(req, res, () => { nextCalled = true; });
 
-    assert.equal(nextCalled, true);
-    assert.equal(req.user.role, 'faculty');
-    assert.equal(req.user.email, 'prof.sharma@university.edu');
+    assert.equal(statusCode, 503);
+    assert.equal(nextCalled, false);
+    assert.match(responseData.message, /unavailable/i);
   });
 
   test('22. Authenticate rejects tampered or forged session token (Expects 401)', async () => {
@@ -589,7 +617,8 @@ describe('D. Server-Side Authentication & Authorization Middleware Tests', () =>
     assert.equal(nextCalled, false);
   });
 
-  test('24. Authenticate rejects x-admin-secret bypass on user-facing route /api/auth (Expects 401)', async () => {
+  test('24. Authenticate rejects x-admin-secret as an authentication mechanism (Expects 401)', async () => {
+    const previousSecret = process.env.ADMIN_SECRET;
     const mockSecret = 'test_secret_' + Date.now();
     process.env.ADMIN_SECRET = mockSecret;
 
@@ -606,10 +635,14 @@ describe('D. Server-Side Authentication & Authorization Middleware Tests', () =>
       json(data) { responseData = data; return this; }
     };
     let nextCalled = false;
-    await authenticate(req, res, () => { nextCalled = true; });
-
-    assert.equal(statusCode, 401, 'x-admin-secret must not bypass authentication on user-facing routes');
-    assert.equal(nextCalled, false);
+    try {
+      await authenticate(req, res, () => { nextCalled = true; });
+      assert.equal(statusCode, 401, 'x-admin-secret must not bypass authentication');
+      assert.equal(nextCalled, false);
+    } finally {
+      if (previousSecret === undefined) delete process.env.ADMIN_SECRET;
+      else process.env.ADMIN_SECRET = previousSecret;
+    }
   });
 
   test('25. getMe rejects unauthenticated call without token with HTTP 401', async () => {
@@ -702,7 +735,7 @@ describe('D. Server-Side Authentication & Authorization Middleware Tests', () =>
     assert.match(responseData.message, /own department/i);
   });
 
-  test('29. deleteExam blocks faculty from deleting exam in a different department (Expects 403)', async () => {
+  test('29. deleteExam blocks faculty from deleting another faculty member’s exam in the same department', async () => {
     const origFindById = Exam.findById;
     Exam.findById = async () => ({
       _id: '507f1f77bcf86cd799439012',
@@ -730,7 +763,7 @@ describe('D. Server-Side Authentication & Authorization Middleware Tests', () =>
       await deleteExam(req, res, () => {});
       assert.equal(statusCode, 403);
       assert.equal(responseData.success, false);
-      assert.match(responseData.message, /own department/i);
+      assert.match(responseData.message, /created/i);
     } finally {
       Exam.findById = origFindById;
     }

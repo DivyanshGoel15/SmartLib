@@ -10,11 +10,10 @@ services:
       - key: NODE_ENV
         value: production
       - key: CLIENT_ORIGIN
-        value: "*"
+        value: https://smartlib-frontend-nhu7.onrender.com
       - key: MONGO_URI
         sync: false
       - key: ADMIN_SECRET
         generateValue: true
       - key: JWT_SECRET
         generateValue: true
-

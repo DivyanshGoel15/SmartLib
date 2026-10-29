@@ -1,5 +1,7 @@
+const crypto = require('crypto');
 const User = require('../models/User');
 const { signToken } = require('../utils/authTokens');
+const { isAcademicYear } = require('../utils/academicYears');
 
 /**
  * @desc    Register a new user
@@ -8,17 +10,27 @@ const { signToken } = require('../utils/authTokens');
  */
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, role = 'student', department, year, studentId, rollNumber, adminSecret } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role = 'student',
+      department,
+      year,
+      studentId,
+      rollNumber,
+      facultySecret
+    } = req.body;
 
     // Validate required fields
-    if (!name || !name.trim()) {
+    if (typeof name !== 'string' || !name.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Please provide your full name.'
       });
     }
 
-    if (!email || !email.trim()) {
+    if (typeof email !== 'string' || !email.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Please provide a valid email address.'
@@ -33,7 +45,7 @@ const register = async (req, res, next) => {
       });
     }
 
-    if (!password || password.length < 6) {
+    if (typeof password !== 'string' || password.length < 6) {
       return res.status(400).json({
         success: false,
         message: 'Password must be at least 6 characters long.'
@@ -41,40 +53,55 @@ const register = async (req, res, next) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const normalizedRole = (role || 'student').trim().toLowerCase();
+    const normalizedRole = typeof role === 'string' ? role.trim().toLowerCase() : '';
 
-    // Validate role is an allowed system role
     const VALID_ROLES = ['student', 'faculty', 'library_admin', 'admin'];
     if (!VALID_ROLES.includes(normalizedRole)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid role specified. Permitted public roles are student and faculty.'
+        message: 'Invalid role specified.'
       });
     }
 
-    // Enforce permitted signup roles: Prevent unauthorized administrator public signup
-    const isAdminRole = normalizedRole === 'library_admin' || normalizedRole === 'admin';
-    if (isAdminRole) {
-      const configuredSecret = process.env.ADMIN_SECRET || process.env.ADMIN_KEY;
-      const providedSecret = req.headers['x-admin-secret'] || (req.body && req.body.adminSecret);
+    if (normalizedRole === 'library_admin' || normalizedRole === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Administrator accounts must be provisioned by an existing administrator.'
+      });
+    }
 
-      if (!configuredSecret || !providedSecret || providedSecret.trim() !== configuredSecret.trim()) {
+    if (normalizedRole === 'faculty') {
+      const configuredSecret = process.env.FACULTY_REGISTRATION_SECRET;
+      const suppliedSecret = typeof facultySecret === 'string' ? facultySecret : '';
+      const suppliedBuffer = Buffer.from(suppliedSecret);
+      const configuredBuffer = Buffer.from(configuredSecret || '');
+      const secretMatches = configuredBuffer.length > 0 &&
+        suppliedBuffer.length === configuredBuffer.length &&
+        crypto.timingSafeEqual(suppliedBuffer, configuredBuffer);
+      if (!secretMatches) {
         return res.status(403).json({
           success: false,
-          message: 'Public registration as an administrator is not permitted without a valid administrator passkey. Please contact library administration.'
+          message: 'Faculty registration requires an authorized onboarding code.'
         });
       }
     }
 
     // Role-specific field validation
-    if (normalizedRole === 'student' && (!year || !year.trim())) {
+    if (normalizedRole === 'student' && (typeof year !== 'string' || !year.trim())) {
       return res.status(400).json({
         success: false,
         message: 'Academic year is required for student registration.'
       });
     }
+    if (normalizedRole === 'student' && !isAcademicYear(year.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Academic year must be one of 1st Year, 2nd Year, 3rd Year, or 4th Year.'
+      });
+    }
 
-    if ((normalizedRole === 'student' || normalizedRole === 'faculty') && (!department || !department.trim())) {
+    if ((normalizedRole === 'student' || normalizedRole === 'faculty') &&
+        (typeof department !== 'string' || !department.trim())) {
       return res.status(400).json({
         success: false,
         message: 'Department is required for student and faculty accounts.'
@@ -210,4 +237,3 @@ module.exports = {
   login,
   getMe
 };
-

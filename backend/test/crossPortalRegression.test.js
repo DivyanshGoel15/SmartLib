@@ -1,28 +1,12 @@
-const { test, describe, before, after } = require('node:test');
+const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
-const app = require('../server');
-
-let server;
-let baseUrl;
-
-before(async () => {
-  server = app.listen(0);
-  const port = server.address().port;
-  baseUrl = `http://127.0.0.1:${port}`;
-});
-
-after(async () => {
-  if (server) {
-    server.close();
-  }
-});
+const { createExam } = require('../controllers/examController');
 
 describe('G. Cross-Portal Regression & Integration Tests', () => {
 
-  test('1. Exam creation without "time" field validates and processes correctly', async () => {
-    // Both Faculty and Admin forms submit exams without a 'time' field.
+  test('1. Exam creation rejects unauthenticated callers before processing request data', async () => {
     const examPayload = {
       name: 'Advanced Algorithms Midterm',
       department: 'CSE',
@@ -31,28 +15,18 @@ describe('G. Cross-Portal Regression & Integration Tests', () => {
       endDate: '2026-11-15',
       facultyName: 'Dr. Alan Turing'
     };
-
-    assert.equal(examPayload.time, undefined, 'Exam payload must not include a time field');
-
-    const res = await fetch(`${baseUrl}/api/exams`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-secret': 'smartlib-internal-service-secret-2026'
+    let statusCode = 200;
+    let responseData;
+    await createExam(
+      { body: examPayload },
+      {
+        status(code) { statusCode = code; return this; },
+        json(data) { responseData = data; return this; }
       },
-      body: JSON.stringify(examPayload)
-    });
-
-    if (require('mongoose').connection.readyState === 1) {
-      assert.ok([200, 201].includes(res.status), `Server should accept exam without time field, got ${res.status}`);
-      const body = await res.json();
-      assert.equal(body.success, true);
-      assert.equal(body.data.name, examPayload.name);
-      assert.equal(body.data.department, 'CSE');
-    } else {
-      // Offline fallback status
-      assert.equal(res.status, 503);
-    }
+      error => { throw error; }
+    );
+    assert.equal(statusCode, 401);
+    assert.equal(responseData.success, false);
   });
 
   test('2. HTML files have exactly one footer per page and no duplicate stacked footers', () => {
@@ -164,6 +138,30 @@ describe('G. Cross-Portal Regression & Integration Tests', () => {
       const publicContent = fs.readFileSync(path.join(publicDir, f), 'utf8');
       assert.equal(rootContent, publicContent, `backend/public/${f} must match root ${f}`);
     });
+  });
+
+  test('8. Exam names and metadata are HTML-escaped in student and faculty portals', () => {
+    const rootDir = path.resolve(__dirname, '../..');
+    const facultyJs = fs.readFileSync(path.join(rootDir, 'facultyportal/faculty.js'), 'utf8');
+    const studentJs = fs.readFileSync(path.join(rootDir, 'home/studentportal/home.js'), 'utf8');
+
+    assert.ok(facultyJs.includes('${escapeHTML(exam.name)}'));
+    assert.ok(facultyJs.includes('${escapeHTML(exam.year || "All Years")}'));
+    assert.ok(!facultyJs.includes('${exam.name}'));
+    assert.ok(studentJs.includes('${escapeHTML(exam.name)}'));
+    assert.ok(studentJs.includes('${escapeHTML(exam.department)}'));
+    assert.ok(!studentJs.includes('${exam.name}'));
+  });
+
+  test('seat-list requests in each portal include the authenticated token headers', () => {
+    const rootDir = path.resolve(__dirname, '../..');
+    const studentJs = fs.readFileSync(path.join(rootDir, 'home/studentportal/home.js'), 'utf8');
+    const reservationsJs = fs.readFileSync(path.join(rootDir, 'reservations/reservations.js'), 'utf8');
+    const adminJs = fs.readFileSync(path.join(rootDir, 'adminportal/admin.js'), 'utf8');
+
+    assert.match(studentJs, /fetch\(`\$\{API_BASE_URL\}\/seats`,\s*\{\s*headers:\s*authHeaders/);
+    assert.match(reservationsJs, /fetch\(`\$\{API_BASE_URL\}\/seats`,\s*\{\s*headers:\s*getAuthHeaders\(\)/);
+    assert.match(adminJs, /fetch\(SEATS_API,\s*\{\s*headers\s*\}\)/);
   });
 
 });

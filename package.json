@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "SmartLib - Library and Study Seat Management System",
   "scripts": {
-    "setup": "cd backend && npm install && node seedSeats.js && node scripts/seedAdmin.js",
+    "setup": "cd backend && npm install && node seedSeats.js --confirm-smartlib-write && node scripts/seedAdmin.js --confirm-smartlib-write",
     "backend": "cd backend && npm start",
     "frontend": "node serveFrontend.js",
     "start": "node serveFrontend.js",

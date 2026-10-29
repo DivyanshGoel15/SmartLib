@@ -3,132 +3,118 @@ const Reservation = require('../models/Reservation');
 const Resource = require('../models/Resource');
 const { findResourceByIdOrCustomId } = require('./resourceController');
 
-// Helper to find reservation by ObjectId or customId
-const findReservationByIdOrCustomId = async (id) => {
+const isAdministrator = user => ['library_admin', 'admin'].includes(String(user.role || '').toLowerCase());
+const isOwner = (reservation, user) => String(reservation.userId) === String(user._id);
+
+const findReservationByIdOrCustomId = async id => {
   if (mongoose.Types.ObjectId.isValid(id)) {
     const reservation = await Reservation.findById(id);
     if (reservation) return reservation;
   }
-  return await Reservation.findOne({ customId: id });
+  return Reservation.findOne({ customId: id });
 };
 
-// @desc    Get all reservations (optional filters: userId, status, resourceId)
-// @route   GET /api/reservations
-// @access  Public
+const findAuthorizedReservation = async (id, user) => {
+  const reservation = await findReservationByIdOrCustomId(id);
+  if (!reservation || (!isAdministrator(user) && !isOwner(reservation, user))) {
+    return null;
+  }
+  return reservation;
+};
+
+const restoreResourceInventory = async reservation => {
+  const resource = reservation.resource
+    ? await Resource.findById(reservation.resource)
+    : await findResourceByIdOrCustomId(reservation.resourceId);
+  if (!resource) {
+    throw new Error('Reservation inventory could not be restored because its resource no longer exists.');
+  }
+
+  const restoredResource = await Resource.findOneAndUpdate(
+    { _id: resource._id, availableQuantity: { $lt: resource.totalQuantity } },
+    { $inc: { availableQuantity: 1 } },
+    { new: true, runValidators: true }
+  );
+  if (!restoredResource) {
+    throw new Error('Reservation inventory could not be restored; resource quantities require reconciliation.');
+  }
+};
+
 const getReservations = async (req, res, next) => {
   try {
     const { userId, status, resourceId } = req.query;
     const filter = {};
 
-    if (userId) {
+    if (!isAdministrator(req.user)) {
+      filter.userId = String(req.user._id);
+    } else if (userId) {
       filter.userId = String(userId);
     }
 
-    if (status) {
-      filter.status = status;
-    }
-
-    if (resourceId) {
-      filter.resourceId = String(resourceId);
-    }
+    if (status) filter.status = status;
+    if (resourceId) filter.resourceId = String(resourceId);
 
     const reservations = await Reservation.find(filter).sort({ createdAt: -1 });
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: reservations.length,
       data: reservations
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
-// @desc    Get single reservation by ID
-// @route   GET /api/reservations/:id
-// @access  Public
 const getReservationById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const reservation = await findReservationByIdOrCustomId(id);
-
+    const reservation = await findAuthorizedReservation(req.params.id, req.user);
     if (!reservation) {
       return res.status(404).json({
         success: false,
-        message: `Reservation with ID '${id}' not found`
+        message: 'Reservation not found.'
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: reservation
-    });
+    return res.status(200).json({ success: true, data: reservation });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
-// @desc    Create a new reservation
-// @route   POST /api/reservations
-// @access  Public
 const createReservation = async (req, res, next) => {
   try {
-    const {
-      resourceId,
-      resourceName,
-      userId,
-      userName,
-      userEmail,
-      department,
-      year,
-      userRole,
-      customId
-    } = req.body;
+    if (!['student', 'faculty'].includes(String(req.user.role || '').toLowerCase())) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only students and faculty can create reservations.'
+      });
+    }
 
-    // 1. Basic validation
+    const { resourceId, customId } = req.body;
     if (!resourceId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Resource ID is required'
-      });
+      return res.status(400).json({ success: false, message: 'Resource ID is required.' });
     }
 
-    if (!userId || !userName) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID and User name are required'
-      });
-    }
-
-    // 2. Verify resource exists in MongoDB
-    const resource = await findResourceByIdOrCustomId(resourceId);
+    const resource = await findResourceByIdOrCustomId(String(resourceId));
     if (!resource) {
-      return res.status(404).json({
-        success: false,
-        message: `Resource with ID '${resourceId}' not found`
-      });
+      return res.status(404).json({ success: false, message: 'Resource not found.' });
     }
 
-    // 3. Check for existing active reservation for the same resource by this user
-    const existingActiveForResource = await Reservation.findOne({
-      userId: String(userId),
-      resourceId: String(resource.customId || resource._id),
+    const userId = String(req.user._id);
+    const normalizedResourceId = String(resource.customId || resource._id);
+    const existingReservation = await Reservation.findOne({
+      userId,
+      resourceId: normalizedResourceId,
       status: 'active'
     });
-
-    if (existingActiveForResource) {
-      return res.status(400).json({
+    if (existingReservation) {
+      return res.status(409).json({
         success: false,
         message: 'You already have this resource reserved.'
       });
     }
 
-    // 4. Maximum 2 active resource reservations allowed per user
-    const activeCount = await Reservation.countDocuments({
-      userId: String(userId),
-      status: 'active'
-    });
-
+    const activeCount = await Reservation.countDocuments({ userId, status: 'active' });
     if (activeCount >= 2) {
       return res.status(400).json({
         success: false,
@@ -136,171 +122,124 @@ const createReservation = async (req, res, next) => {
       });
     }
 
-    // 5. Check resource availability
-    if (Number(resource.availableQuantity) <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Resource '${resource.name}' is currently unavailable.`
-      });
-    }
-
-    // 6. Decrement available quantity and persist
-    resource.availableQuantity = Number(resource.availableQuantity) - 1;
-    await resource.save();
-
-    // 7. Create reservation record
-    const newReservation = new Reservation({
+    const reservation = new Reservation({
       customId,
-      resourceId: resource.customId || resource._id.toString(),
+      resourceId: normalizedResourceId,
       resource: resource._id,
-      resourceName: resourceName || resource.name,
-      userId: String(userId),
-      userName,
-      userEmail: userEmail || '',
-      department: department || '',
-      year: year || '',
-      userRole: userRole || 'student',
+      resourceName: resource.name,
+      userId,
+      userName: req.user.name,
+      userEmail: req.user.email || '',
+      department: req.user.department || '',
+      year: req.user.year || '',
+      userRole: req.user.role,
       reservedAt: new Date(),
       status: 'active',
       promotedFromQueue: false
     });
 
-    const savedReservation = await newReservation.save();
+    const savedReservation = await reservation.save();
+    const claimedResource = await Resource.findOneAndUpdate(
+      { _id: resource._id, availableQuantity: { $gt: 0 } },
+      { $inc: { availableQuantity: -1 } },
+      { new: true, runValidators: true }
+    );
 
-    res.status(201).json({
+    if (!claimedResource) {
+      await Reservation.deleteOne({ _id: savedReservation._id });
+      return res.status(409).json({
+        success: false,
+        message: `Resource '${resource.name}' is currently unavailable.`
+      });
+    }
+
+    return res.status(201).json({
       success: true,
       message: `${resource.name} reserved successfully.`,
       data: savedReservation
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
-// @desc    Update a reservation (e.g. return resource or update details)
-// @route   PUT /api/reservations/:id or PATCH /api/reservations/:id
-// @access  Public
-const updateReservation = async (req, res, next) => {
+const transitionReservation = async (req, res, next, targetStatus) => {
   try {
-    const { id } = req.params;
-    const reservation = await findReservationByIdOrCustomId(id);
-
+    const reservation = await findAuthorizedReservation(req.params.id, req.user);
     if (!reservation) {
-      return res.status(404).json({
+      return res.status(404).json({ success: false, message: 'Reservation not found.' });
+    }
+    if (reservation.status !== 'active') {
+      return res.status(409).json({
         success: false,
-        message: `Reservation with ID '${id}' not found`
+        message: reservation.status === 'returned'
+          ? 'This reservation is already returned.'
+          : 'This reservation is no longer active.'
       });
     }
 
-    const { status, returnedAt } = req.body;
-
-    // Handle resource return
-    if (status === 'returned' && reservation.status !== 'returned') {
-      reservation.status = 'returned';
-      reservation.returnedAt = returnedAt ? new Date(returnedAt) : new Date();
-
-      // Restore resource availability in MongoDB
-      const resource = await findResourceByIdOrCustomId(reservation.resourceId);
-      if (resource) {
-        if (resource.availableQuantity < resource.totalQuantity) {
-          resource.availableQuantity = Number(resource.availableQuantity) + 1;
-          await resource.save();
-        }
-      }
-    } else if (status && status !== reservation.status) {
-      reservation.status = status;
+    const returnedAt = targetStatus === 'returned' ? new Date() : null;
+    const updatedReservation = await Reservation.findOneAndUpdate(
+      { _id: reservation._id, status: 'active' },
+      { $set: { status: targetStatus, returnedAt } },
+      { new: true, runValidators: true }
+    );
+    if (!updatedReservation) {
+      return res.status(409).json({
+        success: false,
+        message: 'Reservation status changed. Refresh and try again.'
+      });
     }
 
-    const updatedReservation = await reservation.save();
+    await restoreResourceInventory(updatedReservation);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Reservation updated successfully',
+      message: targetStatus === 'returned'
+        ? `${updatedReservation.resourceName} returned successfully.`
+        : 'Reservation cancelled successfully.',
       data: updatedReservation
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
-// @desc    Return a reserved resource
-// @route   POST /api/reservations/:id/return
-// @access  Public
-const returnReservation = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const reservation = await findReservationByIdOrCustomId(id);
-
-    if (!reservation) {
-      return res.status(404).json({
-        success: false,
-        message: `Reservation with ID '${id}' not found`
-      });
-    }
-
-    if (reservation.status === 'returned') {
-      return res.status(400).json({
-        success: false,
-        message: 'This reservation is already returned.'
-      });
-    }
-
-    reservation.status = 'returned';
-    reservation.returnedAt = new Date();
-    await reservation.save();
-
-    // Increment resource available quantity
-    const resource = await findResourceByIdOrCustomId(reservation.resourceId);
-    if (resource) {
-      if (resource.availableQuantity < resource.totalQuantity) {
-        resource.availableQuantity = Number(resource.availableQuantity) + 1;
-        await resource.save();
-      }
-    }
-
-    res.status(200).json({
-      success: true,
-      message: `${reservation.resourceName} returned successfully.`,
-      data: reservation
+const updateReservation = async (req, res, next) => {
+  const { status } = req.body;
+  if (!['returned', 'cancelled'].includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Reservation updates may only return or cancel an active reservation.'
     });
-  } catch (error) {
-    next(error);
   }
+  return transitionReservation(req, res, next, status);
 };
 
-// @desc    Delete a reservation
-// @route   DELETE /api/reservations/:id
-// @access  Public
+const returnReservation = (req, res, next) =>
+  transitionReservation(req, res, next, 'returned');
+
 const deleteReservation = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const reservation = await findReservationByIdOrCustomId(id);
-
+    const reservation = await findAuthorizedReservation(req.params.id, req.user);
     if (!reservation) {
-      return res.status(404).json({
+      return res.status(404).json({ success: false, message: 'Reservation not found.' });
+    }
+    if (reservation.status === 'active') {
+      return res.status(409).json({
         success: false,
-        message: `Reservation with ID '${id}' not found`
+        message: 'Return or cancel an active reservation before deleting it.'
       });
     }
 
-    // If reservation was active, restore available quantity
-    if (reservation.status === 'active') {
-      const resource = await findResourceByIdOrCustomId(reservation.resourceId);
-      if (resource && resource.availableQuantity < resource.totalQuantity) {
-        resource.availableQuantity = Number(resource.availableQuantity) + 1;
-        await resource.save();
-      }
-    }
-
-    await Reservation.findByIdAndDelete(reservation._id);
-
-    res.status(200).json({
+    await Reservation.deleteOne({ _id: reservation._id, status: reservation.status });
+    return res.status(200).json({
       success: true,
-      message: 'Reservation deleted successfully',
+      message: 'Reservation deleted successfully.',
       data: { id: reservation.customId || reservation._id }
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 

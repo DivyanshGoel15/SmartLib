@@ -16,6 +16,18 @@ const currentUser =
 
 const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL) || "https://smartlib-sjya.onrender.com/api";
 
+function escapeHTML(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+const authToken = sessionStorage.getItem("smartlibToken");
+const authHeaders = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+
 
 /* =========================================================
    LOGIN CHECK
@@ -208,8 +220,12 @@ function updateLiveReservationCount() {
     if (currentUser && (currentUser.id || currentUser._id)) {
         const uid = currentUser.id || currentUser._id;
         Promise.all([
-            fetch(`${API_BASE_URL}/reservations?userId=${encodeURIComponent(uid)}&status=active`).then(res => res.json()).catch(() => null),
-            fetch(`${API_BASE_URL}/seats`).then(res => res.json()).catch(() => null)
+            fetch(`${API_BASE_URL}/reservations?userId=${encodeURIComponent(uid)}&status=active`, {
+                headers: authHeaders
+            }).then(res => res.json()).catch(() => null),
+            fetch(`${API_BASE_URL}/seats`, {
+                headers: authHeaders
+            }).then(res => res.json()).catch(() => null)
         ]).then(([resData, seatsData]) => {
             let count = 0;
             if (resData && typeof resData.count === 'number') {
@@ -496,27 +512,27 @@ function renderExamStatus() {
                             <div>
 
                                 <strong>
-                                    ${exam.name}
+                                    ${escapeHTML(exam.name)}
                                 </strong>
 
                                 <br>
 
                                 <small>
-                                    ${exam.department}
+                                    ${escapeHTML(exam.department)}
                                     ·
-                                    ${exam.year}
+                                    ${escapeHTML(exam.year)}
                                 </small>
 
                             </div>
 
                             <small>
-                                ${formatDate(
+                                ${escapeHTML(formatDate(
                                     exam.startDate
-                                )}
+                                ))}
                                 —
-                                ${formatDate(
+                                ${escapeHTML(formatDate(
                                     exam.endDate
-                                )}
+                                ))}
                             </small>
 
                         </div>
@@ -549,27 +565,27 @@ function renderExamStatus() {
                                             <div>
 
                                                 <strong>
-                                                    ${exam.name}
+                                                    ${escapeHTML(exam.name)}
                                                 </strong>
 
                                                 <br>
 
                                                 <small>
-                                                    ${exam.department}
+                                                    ${escapeHTML(exam.department)}
                                                     ·
-                                                    ${exam.year}
+                                                    ${escapeHTML(exam.year)}
                                                 </small>
 
                                             </div>
 
                                             <small>
-                                                ${formatDate(
+                                                ${escapeHTML(formatDate(
                                                     exam.startDate
-                                                )}
+                                                ))}
                                                 —
-                                                ${formatDate(
+                                                ${escapeHTML(formatDate(
                                                     exam.endDate
-                                                )}
+                                                ))}
                                             </small>
 
                                         </div>
@@ -629,27 +645,27 @@ function renderExamStatus() {
                                     <div>
 
                                         <strong>
-                                            ${exam.name}
+                                            ${escapeHTML(exam.name)}
                                         </strong>
 
                                         <br>
 
                                         <small>
-                                            ${exam.department}
+                                            ${escapeHTML(exam.department)}
                                             ·
-                                            ${exam.year}
+                                            ${escapeHTML(exam.year)}
                                         </small>
 
                                     </div>
 
                                     <small>
-                                        ${formatDate(
+                                        ${escapeHTML(formatDate(
                                             exam.startDate
-                                        )}
+                                        ))}
                                         —
-                                        ${formatDate(
+                                        ${escapeHTML(formatDate(
                                             exam.endDate
-                                        )}
+                                        ))}
                                     </small>
 
                                 </div>
@@ -683,8 +699,8 @@ function renderExamStatus() {
             No active or upcoming examination
             has been recorded for
 
-            ${currentUser.department}
-            ${currentUser.year}.
+            ${escapeHTML(currentUser.department)}
+            ${escapeHTML(currentUser.year)}.
 
             Your reservation requests will use
             the standard priority rules.

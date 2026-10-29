@@ -212,6 +212,11 @@ const API_BASE_URL = (window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_
     localStorage.getItem("SMARTLIB_API_URL") ||
     "https://smartlib-sjya.onrender.com/api";
 
+function getAuthHeaders() {
+    const token = sessionStorage.getItem("smartlibToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 let apiResources = null;
 let apiReservations = null;
 
@@ -239,7 +244,9 @@ async function fetchResourcesFromAPI() {
 async function fetchReservationsFromAPI() {
     if (!currentUser) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/reservations?userId=${currentUser.id}`);
+        const response = await fetch(`${API_BASE_URL}/reservations?userId=${currentUser.id}`, {
+            headers: getAuthHeaders()
+        });
         if (response.ok) {
             const data = await response.json();
             if (data && Array.isArray(data.data)) {
@@ -642,6 +649,7 @@ async function reserveResource(resourceId) {
             const response = await fetch(`${API_BASE_URL}/reservations`, {
                 method: "POST",
                 headers: {
+                    ...getAuthHeaders(),
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
