@@ -317,11 +317,3 @@ git log -1 --oneline
 git diff
 npm test
 ```
-
-## Contributors
-
-Add or update the project contributors and their responsibilities here.
-
-## License
-
-Add the license that applies to this repository. Do not claim a license unless a corresponding license file or explicit project decision exists.
