@@ -40,6 +40,72 @@ const message =
 
 /*
 ============================================================
+1.5 API & LIVE DATA CONFIGURATION
+============================================================
+*/
+
+const API_BASE_URL = (typeof window !== "undefined" && window.SMARTLIB_CONFIG && typeof window.SMARTLIB_CONFIG.getBaseUrl === "function")
+    ? window.SMARTLIB_CONFIG.getBaseUrl()
+    : (typeof window !== "undefined" && window.SMARTLIB_CONFIG && window.SMARTLIB_CONFIG.API_BASE_URL)
+        ? window.SMARTLIB_CONFIG.API_BASE_URL
+        : (typeof window !== "undefined" && window.location && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === ""))
+            ? "http://localhost:5000/api"
+            : "https://smartlib-sjya.onrender.com/api";
+
+let apiResources = null;
+let apiReservations = null;
+
+const defaultResources = [
+    { id: "RES001", customId: "RES001", name: "Data Structures & Algorithms", type: "Book", department: "CSE", totalQuantity: 5, availableQuantity: 5 },
+    { id: "RES002", customId: "RES002", name: "Database Management Systems", type: "Book", department: "CSE", totalQuantity: 4, availableQuantity: 4 },
+    { id: "RES003", customId: "RES003", name: "Computer Networks", type: "Book", department: "CSE", totalQuantity: 4, availableQuantity: 4 },
+    { id: "RES004", customId: "RES004", name: "Scientific Calculator", type: "Equipment", department: "CSE", totalQuantity: 5, availableQuantity: 5 },
+    { id: "RES005", customId: "RES005", name: "Laptop", type: "Equipment", department: "CSE", totalQuantity: 2, availableQuantity: 2 },
+    { id: "RES006", customId: "RES006", name: "Machine Learning", type: "Book", department: "AI & ML", totalQuantity: 5, availableQuantity: 5 },
+    { id: "RES007", customId: "RES007", name: "Python Programming", type: "Book", department: "AI & ML", totalQuantity: 5, availableQuantity: 5 },
+    { id: "RES008", customId: "RES008", name: "GPU Workstation", type: "Equipment", department: "AI & ML", totalQuantity: 2, availableQuantity: 2 },
+    { id: "RES009", customId: "RES009", name: "Digital Electronics", type: "Book", department: "ECE", totalQuantity: 5, availableQuantity: 5 },
+    { id: "RES010", customId: "RES010", name: "Arduino Kit", type: "Equipment", department: "ECE", totalQuantity: 3, availableQuantity: 3 }
+];
+
+async function adminFetchResources() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/resources`);
+        const data = await response.json().catch(() => null);
+        if (response.ok && data && Array.isArray(data.data)) {
+            apiResources = data.data;
+            saveResources(data.data);
+            if (typeof renderResources === "function") renderResources();
+            if (typeof renderStats === "function") renderStats();
+            if (typeof populateDepartmentFilter === "function") populateDepartmentFilter();
+            return data.data;
+        }
+    } catch (e) {
+        console.warn("[Admin] Could not load resources from API, using fallback:", e);
+    }
+    return null;
+}
+
+async function adminFetchReservations() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/reservations`);
+        const data = await response.json().catch(() => null);
+        if (response.ok && data && Array.isArray(data.data)) {
+            apiReservations = data.data;
+            saveReservations(data.data);
+            if (typeof renderReservations === "function") renderReservations();
+            if (typeof renderStats === "function") renderStats();
+            if (typeof renderActivity === "function") renderActivity();
+            return data.data;
+        }
+    } catch (e) {
+        console.warn("[Admin] Could not load reservations from API, using fallback:", e);
+    }
+    return null;
+}
+
+/*
+============================================================
 2. STORAGE
 ============================================================
 */
@@ -50,9 +116,15 @@ function getResources() {
         return apiResources;
     }
 
-    return JSON.parse(
+    const local = JSON.parse(
         localStorage.getItem("libraryResources") || "[]"
     );
+
+    if (local && local.length > 0) {
+        return local;
+    }
+
+    return defaultResources;
 
 }
 
@@ -875,13 +947,15 @@ function renderReservations() {
 
 
                 const userName =
+                    reservation.userName ||
                     user?.name ||
                     "Unknown User";
 
 
                 const userRole =
+                    reservation.userRole ||
                     user?.role ||
-                    "unknown";
+                    "student";
 
 
                 const roleLabel =
@@ -891,7 +965,7 @@ function renderReservations() {
                             ? "Student"
                             : userRole === "library_admin"
                                 ? "Library Admin"
-                                : "Unknown";
+                                : "Student";
 
 
                 const department =
@@ -902,6 +976,7 @@ function renderReservations() {
 
 
                 const email =
+                    reservation.userEmail ||
                     user?.email ||
                     "No email available";
 
@@ -5248,7 +5323,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     adminRenderExams();
 
-    Promise.all([adminFetchStudents(), adminFetchExams()]).then(([students, exams]) => {
+    Promise.all([
+        adminFetchResources(),
+        adminFetchReservations(),
+        adminFetchStudents(),
+        adminFetchExams()
+    ]).then(([resources, reservations, students, exams]) => {
         if (students) window.adminCachedStudentsGlobal = students;
         adminRenderStudents();
         adminRenderExams();
@@ -5257,11 +5337,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    window.addEventListener("focus", () => {
+    const syncAllAdminData = () => {
+        adminFetchResources();
+        adminFetchReservations();
         adminFetchStudents().then(s => { if (s) { window.adminCachedStudentsGlobal = s; adminRenderStudents(); renderStats(); } });
         adminFetchExams().then(() => adminRenderExams());
         if (typeof window.adminLoadSeats === "function") window.adminLoadSeats();
-    });
+    };
+
+    window.addEventListener("focus", syncAllAdminData);
+    setInterval(syncAllAdminData, 8000);
 });
 
 /* ============================================================
